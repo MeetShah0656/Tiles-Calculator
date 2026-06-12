@@ -107,19 +107,19 @@ export default function ReportsTab() {
   const customerData = getCustomerReportData();
 
   return (
-    <div className="space-y-6 pb-20 md:pb-12">
+    <div className="space-y-5 md:space-y-6 pb-20 md:pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
           Business Analytics
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Perform reviews of fabricated area, completed invoices, and client billing logs.
+          Reviews of fabricated area, invoices, and client billing logs.
         </p>
       </div>
 
-      {/* Selector Tabs */}
-      <div className="flex rounded-sm bg-white p-1 border border-slate-200 max-w-md">
+      {/* Selector Tabs — full width on mobile */}
+      <div className="flex rounded-sm bg-white p-1 border border-slate-200 w-full md:max-w-md">
         <button
           onClick={() => setActiveReport('daily')}
           className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 text-xs font-semibold rounded-sm transition-all ${
@@ -157,40 +157,33 @@ export default function ReportsTab() {
 
       {/* Daily Report View */}
       {activeReport === 'daily' && (
-        <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
-          <div className="flex items-center space-x-2 mb-6">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm">
+          <div className="flex items-center space-x-2 mb-4 md:mb-6">
             <Calendar className="text-primary" size={18} />
             <span className="font-bold text-slate-900">Daily Job Statistics</span>
           </div>
-
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
             {dailyData.length === 0 ? (
               <p className="text-sm text-slate-500 text-center py-8">No daily records found.</p>
             ) : (
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[400px] px-4 md:px-0">
                 <thead>
-                  <tr className="border-b border-slate-200 text-2xs font-bold uppercase tracking-wider text-slate-400 pb-3">
-                    <th className="pb-3 pr-4">Date</th>
-                    <th className="pb-3 px-4 text-center">Jobs Logged</th>
-                    <th className="pb-3 px-4 text-right">Area Sold (sq ft)</th>
-                    <th className="pb-3 pl-4 text-right">Est. Revenue</th>
+                  <tr className="border-b border-slate-200 text-2xs font-bold uppercase tracking-wider text-slate-400">
+                    <th className="pb-3 pr-4 pl-4 md:pl-0">Date</th>
+                    <th className="pb-3 px-4 text-center">Jobs</th>
+                    <th className="pb-3 px-4 text-right">Area (sq ft)</th>
+                    <th className="pb-3 pl-4 pr-4 md:pr-0 text-right">Revenue</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {dailyData.map((row) => (
                     <tr key={row.date} className="hover:bg-slate-50">
-                      <td className="py-3.5 pr-4 text-sm font-semibold text-slate-900">
+                      <td className="py-3 pr-4 pl-4 md:pl-0 text-sm font-semibold text-slate-900">
                         {new Date(row.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </td>
-                      <td className="py-3.5 px-4 text-sm text-center font-medium text-slate-600">
-                        {row.count}
-                      </td>
-                      <td className="py-3.5 px-4 text-sm text-right font-medium text-slate-900">
-                        {row.area.toFixed(2)}
-                      </td>
-                      <td className="py-3.5 pl-4 text-sm text-right text-primary font-bold">
-                        {formatCurrency(row.revenue)}
-                      </td>
+                      <td className="py-3 px-4 text-sm text-center font-medium text-slate-600">{row.count}</td>
+                      <td className="py-3 px-4 text-sm text-right font-medium text-slate-900">{row.area.toFixed(2)}</td>
+                      <td className="py-3 pl-4 pr-4 md:pr-0 text-sm text-right text-primary font-bold">{formatCurrency(row.revenue)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -202,40 +195,33 @@ export default function ReportsTab() {
 
       {/* Monthly Report View */}
       {activeReport === 'monthly' && (
-        <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
-          <div className="flex items-center space-x-2 mb-6">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm">
+          <div className="flex items-center space-x-2 mb-4 md:mb-6">
             <BarChart4 className="text-primary" size={18} />
             <span className="font-bold text-slate-900">Monthly Revenue & Volume</span>
           </div>
-
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
             {monthlyData.length === 0 ? (
               <p className="text-sm text-slate-500 text-center py-8">No monthly records found.</p>
             ) : (
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[380px]">
                 <thead>
-                  <tr className="border-b border-slate-200 text-2xs font-bold uppercase tracking-wider text-slate-400 pb-3">
-                    <th className="pb-3 pr-4">Month</th>
-                    <th className="pb-3 px-4 text-center">Total Jobs</th>
-                    <th className="pb-3 px-4 text-right">Area Sold (sq ft)</th>
-                    <th className="pb-3 pl-4 text-right">Revenue</th>
+                  <tr className="border-b border-slate-200 text-2xs font-bold uppercase tracking-wider text-slate-400">
+                    <th className="pb-3 pr-4 pl-4 md:pl-0">Month</th>
+                    <th className="pb-3 px-4 text-center">Jobs</th>
+                    <th className="pb-3 px-4 text-right">Area (sq ft)</th>
+                    <th className="pb-3 pl-4 pr-4 md:pr-0 text-right">Revenue</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {monthlyData.map((row) => (
                     <tr key={row.month} className="hover:bg-slate-50">
-                      <td className="py-3.5 pr-4 text-sm font-semibold text-slate-900">
-                        {new Date(row.month + '-02').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                      <td className="py-3 pr-4 pl-4 md:pl-0 text-sm font-semibold text-slate-900">
+                        {new Date(row.month + '-02').toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
                       </td>
-                      <td className="py-3.5 px-4 text-sm text-center font-medium text-slate-600">
-                        {row.count}
-                      </td>
-                      <td className="py-3.5 px-4 text-sm text-right font-medium text-slate-900">
-                        {row.area.toFixed(2)}
-                      </td>
-                      <td className="py-3.5 pl-4 text-sm text-right text-primary font-bold">
-                        {formatCurrency(row.revenue)}
-                      </td>
+                      <td className="py-3 px-4 text-sm text-center font-medium text-slate-600">{row.count}</td>
+                      <td className="py-3 px-4 text-sm text-right font-medium text-slate-900">{row.area.toFixed(2)}</td>
+                      <td className="py-3 pl-4 pr-4 md:pr-0 text-sm text-right text-primary font-bold">{formatCurrency(row.revenue)}</td>
                     </tr>
                   ))}
                 </tbody>
