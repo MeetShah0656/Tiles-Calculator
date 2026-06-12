@@ -32,6 +32,64 @@ export default function Home() {
     }
   }, []);
 
+  // Recover active session on mount & subscribe to changes
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    const checkSession = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey) return;
+
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Get active session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+        }
+
+        // Listen for auth state changes (e.g., sign in, sign out)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user) {
+            setUser(session.user);
+          } else {
+            setUser(null);
+          }
+        });
+
+        unsubscribe = () => {
+          subscription.unsubscribe();
+        };
+      } catch (err) {
+        console.error("Failed to recover session:", err);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setUser(null);
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey) return;
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Failed to sign out from Supabase:", err);
+    }
+  };
+
   if (!user) {
     return <AuthScreen onLoginSuccess={setUser} />;
   }
@@ -69,7 +127,7 @@ export default function Home() {
         <Navbar 
           currentTab={currentTab} 
           setCurrentTab={setCurrentTab} 
-          onLogout={() => setUser(null)} 
+          onLogout={handleLogout} 
         />
         
         <main className="flex-grow mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-24 md:pb-8">
