@@ -147,9 +147,20 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                   </div>
                 </div>
 
+                {/* Tile Tags */}
+                {job.tiles && job.tiles.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                    {job.tiles.map((tile, idx) => (
+                      <span key={tile.id || idx} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-sm border border-slate-200 font-bold">
+                        {tile.tileName || `Tile ${idx + 1}`}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 {job.notes && (
                   <p className="text-2xs text-slate-500 mt-3 italic line-clamp-2 bg-slate-50 p-2 rounded-sm border border-slate-200">
-                    "{job.notes}"
+                    "{job.notes.split('\n\n__TILES_DATA__')[0]}"
                   </p>
                 )}
               </div>

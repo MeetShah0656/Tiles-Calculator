@@ -172,45 +172,54 @@ export default function Home() {
         </div>
 
         {/* Measurements List Table */}
-        <table className="w-full mt-6 text-left border-collapse border border-slate-200">
-          <thead>
-            <tr className="bg-slate-100 border-b border-slate-200 font-bold uppercase text-[9px]">
-              <th className="p-2 border border-slate-200 text-center w-8">#</th>
-              <th className="p-2 border border-slate-200">Length (in)</th>
-              <th className="p-2 border border-slate-200">Width (in)</th>
-              <th className="p-2 border border-slate-200 text-center">Qty</th>
-              <th className="p-2 border border-slate-200">Rounded Length (ft)</th>
-              <th className="p-2 border border-slate-200">Rounded Width (ft)</th>
-              <th className="p-2 border border-slate-200 text-right">Area/Piece (sq ft)</th>
-              <th className="p-2 border border-slate-200 text-right">Total Area (sq ft)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-250">
-            {activeJob.rows.map((row, idx) => (
-              <tr key={row.id}>
-                <td className="p-2 border border-slate-200 text-center">{idx + 1}</td>
-                <td className="p-2 border border-slate-200 font-semibold">{row.lengthInches || '-'}</td>
-                <td className="p-2 border border-slate-200 font-semibold">{row.widthInches || '-'}</td>
-                <td className="p-2 border border-slate-200 text-center font-semibold">{row.quantity}</td>
-                <td className="p-2 border border-slate-200">{row.roundedLengthFt > 0 ? `${row.roundedLengthFt.toFixed(2)} ft` : '-'}</td>
-                <td className="p-2 border border-slate-200">{row.roundedWidthFt > 0 ? `${row.roundedWidthFt.toFixed(2)} ft` : '-'}</td>
-                <td className="p-2 border border-slate-200 text-right font-medium">{row.areaPerPiece > 0 ? row.areaPerPiece.toFixed(2) : '-'}</td>
-                <td className="p-2 border border-slate-200 text-right font-bold">{row.totalArea > 0 ? row.totalArea.toFixed(2) : '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {activeJob.tiles.map((tile, tIdx) => (
+          <div key={tile.id || tIdx} className="mt-6">
+            <h3 className="font-extrabold text-slate-900 text-xs uppercase mb-1.5 bg-slate-100 p-2 border border-slate-205 rounded-sm">
+              {tile.tileName || `Tile Group ${tIdx + 1}`} &mdash; ₹{tile.ratePerSqft}/sq ft
+            </h3>
+            <table className="w-full text-left border-collapse border border-slate-200">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-[9px]">
+                  <th className="p-2 border border-slate-200 text-center w-8">#</th>
+                  <th className="p-2 border border-slate-200">Location</th>
+                  <th className="p-2 border border-slate-200">Length (in)</th>
+                  <th className="p-2 border border-slate-200">Width (in)</th>
+                  <th className="p-2 border border-slate-200 text-center">Qty</th>
+                  <th className="p-2 border border-slate-200">Rounded Length (ft)</th>
+                  <th className="p-2 border border-slate-200">Rounded Width (ft)</th>
+                  <th className="p-2 border border-slate-200 text-right">Area/Piece (sq ft)</th>
+                  <th className="p-2 border border-slate-200 text-right">Total Area (sq ft)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {tile.rows.map((row, idx) => (
+                  <tr key={row.id}>
+                    <td className="p-2 border border-slate-200 text-center">{idx + 1}</td>
+                    <td className="p-2 border border-slate-200 font-semibold">{row.location || '-'}</td>
+                    <td className="p-2 border border-slate-200 font-semibold">{row.lengthInches || '-'}</td>
+                    <td className="p-2 border border-slate-200 font-semibold">{row.widthInches || '-'}</td>
+                    <td className="p-2 border border-slate-200 text-center font-semibold">{row.quantity}</td>
+                    <td className="p-2 border border-slate-200">{row.roundedLengthFt > 0 ? `${row.roundedLengthFt.toFixed(2)} ft` : '-'}</td>
+                    <td className="p-2 border border-slate-200">{row.roundedWidthFt > 0 ? `${row.roundedWidthFt.toFixed(2)} ft` : '-'}</td>
+                    <td className="p-2 border border-slate-200 text-right font-medium">{row.areaPerPiece > 0 ? row.areaPerPiece.toFixed(2) : '-'}</td>
+                    <td className="p-2 border border-slate-200 text-right font-bold">{row.totalArea > 0 ? row.totalArea.toFixed(2) : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-end text-2xs font-bold text-slate-700 mt-1.5 pr-1 space-x-4">
+              <span>Total Area: {tile.totalArea.toFixed(2)} sq ft</span>
+              <span>Subtotal: {formatCurrency(tile.subtotal)}</span>
+            </div>
+          </div>
+        ))}
 
         {/* Pricing Summary */}
         <div className="flex justify-end mt-6">
           <div className="w-1/2 space-y-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-sm">
             <div className="flex justify-between font-medium text-slate-500">
-              <span>Total Area:</span>
+              <span>Total Area (All Tiles):</span>
               <span className="font-extrabold text-slate-900">{activeJob.totalArea.toFixed(2)} sq ft</span>
-            </div>
-            <div className="flex justify-between font-medium text-slate-500 border-t border-slate-200 pt-1.5">
-              <span>Fabrication Rate:</span>
-              <span className="font-bold text-slate-900">₹{activeJob.ratePerSqft}/sq ft</span>
             </div>
             <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-sm">
               <span>Grand Total:</span>
@@ -218,7 +227,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
         {/* Footer Disclaimers */}
         <div className="mt-12 pt-6 border-t border-slate-200 text-center text-[10px] text-slate-400">
           <p>This is a computer-generated quote. Running dimensions rounded to the nearest 0.25 ft increment.</p>

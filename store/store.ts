@@ -3,13 +3,23 @@ import { persist } from 'zustand/middleware';
 
 export interface MeasurementRow {
   id: string;
-  lengthInches: string; // Keep as string for form input handling
+  location: string;       // "Living Room Floor", "Kitchen Wall", etc.
+  lengthInches: string;   // Keep as string for form input handling
   widthInches: string;
   quantity: number;
   roundedLengthFt: number;
   roundedWidthFt: number;
   areaPerPiece: number;
   totalArea: number;
+}
+
+export interface TileGroup {
+  id: string;
+  tileName: string;       // e.g. "Kajaria 60x60 Matt White"
+  ratePerSqft: number;
+  rows: MeasurementRow[];
+  totalArea: number;      // auto-calculated
+  subtotal: number;       // totalArea * ratePerSqft
 }
 
 export interface Job {
@@ -19,13 +29,12 @@ export interface Job {
   projectName: string;
   siteAddress: string;
   notes: string;
-  ratePerSqft: number;
-  totalArea: number;
-  grandTotal: number;
+  tiles: TileGroup[];     // Replaces old flat rows and single ratePerSqft
+  totalArea: number;      // sum of all tile areas
+  grandTotal: number;     // sum of all tile subtotals
   status: 'pending' | 'completed' | 'cancelled';
   syncStatus: 'synced' | 'pending_sync';
   createdAt: string;
-  rows: MeasurementRow[];
 }
 
 interface JobStore {
@@ -34,12 +43,19 @@ interface JobStore {
   isOnline: boolean;
   
   // Actions
-  updateActiveJobDetails: (fields: Partial<Omit<Job, 'id' | 'createdAt' | 'syncStatus' | 'rows'>>) => void;
-  setRows: (rows: MeasurementRow[]) => void;
-  addRow: () => void;
-  updateRow: (id: string, field: 'lengthInches' | 'widthInches' | 'quantity', value: string | number) => void;
-  duplicateRow: (id: string) => void;
-  deleteRow: (id: string) => void;
+  updateActiveJobDetails: (fields: Partial<Omit<Job, 'id' | 'createdAt' | 'syncStatus' | 'tiles'>>) => void;
+  
+  // Tile actions
+  addTile: () => void;
+  updateTile: (tileId: string, fields: Partial<Pick<TileGroup, 'tileName' | 'ratePerSqft'>>) => void;
+  deleteTile: (tileId: string) => void;
+  
+  // Row actions within tiles
+  addRowToTile: (tileId: string) => void;
+  updateTileRow: (tileId: string, rowId: string, field: 'location' | 'lengthInches' | 'widthInches' | 'quantity', value: string | number) => void;
+  duplicateRowInTile: (tileId: string, rowId: string) => void;
+  deleteRowFromTile: (tileId: string, rowId: string) => void;
+  
   resetActiveJob: () => void;
   
   // Job database operations
@@ -85,25 +101,59 @@ const calculateRowDimensions = (lengthInches: string, widthInches: string, quant
   };
 };
 
+const recalculateTileTotals = (tile: TileGroup): TileGroup => {
+  const rows = tile.rows.map((row) => {
+    const calculations = calculateRowDimensions(row.lengthInches, row.widthInches, row.quantity);
+    return { ...row, ...calculations };
+  });
+  const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
+  const subtotal = totalArea * (tile.ratePerSqft || 0);
+  return {
+    ...tile,
+    rows,
+    totalArea,
+    subtotal
+  };
+};
+
+const recalculateJobTotals = (activeJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'>): Omit<Job, 'id' | 'createdAt' | 'syncStatus'> => {
+  const updatedTiles = activeJob.tiles.map(recalculateTileTotals);
+  const totalArea = updatedTiles.reduce((sum, t) => sum + t.totalArea, 0);
+  const grandTotal = updatedTiles.reduce((sum, t) => sum + t.subtotal, 0);
+  return {
+    ...activeJob,
+    tiles: updatedTiles,
+    totalArea,
+    grandTotal
+  };
+};
+
 const initialActiveJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'> = {
   customerName: '',
   phoneNumber: '',
   projectName: '',
   siteAddress: '',
   notes: '',
-  ratePerSqft: 0,
   totalArea: 0,
   grandTotal: 0,
   status: 'pending',
-  rows: [{
-    id: '1',
-    lengthInches: '',
-    widthInches: '',
-    quantity: 1,
-    roundedLengthFt: 0,
-    roundedWidthFt: 0,
-    areaPerPiece: 0,
-    totalArea: 0
+  tiles: [{
+    id: 'tile-1',
+    tileName: '',
+    ratePerSqft: 0,
+    rows: [{
+      id: 'row-1',
+      location: '',
+      lengthInches: '',
+      widthInches: '',
+      quantity: 1,
+      roundedLengthFt: 0,
+      roundedWidthFt: 0,
+      areaPerPiece: 0,
+      totalArea: 0
+    }],
+    totalArea: 0,
+    subtotal: 0
   }]
 };
 
@@ -116,111 +166,17 @@ export const useJobStore = create<JobStore>()(
 
       updateActiveJobDetails: (fields) => set((state) => {
         const updatedJob = { ...state.activeJob, ...fields };
-        const grandTotal = updatedJob.totalArea * (updatedJob.ratePerSqft || 0);
-        return {
-          activeJob: {
-            ...updatedJob,
-            grandTotal
-          }
-        };
+        return { activeJob: recalculateJobTotals(updatedJob) };
       }),
 
-      setRows: (rows) => set((state) => {
-        const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
-        const grandTotal = totalArea * (state.activeJob.ratePerSqft || 0);
-        return {
-          activeJob: {
-            ...state.activeJob,
-            rows,
-            totalArea,
-            grandTotal
-          }
-        };
-      }),
-
-      addRow: () => set((state) => {
-        const newRow: MeasurementRow = {
+      addTile: () => set((state) => {
+        const newTile: TileGroup = {
           id: Math.random().toString(36).substr(2, 9),
-          lengthInches: '',
-          widthInches: '',
-          quantity: 1,
-          roundedLengthFt: 0,
-          roundedWidthFt: 0,
-          areaPerPiece: 0,
-          totalArea: 0
-        };
-        const rows = [...state.activeJob.rows, newRow];
-        return {
-          activeJob: {
-            ...state.activeJob,
-            rows
-          }
-        };
-      }),
-
-      updateRow: (id, field, value) => set((state) => {
-        const rows = state.activeJob.rows.map((row) => {
-          if (row.id !== id) return row;
-          
-          const updatedRow = { ...row };
-          if (field === 'lengthInches') updatedRow.lengthInches = String(value);
-          if (field === 'widthInches') updatedRow.widthInches = String(value);
-          if (field === 'quantity') updatedRow.quantity = Number(value);
-
-          const calculations = calculateRowDimensions(
-            updatedRow.lengthInches,
-            updatedRow.widthInches,
-            updatedRow.quantity
-          );
-
-          return {
-            ...updatedRow,
-            ...calculations
-          };
-        });
-
-        const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
-        const grandTotal = totalArea * (state.activeJob.ratePerSqft || 0);
-
-        return {
-          activeJob: {
-            ...state.activeJob,
-            rows,
-            totalArea,
-            grandTotal
-          }
-        };
-      }),
-
-      duplicateRow: (id) => set((state) => {
-        const targetRow = state.activeJob.rows.find((r) => r.id === id);
-        if (!targetRow) return {};
-        
-        const newRow: MeasurementRow = {
-          ...targetRow,
-          id: Math.random().toString(36).substr(2, 9),
-        };
-        
-        const rows = [...state.activeJob.rows, newRow];
-        const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
-        const grandTotal = totalArea * (state.activeJob.ratePerSqft || 0);
-        
-        return {
-          activeJob: {
-            ...state.activeJob,
-            rows,
-            totalArea,
-            grandTotal
-          }
-        };
-      }),
-
-      deleteRow: (id) => set((state) => {
-        const rows = state.activeJob.rows.filter((r) => r.id !== id);
-        // Ensure at least one row remains
-        const finalRows = rows.length > 0 ? rows : [
-          {
-            id: '1',
+          tileName: '',
+          ratePerSqft: 0,
+          rows: [{
+            id: Math.random().toString(36).substr(2, 9),
+            location: '',
             lengthInches: '',
             widthInches: '',
             quantity: 1,
@@ -228,20 +184,150 @@ export const useJobStore = create<JobStore>()(
             roundedWidthFt: 0,
             areaPerPiece: 0,
             totalArea: 0
+          }],
+          totalArea: 0,
+          subtotal: 0
+        };
+        const activeJob = {
+          ...state.activeJob,
+          tiles: [...state.activeJob.tiles, newTile]
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      updateTile: (tileId, fields) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => t.id === tileId ? { ...t, ...fields } : t)
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      deleteTile: (tileId) => set((state) => {
+        const tiles = state.activeJob.tiles.filter((t) => t.id !== tileId);
+        const finalTiles = tiles.length > 0 ? tiles : [
+          {
+            id: Math.random().toString(36).substr(2, 9),
+            tileName: '',
+            ratePerSqft: 0,
+            rows: [{
+              id: Math.random().toString(36).substr(2, 9),
+              location: '',
+              lengthInches: '',
+              widthInches: '',
+              quantity: 1,
+              roundedLengthFt: 0,
+              roundedWidthFt: 0,
+              areaPerPiece: 0,
+              totalArea: 0
+            }],
+            totalArea: 0,
+            subtotal: 0
           }
         ];
-        
-        const totalArea = finalRows.reduce((sum, row) => sum + row.totalArea, 0);
-        const grandTotal = totalArea * (state.activeJob.ratePerSqft || 0);
-        
-        return {
-          activeJob: {
-            ...state.activeJob,
-            rows: finalRows,
-            totalArea,
-            grandTotal
-          }
+        const activeJob = {
+          ...state.activeJob,
+          tiles: finalTiles
         };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      addRowToTile: (tileId) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => {
+            if (t.id !== tileId) return t;
+            const newRow: MeasurementRow = {
+              id: Math.random().toString(36).substr(2, 9),
+              location: '',
+              lengthInches: '',
+              widthInches: '',
+              quantity: 1,
+              roundedLengthFt: 0,
+              roundedWidthFt: 0,
+              areaPerPiece: 0,
+              totalArea: 0
+            };
+            return {
+              ...t,
+              rows: [...t.rows, newRow]
+            };
+          })
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      updateTileRow: (tileId, rowId, field, value) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => {
+            if (t.id !== tileId) return t;
+            const rows = t.rows.map((row) => {
+              if (row.id !== rowId) return row;
+              
+              const updatedRow = { ...row };
+              if (field === 'location') updatedRow.location = String(value);
+              if (field === 'lengthInches') updatedRow.lengthInches = String(value);
+              if (field === 'widthInches') updatedRow.widthInches = String(value);
+              if (field === 'quantity') updatedRow.quantity = Number(value);
+
+              return updatedRow;
+            });
+            return {
+              ...t,
+              rows
+            };
+          })
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      duplicateRowInTile: (tileId, rowId) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => {
+            if (t.id !== tileId) return t;
+            const targetRow = t.rows.find((r) => r.id === rowId);
+            if (!targetRow) return t;
+            const newRow: MeasurementRow = {
+              ...targetRow,
+              id: Math.random().toString(36).substr(2, 9),
+            };
+            return {
+              ...t,
+              rows: [...t.rows, newRow]
+            };
+          })
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      deleteRowFromTile: (tileId, rowId) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => {
+            if (t.id !== tileId) return t;
+            const rows = t.rows.filter((r) => r.id !== rowId);
+            const finalRows = rows.length > 0 ? rows : [
+              {
+                id: Math.random().toString(36).substr(2, 9),
+                location: '',
+                lengthInches: '',
+                widthInches: '',
+                quantity: 1,
+                roundedLengthFt: 0,
+                roundedWidthFt: 0,
+                areaPerPiece: 0,
+                totalArea: 0
+              }
+            ];
+            return {
+              ...t,
+              rows: finalRows
+            };
+          })
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
       }),
 
       resetActiveJob: () => set({
@@ -263,7 +349,6 @@ export const useJobStore = create<JobStore>()(
           activeJob: initialActiveJob
         }));
 
-        // Try background syncing
         get().syncPendingJobs();
 
         return id;
@@ -273,7 +358,6 @@ export const useJobStore = create<JobStore>()(
         const targetJob = state.jobs.find((j) => j.id === id);
         if (!targetJob) return {};
         
-        // Exclude DB sync fields when putting in active state
         const { id: _, createdAt: __, syncStatus: ___, ...activeFields } = targetJob;
         return {
           activeJob: activeFields
@@ -313,7 +397,6 @@ export const useJobStore = create<JobStore>()(
         const pending = state.jobs.filter((j) => j.syncStatus === 'pending_sync');
         if (pending.length === 0) return;
 
-        // Try loading Supabase credentials from local environment
         try {
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
           const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -323,19 +406,25 @@ export const useJobStore = create<JobStore>()(
             return;
           }
 
-          // If dynamically imported client is available, sync items:
           const { createClient } = await import('@supabase/supabase-js');
           const supabase = createClient(supabaseUrl, supabaseKey);
 
           for (const job of pending) {
+            // Flatten first tile rate for legacy rate_per_sqft column support
+            const rate_per_sqft = job.tiles[0]?.ratePerSqft || 0;
+            
+            // Backup serialized tiles in notes to prevent info loss in legacy schema
+            const serializedTiles = JSON.stringify(job.tiles);
+            const notesWithTiles = `${job.notes}\n\n__TILES_DATA__:${serializedTiles}`;
+
             const { error } = await supabase.from('jobs').insert({
               id: job.id,
               customer_name: job.customerName,
               phone_number: job.phoneNumber,
               project_name: job.projectName,
               site_address: job.siteAddress,
-              notes: job.notes,
-              rate_per_sqft: job.ratePerSqft,
+              notes: notesWithTiles,
+              rate_per_sqft,
               total_area: job.totalArea,
               grand_total: job.grandTotal,
               status: job.status,
@@ -343,21 +432,24 @@ export const useJobStore = create<JobStore>()(
             });
 
             if (!error) {
-              // Sync rows
-              const rowsToInsert = job.rows.map((row) => ({
-                job_id: job.id,
-                length_inches: Number(row.lengthInches),
-                width_inches: Number(row.widthInches),
-                quantity: row.quantity,
-                rounded_length_ft: row.roundedLengthFt,
-                rounded_width_ft: row.roundedWidthFt,
-                area_per_piece: row.areaPerPiece,
-                total_area: row.totalArea
-              }));
+              // Flatten rows from all tiles to insert into measurement_rows table
+              const rowsToInsert = job.tiles.flatMap((tile) => 
+                tile.rows.map((row) => ({
+                  job_id: job.id,
+                  length_inches: Number(row.lengthInches) || 0,
+                  width_inches: Number(row.widthInches) || 0,
+                  quantity: row.quantity,
+                  rounded_length_ft: row.roundedLengthFt,
+                  rounded_width_ft: row.roundedWidthFt,
+                  area_per_piece: row.areaPerPiece,
+                  total_area: row.totalArea
+                }))
+              );
 
-              await supabase.from('measurement_rows').insert(rowsToInsert);
+              if (rowsToInsert.length > 0) {
+                await supabase.from('measurement_rows').insert(rowsToInsert);
+              }
 
-              // Update local state to synced
               set((state) => ({
                 jobs: state.jobs.map((j) => j.id === job.id ? { ...j, syncStatus: 'synced' } : j)
               }));
@@ -370,6 +462,46 @@ export const useJobStore = create<JobStore>()(
     }),
     {
       name: 'tile-calculator-storage',
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0 || !persistedState) {
+          const migrateJob = (oldJob: any): any => {
+            if (!oldJob) return oldJob;
+            if (oldJob.tiles) return oldJob; // already migrated
+            
+            const tileName = "Default Tile";
+            const ratePerSqft = oldJob.ratePerSqft || 0;
+            const rows = (oldJob.rows || []).map((r: any) => ({
+              ...r,
+              location: r.location || ''
+            }));
+            const totalArea = oldJob.totalArea || 0;
+            const subtotal = totalArea * ratePerSqft;
+            
+            return {
+              ...oldJob,
+              tiles: [{
+                id: 'tile-default',
+                tileName,
+                ratePerSqft,
+                rows,
+                totalArea,
+                subtotal
+              }]
+            };
+          };
+
+          const migratedState = { ...persistedState };
+          if (migratedState.activeJob) {
+            migratedState.activeJob = migrateJob(migratedState.activeJob);
+          }
+          if (Array.isArray(migratedState.jobs)) {
+            migratedState.jobs = migratedState.jobs.map(migrateJob);
+          }
+          return migratedState;
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
         activeJob: state.activeJob,
         jobs: state.jobs
@@ -377,3 +509,4 @@ export const useJobStore = create<JobStore>()(
     }
   )
 );
+
