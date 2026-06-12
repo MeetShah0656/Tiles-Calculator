@@ -15,7 +15,47 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleLoading(true);
+
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        setError('Supabase is not configured. Please set up your environment variables.');
+        setGoogleLoading(false);
+        return;
+      }
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+          },
+        },
+      });
+
+      if (oauthError) {
+        throw oauthError;
+      }
+      // Browser will redirect to Google — no further action needed here.
+      // setGoogleLoading stays true intentionally (page is navigating away)
+    } catch (err: any) {
+      console.error('Google Sign-In failed:', err);
+      setError(err.message || 'Google Sign-In failed. Please try again.');
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,6 +281,44 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
               {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              <span className="bg-white px-2">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Sign-In Button */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading || loading}
+            className="w-full py-2.5 bg-white hover:bg-slate-50 active:bg-slate-100 disabled:opacity-60 text-slate-700 font-semibold rounded-sm border border-slate-200 text-sm transition-all flex items-center justify-center space-x-2.5 cursor-pointer shadow-sm"
+          >
+            {googleLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>Redirecting to Google...</span>
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.89 3.02C6.23 7.56 8.89 5.04 12 5.04z"/>
+                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2 3.7-4.97 3.7-8.62z"/>
+                  <path fill="#FBBC05" d="M5.28 14.78A7.02 7.02 0 0 1 4.9 12c0-.98.17-1.92.47-2.78L1.48 6.2C.54 8.08 0 10.18 0 12s.54 3.92 1.48 5.8l3.8-3.02z"/>
+                  <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.89c-1.03.69-2.35 1.1-4.23 1.1-3.11 0-5.77-2.52-6.72-5.54L1.39 15.8C3.37 19.69 7.35 23 12 23z"/>
+                </svg>
+                <span>Continue with Google</span>
+              </>
+            )}
+          </button>
 
 
           {/* Bypass sandbox button for fast review */}
