@@ -224,7 +224,9 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteJob(job.id);
+                    if (confirm("Are you sure you want to permanently delete this job from local storage and the database?")) {
+                      deleteJob(job.id);
+                    }
                   }}
                   className="flex items-center space-x-1 px-2 py-1.5 rounded-sm text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-colors border border-rose-500/10 cursor-pointer"
                   title="Delete record"

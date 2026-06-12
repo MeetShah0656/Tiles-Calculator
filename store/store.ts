@@ -79,7 +79,7 @@ interface JobStore {
   // Job database operations
   saveJob: () => string; // Returns job ID
   loadJob: (id: string) => void;
-  deleteJob: (id: string) => void;
+  deleteJob: (id: string) => Promise<void>;
   duplicateJob: (id: string) => void;
   
   // Settings
@@ -424,9 +424,32 @@ export const useJobStore = create<JobStore>()(
         };
       }),
 
-      deleteJob: (id) => set((state) => ({
-        jobs: state.jobs.filter((j) => j.id !== id)
-      })),
+      deleteJob: async (id) => {
+        set((state) => ({
+          jobs: state.jobs.filter((j) => j.id !== id)
+        }));
+
+        try {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          
+          if (!supabaseUrl || !supabaseKey) return;
+
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(supabaseUrl, supabaseKey);
+
+          const { error } = await supabase
+            .from('jobs')
+            .delete()
+            .eq('id', id);
+
+          if (error) {
+            console.error("Failed to delete job from Supabase:", error);
+          }
+        } catch (err) {
+          console.error("Failed to connect to Supabase for job deletion:", err);
+        }
+      },
 
       duplicateJob: (id) => set((state) => {
         const targetJob = state.jobs.find((j) => j.id === id);
