@@ -31,7 +31,6 @@ export interface Job {
 interface JobStore {
   activeJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'>;
   jobs: Job[];
-  theme: 'light' | 'dark';
   isOnline: boolean;
   
   // Actions
@@ -50,7 +49,6 @@ interface JobStore {
   duplicateJob: (id: string) => void;
   
   // Settings
-  setTheme: (theme: 'light' | 'dark') => void;
   setOnline: (status: boolean) => void;
   syncPendingJobs: () => Promise<void>;
 }
@@ -114,7 +112,6 @@ export const useJobStore = create<JobStore>()(
     (set, get) => ({
       activeJob: initialActiveJob,
       jobs: [],
-      theme: 'light',
       isOnline: true,
 
       updateActiveJobDetails: (fields) => set((state) => {
@@ -304,8 +301,6 @@ export const useJobStore = create<JobStore>()(
         };
       }),
 
-      setTheme: (theme) => set({ theme }),
-      
       setOnline: (isOnline) => {
         set({ isOnline });
         if (isOnline) {
@@ -377,8 +372,7 @@ export const useJobStore = create<JobStore>()(
       name: 'tile-calculator-storage',
       partialize: (state) => ({
         activeJob: state.activeJob,
-        jobs: state.jobs,
-        theme: state.theme
+        jobs: state.jobs
       })
     }
   )

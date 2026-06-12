@@ -7,8 +7,6 @@ import {
   LayoutDashboard, 
   Scissors, 
   FileBarChart2, 
-  Sun, 
-  Moon, 
   Wifi, 
   WifiOff, 
   LogOut 
@@ -22,19 +20,14 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarProps) {
-  const { theme, setTheme, isOnline } = useJobStore();
+  const { isOnline } = useJobStore();
 
-  // Apply theme class to html element
+  // Force light/white theme class on html element
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
-    }
-  }, [theme]);
+    root.classList.add('light');
+    root.classList.remove('dark');
+  }, []);
 
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
@@ -99,14 +92,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
             )}
           </div>
 
-          {/* Theme Toggle */}
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-900 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+
 
           {/* Logout Button */}
           <button
