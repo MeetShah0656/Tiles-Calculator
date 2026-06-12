@@ -120,7 +120,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-white">
       
       {/* Interactive App Shell (Hidden when printing) */}
       <div className="no-print flex-grow flex flex-col">

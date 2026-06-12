@@ -88,8 +88,8 @@ export default function ActiveJobCalculator() {
       )}
 
       {/* Customer Info Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+      <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center space-x-2">
           <User className="text-primary" size={18} />
           <span>Job details</span>
         </h2>
@@ -106,7 +106,7 @@ export default function ActiveJobCalculator() {
                 value={activeJob.customerName}
                 onChange={(e) => updateActiveJobDetails({ customerName: e.target.value })}
                 placeholder="e.g. ABC Builders"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none transition-all font-medium"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none transition-all font-medium"
               />
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function ActiveJobCalculator() {
                 value={activeJob.phoneNumber}
                 onChange={(e) => updateActiveJobDetails({ phoneNumber: e.target.value })}
                 placeholder="e.g. 9876543210"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none transition-all font-medium"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none transition-all font-medium"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function ActiveJobCalculator() {
                 value={activeJob.projectName}
                 onChange={(e) => updateActiveJobDetails({ projectName: e.target.value })}
                 placeholder="e.g. Ground Floor Kitchen"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none transition-all font-medium"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none transition-all font-medium"
               />
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function ActiveJobCalculator() {
                 value={activeJob.siteAddress}
                 onChange={(e) => updateActiveJobDetails({ siteAddress: e.target.value })}
                 placeholder="e.g. Sector 12, G-4"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none transition-all font-medium"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none transition-all font-medium"
               />
             </div>
           </div>
@@ -169,19 +169,19 @@ export default function ActiveJobCalculator() {
             onChange={(e) => updateActiveJobDetails({ notes: e.target.value })}
             placeholder="Fabrication details, granite edge cutting, special beveling instruction..."
             rows={2}
-            className="w-full p-3 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none transition-all resize-none font-medium"
+            className="w-full p-3 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none transition-all resize-none font-medium"
           />
         </div>
       </div>
 
       {/* Measurement Table Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-6 shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm overflow-hidden">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
             <FileSpreadsheet className="text-primary" size={18} />
             <span>Measurements (Inches)</span>
           </h2>
-          <div className="text-2xs text-slate-500 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-sm border border-slate-200 dark:border-slate-850">
+          <div className="text-2xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-sm border border-slate-200">
             Rules: Converted to ft & rounded UP to next <span className="text-primary font-bold">0.25 ft</span>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function ActiveJobCalculator() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800 text-2xs font-bold uppercase tracking-wider text-slate-400 pb-3">
+              <tr className="border-b border-slate-200 text-2xs font-bold uppercase tracking-wider text-slate-400 pb-3">
                 <th className="pb-3 pr-3 w-28">Length (in)</th>
                 <th className="pb-3 px-3 w-28">Width (in)</th>
                 <th className="pb-3 px-3 w-20">Qty</th>
@@ -201,9 +201,9 @@ export default function ActiveJobCalculator() {
                 <th className="pb-3 pl-3 text-right w-20">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
+            <tbody className="divide-y divide-slate-200">
               {activeJob.rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/20 group">
+                <tr key={row.id} className="hover:bg-slate-50 group">
                   {/* Length Input */}
                   <td className="py-2.5 pr-3">
                     <input
@@ -213,7 +213,7 @@ export default function ActiveJobCalculator() {
                       value={row.lengthInches}
                       onChange={(e) => updateRow(row.id, 'lengthInches', e.target.value)}
                       placeholder="Length"
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-850 rounded-sm text-slate-900 dark:text-white text-sm outline-none transition-all font-bold"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 text-sm outline-none transition-all font-bold"
                     />
                   </td>
                   {/* Width Input */}
@@ -225,7 +225,7 @@ export default function ActiveJobCalculator() {
                       value={row.widthInches}
                       onChange={(e) => updateRow(row.id, 'widthInches', e.target.value)}
                       placeholder="Width"
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-850 rounded-sm text-slate-900 dark:text-white text-sm outline-none transition-all font-bold"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 text-sm outline-none transition-all font-bold"
                     />
                   </td>
                   {/* Quantity Input */}
@@ -235,23 +235,23 @@ export default function ActiveJobCalculator() {
                       value={row.quantity}
                       onChange={(e) => updateRow(row.id, 'quantity', e.target.value)}
                       placeholder="Qty"
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-850 rounded-sm text-slate-900 dark:text-white text-sm outline-none transition-all font-bold text-center"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 text-sm outline-none transition-all font-bold text-center"
                     />
                   </td>
                   {/* Rounded Length display */}
-                  <td className="py-2.5 px-3 text-sm font-semibold text-slate-550 dark:text-slate-400">
+                  <td className="py-2.5 px-3 text-sm font-semibold text-slate-500">
                     {row.roundedLengthFt > 0 ? `${row.roundedLengthFt.toFixed(2)} ft` : '-'}
                   </td>
                   {/* Rounded Width display */}
-                  <td className="py-2.5 px-3 text-sm font-semibold text-slate-550 dark:text-slate-400">
+                  <td className="py-2.5 px-3 text-sm font-semibold text-slate-500">
                     {row.roundedWidthFt > 0 ? `${row.roundedWidthFt.toFixed(2)} ft` : '-'}
                   </td>
                   {/* Area Per Piece display */}
-                  <td className="py-2.5 px-3 text-sm font-semibold text-right text-slate-650 dark:text-slate-350">
+                  <td className="py-2.5 px-3 text-sm font-semibold text-right text-slate-600">
                     {row.areaPerPiece > 0 ? `${row.areaPerPiece.toFixed(2)}` : '0.00'}
                   </td>
                   {/* Total Area display */}
-                  <td className="py-2.5 px-3 text-sm font-black text-right text-slate-900 dark:text-white">
+                  <td className="py-2.5 px-3 text-sm font-black text-right text-slate-900">
                     {row.totalArea > 0 ? `${row.totalArea.toFixed(2)}` : '0.00'}
                   </td>
                   {/* Actions buttons */}
@@ -283,7 +283,7 @@ export default function ActiveJobCalculator() {
         <div className="mt-4 flex justify-between items-center">
           <button
             onClick={addRow}
-            className="flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-900 text-primary font-bold px-4 py-2 rounded-sm text-sm transition-all border border-primary/20 cursor-pointer"
+            className="flex items-center space-x-1.5 bg-white hover:bg-slate-50 text-primary font-bold px-4 py-2 rounded-sm text-sm transition-all border border-primary/20 cursor-pointer"
           >
             <Plus size={16} />
             <span>Add Row</span>
@@ -292,9 +292,9 @@ export default function ActiveJobCalculator() {
       </div>
 
       {/* Pricing & Totals Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
             <Coins className="text-primary" size={18} />
             <span>Pricing & Rates</span>
           </h2>
@@ -311,7 +311,7 @@ export default function ActiveJobCalculator() {
                 value={activeJob.ratePerSqft || ''}
                 onChange={(e) => updateActiveJobDetails({ ratePerSqft: Number(e.target.value) })}
                 placeholder="120"
-                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary dark:bg-slate-950 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white text-sm outline-none transition-all font-bold"
+                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-900 text-sm outline-none transition-all font-bold"
               />
             </div>
           </div>
@@ -331,7 +331,7 @@ export default function ActiveJobCalculator() {
             {/* WhatsApp Share */}
             <button
               onClick={handleWhatsAppShare}
-              className="flex items-center justify-center space-x-1.5 bg-slate-900 hover:opacity-90 text-white dark:bg-slate-950 dark:hover:bg-slate-900 font-semibold px-4 py-2.5 rounded-sm text-sm transition-all border border-primary/20 cursor-pointer"
+              className="flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-900 font-semibold px-4 py-2.5 rounded-sm text-sm transition-all border border-slate-200 cursor-pointer"
             >
               <Share2 size={16} className="text-primary" />
               <span>Share to WhatsApp</span>
@@ -339,7 +339,7 @@ export default function ActiveJobCalculator() {
             {/* Print View */}
             <button
               onClick={handlePrint}
-              className="flex items-center justify-center space-x-1.5 bg-slate-100 hover:bg-slate-250 dark:bg-slate-950 dark:hover:bg-slate-900 text-slate-800 dark:text-slate-300 font-semibold px-4 py-2.5 rounded-sm text-sm transition-all border border-slate-200 dark:border-slate-850 cursor-pointer"
+              className="flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4 py-2.5 rounded-sm text-sm transition-all border border-slate-200 cursor-pointer"
             >
               <Printer size={16} />
               <span>Print Sheet</span>
@@ -349,18 +349,18 @@ export default function ActiveJobCalculator() {
       </div>
 
       {/* Sticky Totals Bar (Mobile First one-handed reach) */}
-      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-30 bg-slate-950 border-t border-slate-900 px-4 py-3.5 shadow-2xl flex justify-between items-center max-w-7xl mx-auto md:rounded-t-sm md:border-x">
+      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-4 py-3.5 shadow-2xl flex justify-between items-center max-w-7xl mx-auto md:rounded-t-sm md:border-x">
         <div className="flex items-center space-x-4">
           <div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Area</span>
-            <p className="text-base font-extrabold text-white">
-              {activeJob.totalArea.toFixed(2)} <span className="text-xs font-medium text-slate-400">sq ft</span>
+            <p className="text-base font-extrabold text-slate-900">
+              {activeJob.totalArea.toFixed(2)} <span className="text-xs font-medium text-slate-500">sq ft</span>
             </p>
           </div>
-          <div className="border-l border-slate-800 h-8" />
+          <div className="border-l border-slate-200 h-8" />
           <div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Material Cost</span>
-            <p className="text-base font-extrabold text-primary-foreground">
+            <p className="text-base font-extrabold text-primary">
               ₹{activeJob.grandTotal.toLocaleString('en-IN', { maximumFractionDigits: 1 })}
             </p>
           </div>

@@ -59,10 +59,10 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">
             Job History
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Search, edit, duplicate, and monitor cloud sync status of all saved measurement jobs.
           </p>
         </div>
@@ -78,13 +78,13 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by customer name, project description, address..."
-          className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm text-slate-900 dark:text-white placeholder-slate-400 text-sm outline-none shadow-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-sm text-slate-900 placeholder-slate-400 text-sm outline-none shadow-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all"
         />
       </div>
 
       {/* Job Grid/List */}
       {filteredJobs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-slate-900 rounded-sm border border-slate-200 dark:border-slate-850">
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-sm border border-slate-200">
           <FileSpreadsheet size={48} className="stroke-1 text-slate-500 mb-2" />
           <p className="text-sm font-bold">No records found</p>
           <p className="text-xs text-slate-500 mt-1">Try entering another search criteria or save a new calculator sheet.</p>
@@ -94,7 +94,7 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
           {filteredJobs.map((job) => (
             <div 
               key={job.id} 
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between"
+              className="bg-white border border-slate-200 rounded-sm p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between"
             >
               {/* Sync Status Badge */}
               <div className="absolute top-4 right-4 flex items-center space-x-1.5">
@@ -118,10 +118,10 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                   <span>{formatDate(job.createdAt)}</span>
                 </div>
                 
-                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                <h3 className="text-base font-bold text-slate-900 leading-tight">
                   {job.customerName}
                 </h3>
-                <h4 className="text-sm text-slate-650 dark:text-slate-355 font-semibold mt-1">
+                <h4 className="text-sm text-slate-650 font-semibold mt-1">
                   {job.projectName}
                 </h4>
 
@@ -132,10 +132,10 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-200 dark:border-slate-850">
+                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-200">
                   <div>
                     <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Area Sold</span>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                    <p className="text-sm font-bold text-slate-900 mt-0.5">
                       {job.totalArea.toFixed(2)} sq ft
                     </p>
                   </div>
@@ -148,14 +148,14 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                 </div>
 
                 {job.notes && (
-                  <p className="text-2xs text-slate-500 mt-3 italic line-clamp-2 bg-slate-50 dark:bg-slate-950/60 p-2 rounded-sm border border-slate-200 dark:border-slate-850">
+                  <p className="text-2xs text-slate-500 mt-3 italic line-clamp-2 bg-slate-50 p-2 rounded-sm border border-slate-200">
                     "{job.notes}"
                   </p>
                 )}
               </div>
 
               {/* Actions Grid */}
-              <div className="flex justify-end space-x-1.5 mt-5 pt-3 border-t border-slate-200 dark:border-slate-850">
+              <div className="flex justify-end space-x-1.5 mt-5 pt-3 border-t border-slate-200">
                 <button
                   onClick={() => handleEdit(job.id)}
                   className="flex items-center space-x-1 px-3 py-1.5 rounded-sm text-xs font-semibold text-primary hover:opacity-80 transition-colors border border-primary/20 cursor-pointer"
@@ -166,7 +166,7 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                 </button>
                 <button
                   onClick={() => duplicateJob(job.id)}
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded-sm text-xs font-semibold text-slate-600 dark:text-slate-355 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-800 cursor-pointer"
+                  className="flex items-center space-x-1 px-3 py-1.5 rounded-sm text-xs font-semibold text-slate-600 hover:bg-slate-55 transition-colors border border-slate-200 cursor-pointer"
                   title="Duplicate entire job"
                 >
                   <Copy size={13} />
