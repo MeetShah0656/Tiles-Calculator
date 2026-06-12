@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="light h-full">
-      <body className="h-full bg-slate-50 text-slate-900 font-sans selection:bg-red-500/10 selection:text-red-900">
+      <body className="h-full bg-white text-slate-900 font-sans selection:bg-red-500/10 selection:text-red-900">
         <PWARegister />
         {children}
       </body>

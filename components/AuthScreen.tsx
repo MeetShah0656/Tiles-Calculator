@@ -129,7 +129,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Gradients */}
       <div className="absolute top-1/4 left-1/4 -z-10 h-72 w-72 rounded-full bg-red-500/5 blur-[100px]" />
       <div className="absolute bottom-1/4 right-1/4 -z-10 h-72 w-72 rounded-full bg-slate-500/5 blur-[100px]" />
