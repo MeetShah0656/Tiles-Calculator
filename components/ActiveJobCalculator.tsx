@@ -13,7 +13,10 @@ import {
   Coins,
   ChevronDown,
   ChevronUp,
-  Grid
+  Grid,
+  CheckCircle,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -34,6 +37,11 @@ export default function ActiveJobCalculator() {
 
   const [notification, setNotification] = useState('');
   const [collapsedTiles, setCollapsedTiles] = useState<Record<string, boolean>>({});
+  const [sharePdfBlob, setSharePdfBlob] = useState<Blob | null>(null);
+  const [sharePdfFilename, setSharePdfFilename] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState<'generating' | 'ready' | 'error'>('generating');
+  const [shareError, setShareError] = useState('');
 
   const handleSave = () => {
     if (!activeJob.customerName || !activeJob.projectName) {
@@ -85,9 +93,12 @@ export default function ActiveJobCalculator() {
   };
 
   const handleWhatsAppShare = async () => {
+    setIsShareModalOpen(true);
+    setShareStatus('generating');
+    setShareError('');
+    setSharePdfBlob(null);
+
     try {
-      setNotification('Generating PDF Estimate...');
-      
       const element = document.getElementById('printable-invoice');
       if (!element) {
         throw new Error('Printable layout element not found. Please ensure the page is fully loaded.');
@@ -142,9 +153,33 @@ export default function ActiveJobCalculator() {
       const pdfBlob = pdf.output('blob');
       const filename = `${activeJob.customerName || 'Estimate'}_calculation.pdf`.replace(/[^a-zA-Z0-9_\-]/g, '_');
       
+      setSharePdfBlob(pdfBlob);
+      setSharePdfFilename(filename);
+      setShareStatus('ready');
+    } catch (err: any) {
+      console.error('Failed to generate PDF:', err);
+      setShareError(err.message || 'An error occurred during PDF generation.');
+      setShareStatus('error');
+    }
+  };
+
+  const handleDownloadOnly = () => {
+    if (!sharePdfBlob) return;
+    const url = URL.createObjectURL(sharePdfBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = sharePdfFilename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExecuteShare = async () => {
+    if (!sharePdfBlob) return;
+    
+    try {
       const shareData = {
         files: [
-          new File([pdfBlob], filename, {
+          new File([sharePdfBlob], sharePdfFilename, {
             type: 'application/pdf',
           })
         ],
@@ -153,35 +188,28 @@ export default function ActiveJobCalculator() {
       };
       
       if (navigator.canShare && navigator.canShare(shareData)) {
-        setNotification('Opening share menu...');
         await navigator.share(shareData);
-        setNotification('Estimate shared successfully!');
-        setTimeout(() => setNotification(''), 3000);
+        setIsShareModalOpen(false);
+        setSharePdfBlob(null);
       } else {
         // Fallback: Download PDF and open WhatsApp web text link
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+        handleDownloadOnly();
         
-        setNotification('PDF downloaded! Opening WhatsApp to share summary...');
-        
+        // Open WhatsApp web with text summary
         const text = getWhatsAppText();
         const phone = activeJob.phoneNumber ? activeJob.phoneNumber.replace(/[^0-9]/g, '') : '';
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
         
+        setIsShareModalOpen(false);
+        setSharePdfBlob(null);
+        
+        setNotification('PDF downloaded! Opening WhatsApp to share summary...');
         setTimeout(() => setNotification(''), 5000);
       }
     } catch (err: any) {
       console.error('Failed to share PDF:', err);
-      // Don't show abort error (when user cancels native share sheet) as a failure
       if (err.name !== 'AbortError') {
-        setNotification(`Failed to share PDF: ${err.message || err}`);
-        setTimeout(() => setNotification(''), 5000);
-      } else {
-        setNotification('');
+        alert(`Failed to share: ${err.message || err}`);
       }
     }
   };
@@ -567,6 +595,75 @@ export default function ActiveJobCalculator() {
           <Save size={14} /><span>Save</span>
         </button>
       </div>
+
+      {/* PDF Share Modal */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-sm w-full max-w-sm shadow-2xl p-5 md:p-6 flex flex-col items-center text-center space-y-4 animate-scaleUp">
+            {shareStatus === 'generating' && (
+              <>
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Generating PDF Estimate</h3>
+                  <p className="text-xs text-slate-500 mt-1">Please wait while we render your high-fidelity PDF layout...</p>
+                </div>
+              </>
+            )}
+
+            {shareStatus === 'ready' && (
+              <>
+                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                  <CheckCircle size={28} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Estimate PDF is Ready!</h3>
+                  <p className="text-xs text-slate-550 mt-1">Filename: <span className="font-bold text-slate-700">{sharePdfFilename}</span></p>
+                </div>
+
+                <div className="w-full space-y-2 pt-2">
+                  <button
+                    onClick={handleExecuteShare}
+                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-sm text-sm shadow-md transition-all cursor-pointer"
+                  >
+                    <Share2 size={16} />
+                    <span>Share/Send to WhatsApp</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleDownloadOnly}
+                    className="w-full flex items-center justify-center space-x-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-sm text-sm border border-slate-200 transition-all cursor-pointer"
+                  >
+                    <Printer size={16} />
+                    <span>Download PDF File Only</span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {shareStatus === 'error' && (
+              <>
+                <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
+                  <AlertCircle size={28} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Generation Failed</h3>
+                  <p className="text-xs text-rose-600 mt-1">{shareError}</p>
+                </div>
+              </>
+            )}
+
+            <button
+              onClick={() => {
+                setIsShareModalOpen(false);
+                setSharePdfBlob(null);
+              }}
+              className="mt-4 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+            >
+              Cancel / Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

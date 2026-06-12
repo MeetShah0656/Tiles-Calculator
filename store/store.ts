@@ -1,6 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback UUID v4 generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export interface MeasurementRow {
   id: string;
   location: string;       // "Living Room Floor", "Kitchen Wall", etc.
@@ -40,6 +52,7 @@ export interface Job {
 
 interface JobStore {
   activeJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'>;
+  activeJobId: string | null;
   jobs: Job[];
   isOnline: boolean;
   
@@ -165,6 +178,7 @@ export const useJobStore = create<JobStore>()(
   persist(
     (set, get) => ({
       activeJob: initialActiveJob,
+      activeJobId: null,
       jobs: [],
       isOnline: true,
 
@@ -342,27 +356,50 @@ export const useJobStore = create<JobStore>()(
       }),
 
       resetActiveJob: () => set({
-        activeJob: initialActiveJob
+        activeJob: initialActiveJob,
+        activeJobId: null
       }),
 
       saveJob: () => {
         const state = get();
-        const id = Math.random().toString(36).substr(2, 9);
-        const newJob: Job = {
-          ...state.activeJob,
-          id,
-          syncStatus: state.isOnline ? 'synced' : 'pending_sync',
-          createdAt: new Date().toISOString()
-        };
+        const existingId = state.activeJobId;
+        
+        if (existingId) {
+          // Update existing job
+          const updatedJob: Job = {
+            ...state.activeJob,
+            id: existingId,
+            createdAt: state.jobs.find((j) => j.id === existingId)?.createdAt || new Date().toISOString(),
+            syncStatus: 'pending_sync'
+          };
 
-        set((state) => ({
-          jobs: [newJob, ...state.jobs],
-          activeJob: initialActiveJob
-        }));
+          set((state) => ({
+            jobs: state.jobs.map((j) => j.id === existingId ? updatedJob : j),
+            activeJob: initialActiveJob,
+            activeJobId: null
+          }));
 
-        get().syncPendingJobs();
+          get().syncPendingJobs();
+          return existingId;
+        } else {
+          // Create new job
+          const id = generateUUID();
+          const newJob: Job = {
+            ...state.activeJob,
+            id,
+            syncStatus: 'pending_sync',
+            createdAt: new Date().toISOString()
+          };
 
-        return id;
+          set((state) => ({
+            jobs: [newJob, ...state.jobs],
+            activeJob: initialActiveJob,
+            activeJobId: null
+          }));
+
+          get().syncPendingJobs();
+          return id;
+        }
       },
 
       loadJob: (id) => set((state) => {
@@ -371,7 +408,8 @@ export const useJobStore = create<JobStore>()(
         
         const { id: _, createdAt: __, syncStatus: ___, ...activeFields } = targetJob;
         return {
-          activeJob: activeFields
+          activeJob: activeFields,
+          activeJobId: id
         };
       }),
 
@@ -385,10 +423,10 @@ export const useJobStore = create<JobStore>()(
 
         const duplicatedJob: Job = {
           ...targetJob,
-          id: Math.random().toString(36).substr(2, 9),
+          id: generateUUID(),
           customerName: `${targetJob.customerName} (Copy)`,
           createdAt: new Date().toISOString(),
-          syncStatus: state.isOnline ? 'synced' : 'pending_sync'
+          syncStatus: 'pending_sync'
         };
 
         return {
@@ -428,7 +466,7 @@ export const useJobStore = create<JobStore>()(
             const serializedTiles = JSON.stringify(job.tiles);
             const notesWithTiles = `${job.notes}\n\n__TILES_DATA__:${serializedTiles}`;
 
-            const { error } = await supabase.from('jobs').insert({
+            const { error } = await supabase.from('jobs').upsert({
               id: job.id,
               customer_name: job.customerName,
               phone_number: job.phoneNumber,
@@ -456,6 +494,9 @@ export const useJobStore = create<JobStore>()(
                   total_area: row.totalArea
                 }))
               );
+
+              // Delete old rows first to support updates cleanly
+              await supabase.from('measurement_rows').delete().eq('job_id', job.id);
 
               if (rowsToInsert.length > 0) {
                 await supabase.from('measurement_rows').insert(rowsToInsert);
