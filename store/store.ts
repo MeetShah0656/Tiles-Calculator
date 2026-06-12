@@ -31,6 +31,7 @@ export interface TileGroup {
   ratePerSqft: number;
   rows: MeasurementRow[];
   totalArea: number;      // auto-calculated
+  totalQuantity: number;  // sum of row quantities
   subtotal: number;       // totalArea * ratePerSqft
 }
 
@@ -43,6 +44,7 @@ export interface Job {
   notes: string;
   tiles: TileGroup[];     // Replaces old flat rows and single ratePerSqft
   totalArea: number;      // sum of all tile areas
+  totalQuantity: number;  // sum of all tile quantities
   grandTotal: number;     // sum of all tile subtotals
   status: 'pending' | 'completed' | 'cancelled';
   syncStatus: 'synced' | 'pending_sync';
@@ -123,11 +125,13 @@ const recalculateTileTotals = (tile: TileGroup): TileGroup => {
     return { ...row, ...calculations };
   });
   const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
+  const totalQuantity = rows.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0);
   const subtotal = totalArea * (tile.ratePerSqft || 0);
   return {
     ...tile,
     rows,
     totalArea,
+    totalQuantity,
     subtotal
   };
 };
@@ -135,11 +139,13 @@ const recalculateTileTotals = (tile: TileGroup): TileGroup => {
 const recalculateJobTotals = (activeJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'>): Omit<Job, 'id' | 'createdAt' | 'syncStatus'> => {
   const updatedTiles = activeJob.tiles.map(recalculateTileTotals);
   const totalArea = updatedTiles.reduce((sum, t) => sum + t.totalArea, 0);
+  const totalQuantity = updatedTiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0);
   const grandTotal = updatedTiles.reduce((sum, t) => sum + t.subtotal, 0);
   return {
     ...activeJob,
     tiles: updatedTiles,
     totalArea,
+    totalQuantity,
     grandTotal
   };
 };
@@ -151,6 +157,7 @@ const initialActiveJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'> = {
   siteAddress: '',
   notes: '',
   totalArea: 0,
+  totalQuantity: 0,
   grandTotal: 0,
   status: 'pending',
   cuttingStatus: 'pending',
@@ -170,6 +177,7 @@ const initialActiveJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'> = {
       totalArea: 0
     }],
     totalArea: 0,
+    totalQuantity: 1,
     subtotal: 0
   }]
 };
@@ -204,6 +212,7 @@ export const useJobStore = create<JobStore>()(
             totalArea: 0
           }],
           totalArea: 0,
+          totalQuantity: 1,
           subtotal: 0
         };
         const activeJob = {
@@ -240,6 +249,7 @@ export const useJobStore = create<JobStore>()(
               totalArea: 0
             }],
             totalArea: 0,
+            totalQuantity: 1,
             subtotal: 0
           }
         ];
@@ -539,6 +549,7 @@ export const useJobStore = create<JobStore>()(
                 ratePerSqft,
                 rows,
                 totalArea,
+                totalQuantity: rows.reduce((sum: number, r: any) => sum + (Number(r.quantity) || 0), 0),
                 subtotal
               }]
             };

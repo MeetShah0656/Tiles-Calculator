@@ -325,10 +325,18 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                             </tr>
                           ))}
                         </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 border-t border-slate-200 text-slate-800 font-extrabold text-[10px]">
+                            <td className="py-1.5 text-slate-700 font-bold" colSpan={2}>Group Total:</td>
+                            <td className="py-1.5 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
+                            <td className="py-1.5"></td>
+                            <td className="py-1.5 text-right">{tile.totalArea.toFixed(2)} sq ft</td>
+                          </tr>
+                        </tfoot>
                       </table>
                       <div className="flex justify-between items-center text-xs font-black text-slate-900 border-t border-slate-150 pt-2 mt-1">
                         <span>Tile Summary:</span>
-                        <span>{tile.totalArea.toFixed(2)} sq ft &bull; {formatCurrency(tile.subtotal)}</span>
+                        <span>Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs &bull; {tile.totalArea.toFixed(2)} sq ft &bull; {formatCurrency(tile.subtotal)}</span>
                       </div>
                     </div>
                   </div>
@@ -336,8 +344,11 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
               </div>
 
               {/* Grand Summary */}
-              <div className="bg-slate-100 border border-slate-250 p-4 rounded-sm flex justify-between items-center text-sm font-extrabold text-slate-955">
-                <span>Grand Total Area: {selectedJobForModal.totalArea.toFixed(2)} sq ft</span>
+              <div className="bg-slate-100 border border-slate-250 p-4 rounded-sm flex flex-col sm:flex-row justify-between sm:items-center text-sm font-extrabold text-slate-955 gap-2">
+                <div className="flex space-x-4">
+                  <span>Grand Total Qty: {selectedJobForModal.totalQuantity || selectedJobForModal.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs</span>
+                  <span>Grand Total Area: {selectedJobForModal.totalArea.toFixed(2)} sq ft</span>
+                </div>
                 <span className="text-primary text-base font-black">Total Cost: {formatCurrency(selectedJobForModal.grandTotal)}</span>
               </div>
             </div>

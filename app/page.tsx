@@ -206,8 +206,17 @@ export default function Home() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 font-extrabold border-t-2 border-slate-350 text-[10px] text-slate-800">
+                  <td className="p-2 border border-slate-200 text-center" colSpan={4}>Group Total</td>
+                  <td className="p-2 border border-slate-200 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
+                  <td className="p-2 border border-slate-200" colSpan={3}></td>
+                  <td className="p-2 border border-slate-200 text-right">{tile.totalArea.toFixed(2)} sq ft</td>
+                </tr>
+              </tfoot>
             </table>
             <div className="flex justify-end text-2xs font-bold text-slate-700 mt-1.5 pr-1 space-x-4">
+              <span>Total Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs</span>
               <span>Total Area: {tile.totalArea.toFixed(2)} sq ft</span>
               <span>Subtotal: {formatCurrency(tile.subtotal)}</span>
             </div>
@@ -217,6 +226,12 @@ export default function Home() {
         {/* Pricing Summary */}
         <div className="flex justify-end mt-6">
           <div className="w-1/2 space-y-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-sm">
+            <div className="flex justify-between font-medium text-slate-500">
+              <span>Total Qty (All Tiles):</span>
+              <span className="font-extrabold text-slate-900">
+                {activeJob.totalQuantity || activeJob.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs
+              </span>
+            </div>
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Area (All Tiles):</span>
               <span className="font-extrabold text-slate-900">{activeJob.totalArea.toFixed(2)} sq ft</span>

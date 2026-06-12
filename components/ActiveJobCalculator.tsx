@@ -325,7 +325,7 @@ export default function ActiveJobCalculator() {
                 </div>
 
                 <div className="text-right text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-sm border border-slate-200">
-                  {tile.totalArea.toFixed(2)} sq ft &bull; ₹{tile.subtotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                  Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs &bull; {tile.totalArea.toFixed(2)} sq ft &bull; ₹{tile.subtotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </div>
 
                 <button 
@@ -436,6 +436,15 @@ export default function ActiveJobCalculator() {
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr className="bg-slate-50 font-extrabold border-t-2 border-slate-200 text-xs text-slate-800">
+                        <td className="py-2.5 px-3 border border-slate-200" colSpan={3}>Group totals:</td>
+                        <td className="py-2.5 px-3 border border-slate-200 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
+                        <td className="py-2.5 px-3 border border-slate-200" colSpan={3}></td>
+                        <td className="py-2.5 px-3 border border-slate-200 text-right font-black text-slate-900">{tile.totalArea.toFixed(2)} sq ft</td>
+                        <td className="py-2.5 px-3 border border-slate-200"></td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
 
@@ -522,6 +531,15 @@ export default function ActiveJobCalculator() {
                   ))}
                 </div>
 
+                {/* Mobile Group Totals Card */}
+                <div className="md:hidden border border-dashed border-primary/30 rounded-sm p-3.5 bg-primary/5 flex justify-between items-center text-xs font-extrabold text-slate-800">
+                  <span>Group Totals:</span>
+                  <div className="flex space-x-3">
+                    <span>Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs</span>
+                    <span>Area: {tile.totalArea.toFixed(2)} sq ft</span>
+                  </div>
+                </div>
+
                 {/* Add Row Button */}
                 <div>
                   <button 
@@ -575,7 +593,14 @@ export default function ActiveJobCalculator() {
 
       {/* Sticky Totals Bar */}
       <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-4 py-3 shadow-2xl flex justify-between items-center">
-        <div className="flex items-center space-x-3 md:space-x-4">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+          <div>
+            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Qty</span>
+            <p className="text-sm md:text-base font-extrabold text-slate-900">
+              {activeJob.totalQuantity || activeJob.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} <span className="text-xs font-medium text-slate-550">pcs</span>
+            </p>
+          </div>
+          <div className="border-l border-slate-200 h-8" />
           <div>
             <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Area</span>
             <p className="text-sm md:text-base font-extrabold text-slate-900">
