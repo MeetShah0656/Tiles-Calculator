@@ -84,10 +84,106 @@ export default function ActiveJobCalculator() {
     return encodeURIComponent(lines.join('\n'));
   };
 
-  const handleWhatsAppShare = () => {
-    const text = getWhatsAppText();
-    const phone = activeJob.phoneNumber ? activeJob.phoneNumber.replace(/[^0-9]/g, '') : '';
-    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+  const handleWhatsAppShare = async () => {
+    try {
+      setNotification('Generating PDF Estimate...');
+      
+      const element = document.getElementById('printable-invoice');
+      if (!element) {
+        throw new Error('Printable layout element not found. Please ensure the page is fully loaded.');
+      }
+      
+      // Dynamic imports to optimize bundle size and prevent SSR issues
+      const { default: html2canvas } = await import('html2canvas');
+      const { jsPDF } = await import('jspdf');
+      
+      // Save original styling
+      const originalStyle = element.getAttribute('style') || '';
+      
+      // Force it to be visible for capture, but place it off-screen
+      element.style.display = 'block';
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      element.style.top = '0';
+      element.style.width = '800px';
+      
+      // Let html2canvas render it
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Restore styling
+      element.setAttribute('style', originalStyle);
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+      
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+      
+      const pdfBlob = pdf.output('blob');
+      const filename = `${activeJob.customerName || 'Estimate'}_calculation.pdf`.replace(/[^a-zA-Z0-9_\-]/g, '_');
+      
+      const shareData = {
+        files: [
+          new File([pdfBlob], filename, {
+            type: 'application/pdf',
+          })
+        ],
+        title: 'Tiles Calculation Estimate',
+        text: `Tiles calculation estimate for ${activeJob.projectName || 'your project'}.`
+      };
+      
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        setNotification('Opening share menu...');
+        await navigator.share(shareData);
+        setNotification('Estimate shared successfully!');
+        setTimeout(() => setNotification(''), 3000);
+      } else {
+        // Fallback: Download PDF and open WhatsApp web text link
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        setNotification('PDF downloaded! Opening WhatsApp to share summary...');
+        
+        const text = getWhatsAppText();
+        const phone = activeJob.phoneNumber ? activeJob.phoneNumber.replace(/[^0-9]/g, '') : '';
+        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        
+        setTimeout(() => setNotification(''), 5000);
+      }
+    } catch (err: any) {
+      console.error('Failed to share PDF:', err);
+      // Don't show abort error (when user cancels native share sheet) as a failure
+      if (err.name !== 'AbortError') {
+        setNotification(`Failed to share PDF: ${err.message || err}`);
+        setTimeout(() => setNotification(''), 5000);
+      } else {
+        setNotification('');
+      }
+    }
   };
 
   return (

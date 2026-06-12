@@ -136,7 +136,7 @@ export default function Home() {
       </div>
 
       {/* High-Fidelity Printable Invoice Layout (Only active during print rendering) */}
-      <div className="print-only p-8 bg-white text-black min-h-screen text-xs font-sans">
+      <div id="printable-invoice" className="print-only p-8 bg-white text-black min-h-screen text-xs font-sans">
         {/* Invoice Header */}
         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
           <div>
