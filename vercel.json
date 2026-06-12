@@ -1,13 +1,12 @@
 {
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://sxwoqebgjjfbggpzmxco.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://sxwoqebgjfbggpzmxoco.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_L6YxCAwQR1h7bcUdZRnEnA_wBfdDQvR"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "https://sxwoqebgjjfbggpzmxco.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://sxwoqebgjfbggpzmxoco.supabase.co",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_L6YxCAwQR1h7bcUdZRnEnA_wBfdDQvR"
     }
   }
 }
-
