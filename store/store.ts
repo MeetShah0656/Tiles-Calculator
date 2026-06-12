@@ -85,6 +85,7 @@ interface JobStore {
   // Settings
   setOnline: (status: boolean) => void;
   syncPendingJobs: () => Promise<void>;
+  fetchJobsFromCloud: () => Promise<void>;
 }
 
 // Business Rules Functions
@@ -519,6 +520,103 @@ export const useJobStore = create<JobStore>()(
           }
         } catch (err) {
           console.error("Auto sync failed, will retry next connection reload", err);
+        }
+      },
+
+      fetchJobsFromCloud: async () => {
+        try {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          
+          if (!supabaseUrl || !supabaseKey) return;
+
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(supabaseUrl, supabaseKey);
+
+          // Get auth user
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          // Fetch jobs sorted by created_at desc
+          const { data: dbJobs, error } = await supabase
+            .from('jobs')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          if (!dbJobs) return;
+
+          const fetchedJobs: Job[] = [];
+
+          for (const dbJob of dbJobs) {
+            let tiles: TileGroup[] = [];
+            let cleanNotes = dbJob.notes || '';
+            
+            if (dbJob.notes && dbJob.notes.includes('__TILES_DATA__:')) {
+              const parts = dbJob.notes.split('__TILES_DATA__:');
+              cleanNotes = parts[0].trim();
+              try {
+                tiles = JSON.parse(parts[1]);
+              } catch (e) {
+                console.error("Failed to parse tiles JSON:", e);
+              }
+            }
+
+            if (tiles.length === 0) {
+              const { data: rows } = await supabase
+                .from('measurement_rows')
+                .select('*')
+                .eq('job_id', dbJob.id);
+
+              const measurementRows: MeasurementRow[] = (rows || []).map((r: any) => ({
+                id: r.id,
+                location: r.location || '',
+                lengthInches: String(r.length_inches),
+                widthInches: String(r.width_inches),
+                quantity: r.quantity,
+                roundedLengthFt: r.rounded_length_ft,
+                roundedWidthFt: r.rounded_width_ft,
+                areaPerPiece: r.area_per_piece,
+                totalArea: r.total_area
+              }));
+
+              tiles = [{
+                id: 'tile-default',
+                tileName: 'Default Tile',
+                ratePerSqft: dbJob.rate_per_sqft,
+                rows: measurementRows,
+                totalArea: dbJob.total_area,
+                totalQuantity: measurementRows.reduce((sum, r) => sum + r.quantity, 0),
+                subtotal: dbJob.grand_total
+              }];
+            }
+
+            fetchedJobs.push({
+              id: dbJob.id,
+              customerName: dbJob.customer_name,
+              phoneNumber: dbJob.phone_number || '',
+              projectName: dbJob.project_name,
+              siteAddress: dbJob.site_address || '',
+              notes: cleanNotes,
+              tiles,
+              totalArea: dbJob.total_area || 0,
+              totalQuantity: tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0),
+              grandTotal: dbJob.grand_total || 0,
+              status: dbJob.status || 'pending',
+              syncStatus: 'synced',
+              createdAt: dbJob.created_at
+            });
+          }
+
+          set((state) => {
+            const localPending = state.jobs.filter((j) => j.syncStatus === 'pending_sync');
+            const filteredFetched = fetchedJobs.filter((fj) => !localPending.some((lp) => lp.id === fj.id));
+            return {
+              jobs: [...localPending, ...filteredFetched]
+            };
+          });
+        } catch (err) {
+          console.error("Failed to pull jobs from Supabase:", err);
         }
       }
     }),

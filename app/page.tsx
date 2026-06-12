@@ -74,6 +74,7 @@ export default function Home() {
         if (session?.user) {
           const merged = await mergeUserProfile(session.user);
           setUser(merged);
+          useJobStore.getState().fetchJobsFromCloud();
         }
 
         // Listen for auth state changes (e.g., sign in, sign out)
@@ -81,8 +82,10 @@ export default function Home() {
           if (session?.user) {
             const merged = await mergeUserProfile(session.user);
             setUser(merged);
+            useJobStore.getState().fetchJobsFromCloud();
           } else {
             setUser(null);
+            useJobStore.setState({ jobs: [] });
           }
         });
 
@@ -103,6 +106,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     setUser(null);
+    useJobStore.setState({ jobs: [] });
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
