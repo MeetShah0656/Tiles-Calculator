@@ -19,7 +19,7 @@ interface JobHistoryProps {
 }
 
 export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
-  const { jobs, loadJob, deleteJob, duplicateJob } = useJobStore();
+  const { jobs, loadJob, deleteJob, duplicateJob, updateJobCuttingStatus } = useJobStore();
   const [search, setSearch] = useState('');
 
   const filteredJobs = jobs.filter((job) => {
@@ -163,6 +163,30 @@ export default function JobHistory({ setCurrentTab }: JobHistoryProps) {
                     "{job.notes.split('\n\n__TILES_DATA__')[0]}"
                   </p>
                 )}
+
+                {/* Cutting Status Select */}
+                <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cutting Status</span>
+                  <div className="inline-flex rounded-sm border border-slate-200 p-0.5 bg-slate-50">
+                    {(['pending', 'ongoing', 'done'] as const).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => updateJobCuttingStatus(job.id, status)}
+                        className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-sm transition-all cursor-pointer ${
+                          (job.cuttingStatus || 'pending') === status
+                            ? status === 'pending'
+                              ? 'bg-amber-500 text-white shadow-sm'
+                              : status === 'ongoing'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-emerald-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-slate-700'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Actions Grid */}

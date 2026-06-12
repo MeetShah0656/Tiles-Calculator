@@ -35,6 +35,7 @@ export interface Job {
   status: 'pending' | 'completed' | 'cancelled';
   syncStatus: 'synced' | 'pending_sync';
   createdAt: string;
+  cuttingStatus?: 'pending' | 'ongoing' | 'done';
 }
 
 interface JobStore {
@@ -55,6 +56,8 @@ interface JobStore {
   updateTileRow: (tileId: string, rowId: string, field: 'location' | 'lengthInches' | 'widthInches' | 'quantity', value: string | number) => void;
   duplicateRowInTile: (tileId: string, rowId: string) => void;
   deleteRowFromTile: (tileId: string, rowId: string) => void;
+  
+  updateJobCuttingStatus: (jobId: string, status: 'pending' | 'ongoing' | 'done') => void;
   
   resetActiveJob: () => void;
   
@@ -137,6 +140,7 @@ const initialActiveJob: Omit<Job, 'id' | 'createdAt' | 'syncStatus'> = {
   totalArea: 0,
   grandTotal: 0,
   status: 'pending',
+  cuttingStatus: 'pending',
   tiles: [{
     id: 'tile-1',
     tileName: '',
@@ -330,6 +334,13 @@ export const useJobStore = create<JobStore>()(
         return { activeJob: recalculateJobTotals(activeJob) };
       }),
 
+      updateJobCuttingStatus: (jobId, status) => set((state) => {
+        const updatedJobs = state.jobs.map((job) => 
+          job.id === jobId ? { ...job, cuttingStatus: status } : job
+        );
+        return { jobs: updatedJobs };
+      }),
+
       resetActiveJob: () => set({
         activeJob: initialActiveJob
       }),
@@ -480,6 +491,7 @@ export const useJobStore = create<JobStore>()(
             
             return {
               ...oldJob,
+              cuttingStatus: oldJob.cuttingStatus || 'pending',
               tiles: [{
                 id: 'tile-default',
                 tileName,

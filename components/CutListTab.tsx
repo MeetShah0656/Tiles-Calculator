@@ -1,16 +1,16 @@
 'use client';
 
-import { useJobStore } from '@/store/store';
-import { Scissors, Printer, ClipboardCheck, Sparkles, FolderOpen } from 'lucide-react';
+import { useJobStore, MeasurementRow } from '@/store/store';
+import { Scissors, Printer, ClipboardCheck, Sparkles, FolderOpen, User, Activity } from 'lucide-react';
 
 export default function CutListTab() {
-  const activeJob = useJobStore((state) => state.activeJob);
+  const { activeJob, jobs } = useJobStore();
 
-  const getGroupedCutListByTile = () => {
-    return activeJob.tiles.map((tile) => {
+  const getJobCuts = (jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
+    const tileCuts = tiles.map((tile) => {
       const map: Record<string, { length: string; width: string; quantity: number; roundedLength: number; roundedWidth: number; totalArea: number }> = {};
 
-      tile.rows.forEach((row) => {
+      tile.rows.forEach((row: MeasurementRow) => {
         if (!row.lengthInches || !row.widthInches) return;
         
         const key = `${Number(row.lengthInches).toFixed(2)}x${Number(row.widthInches).toFixed(2)}`;
@@ -34,13 +34,37 @@ export default function CutListTab() {
         tileName: tile.tileName || 'Unnamed Tile Group',
         ratePerSqft: tile.ratePerSqft,
         cuts: Object.values(map),
-        totalPieces: tile.rows.reduce((sum, r) => sum + (r.lengthInches && r.widthInches ? r.quantity : 0), 0)
+        totalPieces: tile.rows.reduce((sum: number, r: MeasurementRow) => sum + (r.lengthInches && r.widthInches ? r.quantity : 0), 0)
       };
     }).filter(group => group.cuts.length > 0);
+
+    return {
+      jobName,
+      projectName,
+      cuttingStatus,
+      tileCuts,
+      totalPieces: tileCuts.reduce((sum, t) => sum + t.totalPieces, 0)
+    };
   };
 
-  const groupedCuts = getGroupedCutListByTile();
-  const grandTotalPieces = groupedCuts.reduce((sum, g) => sum + g.totalPieces, 0);
+  const activeJobCuts = getJobCuts(
+    activeJob.customerName || 'Draft Job',
+    activeJob.projectName || 'Draft Project',
+    activeJob.tiles,
+    'draft'
+  );
+
+  const savedJobsCuts = jobs
+    .filter((job) => (job.cuttingStatus === 'pending' || job.cuttingStatus === 'ongoing'))
+    .map((job) => getJobCuts(job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending'))
+    .filter((jc) => jc.totalPieces > 0);
+
+  const allJobCuts = [
+    ...(activeJobCuts.totalPieces > 0 ? [activeJobCuts] : []),
+    ...savedJobsCuts
+  ];
+
+  const grandTotalPieces = allJobCuts.reduce((sum, jc) => sum + jc.totalPieces, 0);
 
   const handlePrintCutList = () => {
     window.print();
@@ -55,7 +79,7 @@ export default function CutListTab() {
             Fabrication Cut List
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Identical pieces are automatically grouped to optimize fabrication and cutting workflow.
+            Active jobs in cutting are displayed here. Change status to "done" in history to clear from checklist.
           </p>
         </div>
         {grandTotalPieces > 0 && (
@@ -69,12 +93,12 @@ export default function CutListTab() {
         )}
       </div>
 
-      {/* Active job details summary */}
+      {/* active job details summary */}
       <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-sm">
         <div>
-          <span className="text-[10px] uppercase font-bold text-slate-400">Current active job draft</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400">Cutting Checklist Summary</span>
           <h2 className="text-base font-extrabold text-slate-900 mt-0.5">
-            {activeJob.customerName || 'Draft Job'} &mdash; <span className="text-primary font-bold">{activeJob.projectName || 'Draft Project'}</span>
+            Active Jobs for Fabrication
           </h2>
         </div>
         <div className="text-right sm:text-left">
@@ -86,53 +110,85 @@ export default function CutListTab() {
       </div>
 
       {/* Cut List Content */}
-      {groupedCuts.length === 0 ? (
+      {allJobCuts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-sm border border-slate-200">
           <Scissors size={48} className="stroke-1 text-slate-500 mb-2" />
-          <p className="text-sm font-semibold">Cut list is empty</p>
-          <p className="text-xs text-slate-500 mt-1">Add valid measurements (length and width in inches) in the calculator.</p>
+          <p className="text-sm font-semibold">No active cutting items</p>
+          <p className="text-xs text-slate-500 mt-1">Save a job with "pending" or "ongoing" cutting status to see checklist items.</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {groupedCuts.map((tileGroup, idx) => (
-            <div key={tileGroup.tileId || idx} className="bg-white border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm">
-              <div className="flex items-center space-x-2 mb-4 pb-3 border-b border-slate-200">
-                <FolderOpen className="text-primary" size={20} />
-                <span className="font-extrabold text-slate-900">{tileGroup.tileName}</span>
-                <span className="text-2xs bg-slate-100 border border-slate-200 text-slate-500 px-2 py-0.5 rounded-sm font-bold">
-                  {tileGroup.totalPieces} pieces
-                </span>
+        <div className="space-y-8">
+          {allJobCuts.map((jobCut, jIdx) => (
+            <div key={jIdx} className="bg-slate-50/50 border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm space-y-4">
+              {/* Job Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                <div>
+                  <span className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Client / Project</span>
+                  <h3 className="text-base font-black text-slate-900 mt-0.5 flex items-center space-x-2">
+                    <User size={15} className="text-primary" />
+                    <span>{jobCut.jobName} &mdash; <span className="text-primary">{jobCut.projectName}</span></span>
+                  </h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${
+                    jobCut.cuttingStatus === 'draft'
+                      ? 'bg-slate-100 text-slate-600 border-slate-300'
+                      : jobCut.cuttingStatus === 'pending'
+                      ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                      : 'bg-blue-600/10 text-blue-600 border-blue-600/20'
+                  }`}>
+                    {jobCut.cuttingStatus === 'draft' ? 'Current Draft' : `${jobCut.cuttingStatus} cutting`}
+                  </span>
+                  <span className="text-2xs bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded-sm font-bold">
+                    {jobCut.totalPieces} pieces
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {tileGroup.cuts.map((item, cIdx) => (
-                  <div 
-                    key={cIdx}
-                    className="flex items-center justify-between p-3.5 rounded-sm bg-white border border-slate-200 hover:border-primary/20 transition-all group"
-                  >
-                    {/* Dimensions Display */}
-                    <div>
-                      <div className="flex items-baseline space-x-1.5">
-                        <span className="text-base font-black text-slate-900">
-                          {Number(item.length).toFixed(2)}"
-                        </span>
-                        <span className="text-xs font-semibold text-slate-400">x</span>
-                        <span className="text-base font-black text-slate-900">
-                          {Number(item.width).toFixed(2)}"
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-1 text-[10px] text-slate-500 font-semibold">
-                        <Sparkles size={10} className="text-primary" />
-                        <span>Rounded: {item.roundedLength.toFixed(2)} ft x {item.roundedWidth.toFixed(2)} ft</span>
-                      </div>
+              {/* Tiles inside the Job */}
+              <div className="space-y-6">
+                {jobCut.tileCuts.map((tileGroup, idx) => (
+                  <div key={tileGroup.tileId || idx} className="bg-white border border-slate-200 rounded-sm p-4 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-4 pb-2 border-b border-slate-150">
+                      <FolderOpen className="text-primary" size={16} />
+                      <span className="font-extrabold text-sm text-slate-800">{tileGroup.tileName}</span>
+                      <span className="text-3xs bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded-sm font-bold">
+                        {tileGroup.totalPieces} pcs
+                      </span>
                     </div>
 
-                    {/* Quantity Badge */}
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-sm text-center min-w-[70px]">
-                        <span className="block text-[9px] uppercase font-bold tracking-wider text-primary/70">Qty</span>
-                        <span className="text-base font-extrabold">{item.quantity}</span>
-                      </div>
+                    <div className="space-y-2.5">
+                      {tileGroup.cuts.map((item, cIdx) => (
+                        <div 
+                          key={cIdx}
+                          className="flex items-center justify-between p-3 rounded-sm bg-white border border-slate-150 hover:border-primary/20 transition-all group"
+                        >
+                          {/* Dimensions Display */}
+                          <div>
+                            <div className="flex items-baseline space-x-1">
+                              <span className="text-sm font-black text-slate-900">
+                                {Number(item.length).toFixed(2)}"
+                              </span>
+                              <span className="text-3xs font-semibold text-slate-400">x</span>
+                              <span className="text-sm font-black text-slate-900">
+                                {Number(item.width).toFixed(2)}"
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1 mt-0.5 text-[9px] text-slate-500 font-semibold">
+                              <Sparkles size={8} className="text-primary" />
+                              <span>Rounded: {item.roundedLength.toFixed(2)} ft x {item.roundedWidth.toFixed(2)} ft</span>
+                            </div>
+                          </div>
+
+                          {/* Quantity Badge */}
+                          <div className="flex items-center space-x-4">
+                            <div className="bg-primary/5 text-primary px-3 py-1 rounded-sm text-center min-w-[60px]">
+                              <span className="block text-[8px] uppercase font-extrabold tracking-wider text-primary/70">Qty</span>
+                              <span className="text-sm font-extrabold">{item.quantity}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -144,4 +200,5 @@ export default function CutListTab() {
     </div>
   );
 }
+
 
