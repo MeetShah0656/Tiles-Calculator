@@ -51,7 +51,21 @@ export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
             Welcome, <span className="text-primary">{user?.user_metadata?.business_name || 'Yash Marble'}</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            <span className="text-2xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-sm">
+              Account: <span className="text-slate-700 font-bold">{user?.email || 'N/A'}</span>
+            </span>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm border ${
+              user?.app_metadata?.provider === 'google'
+                ? 'bg-emerald-50 border-emerald-250 text-emerald-700'
+                : user?.id?.includes('sandbox')
+                ? 'bg-amber-50 border-amber-250 text-amber-700'
+                : 'bg-blue-50 border-blue-250 text-blue-700'
+            }`}>
+              {user?.app_metadata?.provider === 'google' ? 'Google Auth' : user?.id?.includes('sandbox') ? 'Local Sandbox' : 'Email Auth'}
+            </span>
+          </div>
+          <p className="text-xs text-slate-450 mt-1">
             Real-time shop calculations and client project overview.
           </p>
         </div>

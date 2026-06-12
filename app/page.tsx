@@ -44,17 +44,43 @@ export default function Home() {
       try {
         const { createClient } = await import('@supabase/supabase-js');
         const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const mergeUserProfile = async (authUser: any) => {
+          if (!authUser) return null;
+          try {
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', authUser.id)
+              .single();
+            if (prof) {
+              return {
+                ...authUser,
+                user_metadata: {
+                  ...authUser.user_metadata,
+                  business_name: prof.business_name || authUser.user_metadata?.business_name,
+                  phone_number: prof.phone_number || authUser.user_metadata?.phone_number
+                }
+              };
+            }
+          } catch (e) {
+            console.error("Failed to merge profile:", e);
+          }
+          return authUser;
+        };
         
         // Get active session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser(session.user);
+          const merged = await mergeUserProfile(session.user);
+          setUser(merged);
         }
 
         // Listen for auth state changes (e.g., sign in, sign out)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
           if (session?.user) {
-            setUser(session.user);
+            const merged = await mergeUserProfile(session.user);
+            setUser(merged);
           } else {
             setUser(null);
           }
