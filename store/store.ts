@@ -71,6 +71,7 @@ interface JobStore {
   updateTileRow: (tileId: string, rowId: string, field: 'location' | 'lengthInches' | 'widthInches' | 'quantity', value: string | number) => void;
   duplicateRowInTile: (tileId: string, rowId: string) => void;
   deleteRowFromTile: (tileId: string, rowId: string) => void;
+  addScannedRowsToTile: (tileId: string, rooms: { name: string; length: number; width: number; unit: string; confidence: number; }[]) => void;
   
   updateJobCuttingStatus: (jobId: string, status: 'pending' | 'ongoing' | 'done') => void;
   
@@ -353,6 +354,46 @@ export const useJobStore = create<JobStore>()(
             return {
               ...t,
               rows: finalRows
+            };
+          })
+        };
+        return { activeJob: recalculateJobTotals(activeJob) };
+      }),
+
+      addScannedRowsToTile: (tileId, rooms) => set((state) => {
+        const activeJob = {
+          ...state.activeJob,
+          tiles: state.activeJob.tiles.map((t) => {
+            if (t.id !== tileId) return t;
+            
+            const newRows: MeasurementRow[] = rooms.map(room => {
+              let lenInches = room.length;
+              let widInches = room.width;
+              if (room.unit === 'ft') {
+                lenInches = room.length * 12;
+                widInches = room.width * 12;
+              }
+              
+              return {
+                id: Math.random().toString(36).substring(2, 11),
+                location: room.name,
+                lengthInches: String(lenInches),
+                widthInches: String(widInches),
+                quantity: 1,
+                roundedLengthFt: 0,
+                roundedWidthFt: 0,
+                areaPerPiece: 0,
+                totalArea: 0
+              };
+            });
+            
+            // If the single initial row is blank/empty, replace it entirely
+            const isFirstRowEmpty = t.rows.length === 1 && !t.rows[0].location && !t.rows[0].lengthInches && !t.rows[0].widthInches;
+            const updatedRows = isFirstRowEmpty ? newRows : [...t.rows, ...newRows];
+            
+            return {
+              ...t,
+              rows: updatedRows
             };
           })
         };

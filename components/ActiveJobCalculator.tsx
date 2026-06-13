@@ -16,9 +16,11 @@ import {
   Grid,
   CheckCircle,
   AlertCircle,
-  X
+  X,
+  Camera
 } from 'lucide-react';
 import { useState } from 'react';
+import MeasurementScannerDialog from './MeasurementScannerDialog';
 
 export default function ActiveJobCalculator() {
   const { 
@@ -31,6 +33,7 @@ export default function ActiveJobCalculator() {
     updateTileRow,
     duplicateRowInTile,
     deleteRowFromTile,
+    addScannedRowsToTile,
     saveJob,
     isOnline
   } = useJobStore();
@@ -42,6 +45,7 @@ export default function ActiveJobCalculator() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareStatus, setShareStatus] = useState<'generating' | 'ready' | 'error'>('generating');
   const [shareError, setShareError] = useState('');
+  const [scanningTileId, setScanningTileId] = useState<string | null>(null);
 
   const handleSave = () => {
     if (!activeJob.customerName || !activeJob.projectName) {
@@ -540,14 +544,21 @@ export default function ActiveJobCalculator() {
                   </div>
                 </div>
 
-                {/* Add Row Button */}
-                <div>
+                {/* Add Row & Scan Buttons */}
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
                   <button 
                     onClick={() => addRowToTile(tile.id)}
                     className="flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-50 text-primary font-bold px-4 py-2 rounded-sm text-xs transition-all border border-primary/20 cursor-pointer w-full md:w-auto"
                   >
                     <Plus size={14} />
                     <span>Add Row</span>
+                  </button>
+                  <button 
+                    onClick={() => setScanningTileId(tile.id)}
+                    className="flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-800 font-bold px-4 py-2 rounded-sm text-xs transition-all border border-slate-200 cursor-pointer w-full md:w-auto shadow-2xs"
+                  >
+                    <Camera size={14} className="text-primary" />
+                    <span>Scan Measurements</span>
                   </button>
                 </div>
               </div>
@@ -688,6 +699,19 @@ export default function ActiveJobCalculator() {
             </button>
           </div>
         </div>
+      )}
+
+      {scanningTileId && (
+        <MeasurementScannerDialog
+          tileId={scanningTileId}
+          onClose={() => setScanningTileId(null)}
+          onImport={(rooms) => {
+            addScannedRowsToTile(scanningTileId, rooms);
+            setScanningTileId(null);
+            setNotification(`Successfully imported ${rooms.length} measurements!`);
+            setTimeout(() => setNotification(''), 4000);
+          }}
+        />
       )}
     </div>
   );
