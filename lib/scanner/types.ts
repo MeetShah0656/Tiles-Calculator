@@ -11,5 +11,6 @@ export interface ScanResult {
 }
 
 export interface MeasurementScanner {
-  scan(image: string): Promise<ScanResult>;
+  scan(image: string | Buffer, mimeType?: string): Promise<ScanResult>;
 }
+

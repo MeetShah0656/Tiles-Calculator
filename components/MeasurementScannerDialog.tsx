@@ -19,12 +19,25 @@ interface MeasurementScannerDialogProps {
   onImport: (rooms: ScannedRoom[]) => void;
 }
 
+const dataURLtoBlob = (dataurl: string) => {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
+
 export default function MeasurementScannerDialog({ 
   tileId, 
   onClose, 
   onImport 
 }: MeasurementScannerDialogProps) {
   const [step, setStep] = useState<'select' | 'analyzing' | 'verify'>('select');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'analyzing'>('idle');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [scannedRooms, setScannedRooms] = useState<ScannedRoom[]>([]);
@@ -109,15 +122,41 @@ export default function MeasurementScannerDialog({
   const handleAnalyze = async () => {
     if (!imagePreview) return;
     setStep('analyzing');
+    setUploadStatus('uploading');
     setError(null);
 
     try {
+      // Convert Data URL back to blob for upload
+      const blob = dataURLtoBlob(imagePreview);
+      const file = new File([blob], "scanned_sheet.jpg", { type: "image/jpeg" });
+      
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Phase 1: Upload to Ingestion endpoint
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const uploadData = await uploadResponse.json();
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData.error || "Failed to upload file for temporary storage.");
+      }
+
+      // Phase 2: Analyze from tiered storage
+      setUploadStatus('analyzing');
       const response = await fetch('/api/scan-measurements', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ image: imagePreview })
+        body: JSON.stringify({ 
+          fileId: uploadData.fileId,
+          url: uploadData.url,
+          provider: uploadData.provider,
+          mimeType: uploadData.mimeType
+        })
       });
 
       const data = await response.json();
@@ -135,6 +174,8 @@ export default function MeasurementScannerDialog({
       console.error(err);
       setError(err.message || "An error occurred while connecting to the analyzer.");
       setStep('select');
+    } finally {
+      setUploadStatus('idle');
     }
   };
 
@@ -335,8 +376,17 @@ export default function MeasurementScannerDialog({
             <div className="py-16 flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               <div>
-                <h4 className="text-base font-extrabold text-slate-900">Analyzing handwritten measurements...</h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-md">Gemini is parsing rows, rooms, widths, and lengths. This feature prioritizes accuracy over speed, please hold on.</p>
+                {uploadStatus === 'uploading' ? (
+                  <>
+                    <h4 className="text-base font-extrabold text-slate-900">Uploading sheet photo...</h4>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md">Optimizing dimensions and pre-loading temporary sandboxed cloud storage. Please wait.</p>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-base font-extrabold text-slate-900">Analyzing handwritten measurements...</h4>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md">Gemini is parsing rows, rooms, widths, and lengths. This feature prioritizes accuracy over speed, please hold on.</p>
+                  </>
+                )}
               </div>
             </div>
           )}

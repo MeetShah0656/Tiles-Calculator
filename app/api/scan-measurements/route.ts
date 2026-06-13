@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { geminiScanner } from '@/lib/scanner/gemini';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import { deleteFromCloud } from '@/lib/storage/storageManager';
 
 // Request schema
 const RequestSchema = z.object({
-  image: z.string().min(1, "Base64 image string is required")
+  fileId: z.string().optional(),
+  url: z.string().optional(),
+  provider: z.enum(['supabase', 'cloudinary', 'local']).optional(),
+  image: z.string().optional(),
+  mimeType: z.string().optional()
 });
 
 // Response validation schemas
@@ -21,6 +29,10 @@ const ScanResultSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  let tempFilePath: string | null = null;
+  let fileIdToDelete: string | null = null;
+  let providerToDelete: 'supabase' | 'cloudinary' | 'local' | null = null;
+
   try {
     // Check if request is JSON
     const contentType = request.headers.get('content-type') || '';
@@ -37,25 +49,77 @@ export async function POST(request: NextRequest) {
     const parsedRequest = RequestSchema.safeParse(body);
     if (!parsedRequest.success) {
       return NextResponse.json(
-        { error: "Invalid request payload. Image base64 string is required." },
+        { error: "Invalid request payload. Provide fileId and url, or base64 image." },
         { status: 400 }
       );
     }
 
-    const { image } = parsedRequest.data;
+    const { fileId, url, provider, image, mimeType } = parsedRequest.data;
     
-    // Check file size (approximate from base64 length, where 4 chars = 3 bytes)
-    const approximateSizeBytes = (image.length * 3) / 4;
-    const maxSizeBytes = 10 * 1024 * 1024; // 10MB
-    if (approximateSizeBytes > maxSizeBytes) {
+    let imageBuffer: Buffer | null = null;
+    let detectedMimeType = mimeType || 'image/jpeg';
+
+    if (fileId) {
+      fileIdToDelete = fileId;
+      providerToDelete = provider || null;
+      const tempDir = os.tmpdir();
+      tempFilePath = path.join(tempDir, fileId);
+    }
+
+    // --- Tiered Image Loading ---
+    
+    // Tier 1: Cloud URL Fetch
+    if (url) {
+      try {
+        console.log(`Tier 1: Fetching image from cloud URL: ${url}`);
+        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+        if (res.ok) {
+          const arrayBuffer = await res.arrayBuffer();
+          imageBuffer = Buffer.from(arrayBuffer);
+          console.log("Tier 1 loading successful!");
+        } else {
+          console.warn(`Tier 1 failed: HTTP ${res.status}`);
+        }
+      } catch (err) {
+        console.warn("Tier 1 failed with error, falling back to local file:", err);
+      }
+    }
+
+    // Tier 2: Local Disk Fallback
+    if (!imageBuffer && tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        console.log(`Tier 2: Reading image from local disk: ${tempFilePath}`);
+        imageBuffer = fs.readFileSync(tempFilePath);
+        console.log("Tier 2 loading successful!");
+      } catch (err) {
+        console.warn("Tier 2 failed with error, falling back to legacy base64:", err);
+      }
+    }
+
+    // Tier 3: Legacy Base64 Fallback
+    if (!imageBuffer && image) {
+      console.log("Tier 3: Falling back to legacy base64 image data");
+      let base64Data = image;
+      if (image.includes(';base64,')) {
+        const parts = image.split(';base64,');
+        base64Data = parts[1];
+        const mimeParts = parts[0].split(':');
+        if (mimeParts.length > 1) {
+          detectedMimeType = mimeParts[1];
+        }
+      }
+      imageBuffer = Buffer.from(base64Data, 'base64');
+    }
+
+    if (!imageBuffer) {
       return NextResponse.json(
-        { error: "Image file size exceeds the 10MB limit. Please upload a smaller image." },
-        { status: 413 }
+        { error: "Image data could not be retrieved from any storage tier." },
+        { status: 400 }
       );
     }
 
     // Call scanner
-    const result = await geminiScanner.scan(image);
+    const result = await geminiScanner.scan(imageBuffer, detectedMimeType);
     
     // Validate output format with Zod schema to ensure legibility and accuracy
     const parsedResult = ScanResultSchema.safeParse(result);
@@ -74,5 +138,28 @@ export async function POST(request: NextRequest) {
       { error: err.message || "An unexpected error occurred while parsing the measurements note." },
       { status: 500 }
     );
+  } finally {
+    // --- Post-Processing Cleanup ---
+    
+    // 1. Delete local file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log(`Successfully cleaned up local file: ${tempFilePath}`);
+      } catch (err) {
+        console.error("Failed to delete local temp file:", err);
+      }
+    }
+
+    // 2. Delete cloud file
+    if (fileIdToDelete && providerToDelete && providerToDelete !== 'local') {
+      try {
+        await deleteFromCloud(fileIdToDelete, providerToDelete);
+        console.log(`Successfully cleaned up cloud file from ${providerToDelete}: ${fileIdToDelete}`);
+      } catch (err) {
+        console.error("Failed to delete cloud storage file during cleanup:", err);
+      }
+    }
   }
 }
+
