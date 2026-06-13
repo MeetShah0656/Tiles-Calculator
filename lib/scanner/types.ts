@@ -3,6 +3,7 @@ export interface ScannedRoom {
   length: number;
   width: number;
   unit: string;
+  quantity: number;
   confidence: number;
 }
 
@@ -13,4 +14,5 @@ export interface ScanResult {
 export interface MeasurementScanner {
   scan(image: string | Buffer, mimeType?: string): Promise<ScanResult>;
 }
+
 

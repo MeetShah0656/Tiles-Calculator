@@ -188,7 +188,7 @@ export default function MeasurementScannerDialog({
       if (field === 'name') updated.name = String(value);
       if (field === 'length') updated.length = Number(value) || 0;
       if (field === 'width') updated.width = Number(value) || 0;
-      if (field === 'unit') updated.unit = String(value);
+      if (field === 'quantity') updated.quantity = Number(value) || 1;
       
       // If user edits fields, we set confidence back to high since it was verified
       updated.confidence = 100;
@@ -199,7 +199,7 @@ export default function MeasurementScannerDialog({
   const handleAddRow = () => {
     setScannedRooms(prev => [
       ...prev,
-      { name: "New Space", length: 0, width: 0, unit: "ft", confidence: 100 }
+      { name: "New Space", length: 0, width: 0, unit: "in", quantity: 1, confidence: 100 }
     ]);
   };
 
@@ -406,7 +406,7 @@ export default function MeasurementScannerDialog({
                       <th className="p-2.5 w-1/3">Space / Room Name</th>
                       <th className="p-2.5 text-center w-20">Length</th>
                       <th className="p-2.5 text-center w-20">Width</th>
-                      <th className="p-2.5 text-center w-20">Unit</th>
+                      <th className="p-2.5 text-center w-20">Qty</th>
                       <th className="p-2.5 text-center">Legibility</th>
                       <th className="p-2.5 text-center w-10"></th>
                     </tr>
@@ -446,16 +446,16 @@ export default function MeasurementScannerDialog({
                           />
                         </td>
 
-                        {/* Unit Selection */}
+                        {/* Quantity Input */}
                         <td className="p-2">
-                          <select
-                            value={room.unit}
-                            onChange={(e) => handleRoomChange(idx, 'unit', e.target.value)}
-                            className="w-full px-1.5 py-1.5 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-800 font-bold text-xs text-center outline-none bg-white"
-                          >
-                            <option value="in">Inches (in)</option>
-                            <option value="ft">Feet (ft)</option>
-                          </select>
+                          <input 
+                            type="number" 
+                            value={room.quantity || ''}
+                            onChange={(e) => handleRoomChange(idx, 'quantity', e.target.value)}
+                            className="w-full px-2 py-1.5 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm text-slate-800 font-bold text-xs text-center"
+                            placeholder="1"
+                            min="1"
+                          />
                         </td>
 
                         {/* Confidence Indicator */}

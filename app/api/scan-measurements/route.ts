@@ -20,7 +20,8 @@ const RoomSchema = z.object({
   name: z.string(),
   length: z.number(),
   width: z.number(),
-  unit: z.string(),
+  unit: z.string().default('in'),
+  quantity: z.number().default(1),
   confidence: z.number()
 });
 

@@ -71,7 +71,7 @@ interface JobStore {
   updateTileRow: (tileId: string, rowId: string, field: 'location' | 'lengthInches' | 'widthInches' | 'quantity', value: string | number) => void;
   duplicateRowInTile: (tileId: string, rowId: string) => void;
   deleteRowFromTile: (tileId: string, rowId: string) => void;
-  addScannedRowsToTile: (tileId: string, rooms: { name: string; length: number; width: number; unit: string; confidence: number; }[]) => void;
+  addScannedRowsToTile: (tileId: string, rooms: { name: string; length: number; width: number; unit: string; quantity: number; confidence: number; }[]) => void;
   
   updateJobCuttingStatus: (jobId: string, status: 'pending' | 'ongoing' | 'done') => void;
   
@@ -379,7 +379,7 @@ export const useJobStore = create<JobStore>()(
                 location: room.name,
                 lengthInches: String(lenInches),
                 widthInches: String(widInches),
-                quantity: 1,
+                quantity: room.quantity || 1,
                 roundedLengthFt: 0,
                 roundedWidthFt: 0,
                 areaPerPiece: 0,
