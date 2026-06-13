@@ -359,12 +359,15 @@ export const useJobStore = create<JobStore>()(
         return { activeJob: recalculateJobTotals(activeJob) };
       }),
 
-      updateJobCuttingStatus: (jobId, status) => set((state) => {
-        const updatedJobs = state.jobs.map((job) => 
-          job.id === jobId ? { ...job, cuttingStatus: status } : job
-        );
-        return { jobs: updatedJobs };
-      }),
+      updateJobCuttingStatus: (jobId, status) => {
+        set((state) => {
+          const updatedJobs = state.jobs.map((job) => 
+            job.id === jobId ? { ...job, cuttingStatus: status, syncStatus: 'pending_sync' as const } : job
+          );
+          return { jobs: updatedJobs };
+        });
+        get().syncPendingJobs();
+      },
 
       resetActiveJob: () => set({
         activeJob: initialActiveJob,
@@ -496,9 +499,10 @@ export const useJobStore = create<JobStore>()(
             // Flatten first tile rate for legacy rate_per_sqft column support
             const rate_per_sqft = job.tiles[0]?.ratePerSqft || 0;
             
-            // Backup serialized tiles in notes to prevent info loss in legacy schema
+            // Backup serialized tiles and cutting status in notes to prevent info loss in legacy schema
             const serializedTiles = JSON.stringify(job.tiles);
-            const notesWithTiles = `${job.notes}\n\n__TILES_DATA__:${serializedTiles}`;
+            const cuttingStatusVal = job.cuttingStatus || 'pending';
+            const notesWithMetadata = `${job.notes}\n\n__TILES_DATA__:${serializedTiles}\n\n__CUTTING_STATUS__:${cuttingStatusVal}`;
 
             const { error } = await supabase.from('jobs').upsert({
               id: job.id,
@@ -506,7 +510,7 @@ export const useJobStore = create<JobStore>()(
               phone_number: job.phoneNumber,
               project_name: job.projectName,
               site_address: job.siteAddress,
-              notes: notesWithTiles,
+              notes: notesWithMetadata,
               rate_per_sqft,
               total_area: job.totalArea,
               grand_total: job.grandTotal,
@@ -573,16 +577,41 @@ export const useJobStore = create<JobStore>()(
 
           for (const dbJob of dbJobs) {
             let tiles: TileGroup[] = [];
+            let cuttingStatus: 'pending' | 'ongoing' | 'done' = 'pending';
             let cleanNotes = dbJob.notes || '';
             
-            if (dbJob.notes && dbJob.notes.includes('__TILES_DATA__:')) {
-              const parts = dbJob.notes.split('__TILES_DATA__:');
-              cleanNotes = parts[0].trim();
+            // Extract tiles data
+            if (cleanNotes.includes('__TILES_DATA__:')) {
+              const parts = cleanNotes.split('__TILES_DATA__:');
+              const tilesPart = parts[1].split('__CUTTING_STATUS__:')[0].trim();
               try {
-                tiles = JSON.parse(parts[1]);
+                tiles = JSON.parse(tilesPart);
               } catch (e) {
                 console.error("Failed to parse tiles JSON:", e);
               }
+            }
+
+            // Extract cutting status
+            if (cleanNotes.includes('__CUTTING_STATUS__:')) {
+              const parts = cleanNotes.split('__CUTTING_STATUS__:');
+              const statusPart = parts[1].split('__TILES_DATA__:')[0].trim();
+              cuttingStatus = statusPart as 'pending' | 'ongoing' | 'done';
+            }
+
+            // Clean notes of our specific metadata tags
+            const tilesIdx = cleanNotes.indexOf('__TILES_DATA__:');
+            const statusIdx = cleanNotes.indexOf('__CUTTING_STATUS__:');
+            let firstIdx = -1;
+            if (tilesIdx !== -1 && statusIdx !== -1) {
+              firstIdx = Math.min(tilesIdx, statusIdx);
+            } else if (tilesIdx !== -1) {
+              firstIdx = tilesIdx;
+            } else if (statusIdx !== -1) {
+              firstIdx = statusIdx;
+            }
+
+            if (firstIdx !== -1) {
+              cleanNotes = cleanNotes.substring(0, firstIdx).trim();
             }
 
             if (tiles.length === 0) {
@@ -626,6 +655,7 @@ export const useJobStore = create<JobStore>()(
               totalQuantity: tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0),
               grandTotal: dbJob.grand_total || 0,
               status: dbJob.status || 'pending',
+              cuttingStatus,
               syncStatus: 'synced',
               createdAt: dbJob.created_at
             });
