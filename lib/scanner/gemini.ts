@@ -54,12 +54,12 @@ Extract all room measurements with absolute precision.
 For each measurement, identify:
 1. The room/location name.
 2. The length and width.
-3. The measurement units (detect if they are in inches "in", or feet "ft").
+3. The measurement units (always default/set to "in" for inches, as all incoming data is written in inches).
 4. Convert all values to numbers.
 5. Provide a confidence score (from 0 to 100) representing how legible and certain the extraction is.
 
 CRITICAL INSTRUCTIONS FOR ACCURACY:
-- PRESERVE ORIGINAL VALUES & UNITS: Extract the numbers and units exactly as written on the paper. Do NOT perform any unit conversions (e.g., if the note says "72 x 60 inch" or "72x60", output length: 72, width: 60, unit: "in". Do NOT convert 72 inches to 6 feet, and do NOT change it to 7x4).
+- ALWAYS USE INCHES: All numbers on the paper are in inches (e.g. "72x60" or "72x60 inch" means 72 inches by 60 inches). You MUST output unit as "in" for all rooms. Do NOT convert these to feet (do not convert 72 inches to 6 feet, and do not round to 7x4). Keep the dimensions exactly as written in inches.
 - DECIMALS PRECISION: Pay extreme attention to decimal points (e.g. "14.5", "10.25"). Do NOT round or truncate decimal values to whole integers.
 - DOUBLE-CHECK DIGITS: Look closely at numbers to avoid truncating digits (e.g., do not read "72" as "7", or "60" as "6" or "4"). Verify multi-digit numbers carefully.
 - NO EXTRA ROWS: Extract ONLY the rooms/locations explicitly written on the paper. Do NOT invent or add any extra rows.
