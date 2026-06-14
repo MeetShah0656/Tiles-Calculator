@@ -8,13 +8,15 @@ import ActiveJobCalculator from '@/components/ActiveJobCalculator';
 import JobHistory from '@/components/JobHistory';
 import CutListTab from '@/components/CutListTab';
 import ReportsTab from '@/components/ReportsTab';
-import { useJobStore } from '@/store/store';
+import { useJobStore, Job } from '@/store/store';
 import ProfileTab from '@/components/ProfileTab';
+import JobDetailsModal from '@/components/JobDetailsModal';
 import { Printer, FileText } from 'lucide-react';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [detailJob, setDetailJob] = useState<Job | null>(null);
   const activeJob = useJobStore((state) => state.activeJob);
 
   // Apply user custom theme accent color in real-time
@@ -138,19 +140,19 @@ export default function Home() {
   const renderTabContent = () => {
     switch (currentTab) {
       case 'dashboard':
-        return <Dashboard setCurrentTab={setCurrentTab} user={user} />;
+        return <Dashboard setCurrentTab={setCurrentTab} user={user} onViewJob={setDetailJob} />;
       case 'calculator':
         return <ActiveJobCalculator />;
       case 'history':
-        return <JobHistory setCurrentTab={setCurrentTab} />;
+        return <JobHistory setCurrentTab={setCurrentTab} onViewJob={setDetailJob} />;
       case 'cutlist':
-        return <CutListTab />;
+        return <CutListTab onViewJob={setDetailJob} />;
       case 'reports':
         return <ReportsTab />;
       case 'profile':
         return <ProfileTab user={user} onProfileUpdate={setUser} />;
       default:
-        return <Dashboard setCurrentTab={setCurrentTab} user={user} />;
+        return <Dashboard setCurrentTab={setCurrentTab} user={user} onViewJob={setDetailJob} />;
     }
   };
 
@@ -177,6 +179,8 @@ export default function Home() {
           {renderTabContent()}
         </main>
       </div>
+
+      <JobDetailsModal job={detailJob} onClose={() => setDetailJob(null)} />
 
       {/* High-Fidelity Printable Invoice Layout (Only active during print rendering) */}
       <div id="printable-invoice" className="print-only p-8 bg-white text-black min-h-screen text-xs font-sans">

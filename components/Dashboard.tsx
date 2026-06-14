@@ -18,9 +18,10 @@ import {
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
   user: any;
+  onViewJob?: (job: Job) => void;
 }
 
-export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
+export default function Dashboard({ setCurrentTab, user, onViewJob }: DashboardProps) {
   const jobs = useJobStore((state) => state.jobs);
   const resetActiveJob = useJobStore((state) => state.resetActiveJob);
 
@@ -156,7 +157,8 @@ export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
               {activeCuttingJobs.slice(0, 6).map((job) => (
                 <div 
                   key={job.id} 
-                  className="flex items-center justify-between p-3 border border-slate-150 rounded-sm hover:border-slate-300 transition-all bg-slate-50/50"
+                  className="flex items-center justify-between p-3 border border-slate-150 rounded-sm hover:border-slate-300 hover:shadow-xs transition-all bg-slate-50/50 cursor-pointer"
+                  onClick={() => onViewJob?.(job)}
                 >
                   <div className="min-w-0 flex-1 pr-3">
                     <div className="flex items-center space-x-2">
@@ -171,19 +173,22 @@ export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     {job.cuttingStatus === 'ongoing' ? (
                       <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-sm text-[9px] font-bold bg-amber-100 border border-amber-250 text-amber-800 animate-pulse">
                         <PlayCircle size={10} />
                         <span>Cutting</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-[9px] font-bold bg-slate-150 text-slate-600 border border-slate-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-[9px] font-bold bg-slate-150 text-slate-650 border border-slate-200">
                         Queued
                       </span>
                     )}
                     <button 
-                      onClick={() => setCurrentTab('cutlist')} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentTab('cutlist');
+                      }} 
                       className="block text-3xs text-primary font-bold mt-2 hover:underline cursor-pointer"
                     >
                       Update Progress
@@ -245,12 +250,16 @@ export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                     {activeJobs.slice(0, 5).map((job) => (
-                      <tr key={job.id} className="hover:bg-slate-50/50">
+                      <tr 
+                        key={job.id} 
+                        className="hover:bg-slate-100/75 cursor-pointer transition-colors"
+                        onClick={() => onViewJob?.(job)}
+                      >
                         <td className="py-2.5 pr-2">
                           <p className="font-extrabold text-slate-900 truncate max-w-[150px]">{job.customerName}</p>
                           <p className="text-3xs text-slate-450 mt-0.5">{job.phoneNumber || 'No phone'}</p>
                         </td>
-                        <td className="py-2.5 text-slate-650 truncate max-w-[120px]">{job.projectName}</td>
+                        <td className="py-2.5 text-slate-655 truncate max-w-[120px]">{job.projectName}</td>
                         <td className="py-2.5 text-right font-bold text-slate-900">{job.totalArea.toFixed(1)} sq ft</td>
                         <td className="py-2.5 text-right font-extrabold text-primary pl-4">{formatCurrency(job.grandTotal)}</td>
                       </tr>
@@ -262,7 +271,11 @@ export default function Dashboard({ setCurrentTab, user }: DashboardProps) {
               {/* Mobile view */}
               <div className="sm:hidden space-y-2.5">
                 {activeJobs.slice(0, 5).map((job) => (
-                  <div key={job.id} className="flex items-center justify-between p-3 border border-slate-150 rounded-sm">
+                  <div 
+                    key={job.id} 
+                    className="flex items-center justify-between p-3 border border-slate-150 rounded-sm hover:border-slate-300 hover:shadow-xs transition-all bg-slate-50/30 cursor-pointer"
+                    onClick={() => onViewJob?.(job)}
+                  >
                     <div className="min-w-0 flex-1 pr-3">
                       <p className="font-extrabold text-xs text-slate-900 truncate">{job.customerName}</p>
                       <p className="text-[10px] text-slate-500 truncate">{job.projectName}</p>

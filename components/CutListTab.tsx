@@ -1,9 +1,13 @@
 'use client';
 
-import { useJobStore, MeasurementRow } from '@/store/store';
+import { useJobStore, MeasurementRow, Job } from '@/store/store';
 import { Scissors, Printer, ClipboardCheck, Sparkles, FolderOpen, User, Activity } from 'lucide-react';
 
-export default function CutListTab() {
+interface CutListTabProps {
+  onViewJob?: (job: Job) => void;
+}
+
+export default function CutListTab({ onViewJob }: CutListTabProps) {
   const { activeJob, jobs, updateJobCuttingStatus } = useJobStore();
 
   const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
@@ -124,8 +128,28 @@ export default function CutListTab() {
             <div key={jIdx} className="bg-slate-50/50 border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm space-y-4">
               {/* Job Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-                <div>
-                  <span className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Client / Project</span>
+                <div 
+                  onClick={() => {
+                    if (jobCut.jobId === 'draft') {
+                      const draftJob: Job = {
+                        ...activeJob,
+                        id: 'draft',
+                        createdAt: new Date().toISOString(),
+                        syncStatus: 'pending_sync'
+                      };
+                      onViewJob?.(draftJob);
+                    } else {
+                      const savedJob = jobs.find(j => j.id === jobCut.jobId);
+                      if (savedJob) onViewJob?.(savedJob);
+                    }
+                  }}
+                  className="cursor-pointer hover:opacity-75 transition-opacity"
+                  title="Click to view details"
+                >
+                  <span className="text-[9px] uppercase font-extrabold tracking-wider text-slate-450 hover:text-primary transition-colors flex items-center space-x-1">
+                    <span>Client / Project</span>
+                    <span className="text-[8px] font-normal lowercase italic text-slate-400">(click for details)</span>
+                  </span>
                   <h3 className="text-base font-black text-slate-900 mt-0.5 flex items-center space-x-2">
                     <User size={15} className="text-primary" />
                     <span>{jobCut.jobName} &mdash; <span className="text-primary">{jobCut.projectName}</span></span>
