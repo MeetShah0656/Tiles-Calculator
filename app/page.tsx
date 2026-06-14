@@ -166,6 +166,16 @@ export default function Home() {
     }).format(val);
   };
 
+  const handleEditJob = (job: Job) => {
+    if (job.id === 'draft') {
+      setCurrentTab('calculator');
+    } else {
+      useJobStore.getState().loadJob(job.id);
+      setCurrentTab('calculator');
+    }
+    setDetailJob(null);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       
@@ -182,7 +192,11 @@ export default function Home() {
         </main>
       </div>
 
-      <JobDetailsModal job={detailJob} onClose={() => setDetailJob(null)} />
+      <JobDetailsModal 
+        job={detailJob} 
+        onClose={() => setDetailJob(null)} 
+        onEdit={handleEditJob} 
+      />
 
       {/* High-Fidelity Printable Invoice Layout (Only active during print rendering when not on Cut List) */}
       {currentTab !== 'cutlist' && (

@@ -2,14 +2,15 @@
 
 import React from 'react';
 import { Job } from '@/store/store';
-import { X, Printer } from 'lucide-react';
+import { X, Printer, Pencil } from 'lucide-react';
 
 interface JobDetailsModalProps {
   job: Job | null;
   onClose: () => void;
+  onEdit?: (job: Job) => void;
 }
 
-export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) {
+export default function JobDetailsModal({ job, onClose, onEdit }: JobDetailsModalProps) {
   if (!job) return null;
 
   const formatDate = (isoString: string) => {
@@ -172,12 +173,22 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
             <Printer size={10} />
             <span>Print Estimate</span>
           </button>
-          <button 
-            onClick={onClose}
-            className="bg-slate-200 hover:bg-slate-350 text-slate-800 font-bold px-5 py-3 rounded-sm text-4xs cursor-pointer shadow-sm transition-all w-full sm:w-auto text-center"
-          >
-            Close Details
-          </button>
+          {onEdit ? (
+            <button 
+              onClick={() => onEdit(job)}
+              className="flex items-center justify-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-5 py-3 rounded-sm border border-slate-200 text-4xs cursor-pointer shadow-sm transition-all w-full sm:w-auto text-center animate-fadeIn"
+            >
+              <Pencil size={10} className="text-slate-500" />
+              <span>Edit Estimate</span>
+            </button>
+          ) : (
+            <button 
+              onClick={onClose}
+              className="bg-slate-200 hover:bg-slate-350 text-slate-800 font-bold px-5 py-3 rounded-sm text-4xs cursor-pointer shadow-sm transition-all w-full sm:w-auto text-center"
+            >
+              Close Details
+            </button>
+          )}
         </div>
       </div>
     </div>
