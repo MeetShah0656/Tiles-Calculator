@@ -4,9 +4,9 @@ import { useJobStore, MeasurementRow } from '@/store/store';
 import { Scissors, Printer, ClipboardCheck, Sparkles, FolderOpen, User, Activity } from 'lucide-react';
 
 export default function CutListTab() {
-  const { activeJob, jobs } = useJobStore();
+  const { activeJob, jobs, updateJobCuttingStatus } = useJobStore();
 
-  const getJobCuts = (jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
+  const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
     const tileCuts = tiles.map((tile) => {
       const map: Record<string, { length: string; width: string; quantity: number; roundedLength: number; roundedWidth: number; totalArea: number }> = {};
 
@@ -39,6 +39,7 @@ export default function CutListTab() {
     }).filter(group => group.cuts.length > 0);
 
     return {
+      jobId,
       jobName,
       projectName,
       cuttingStatus,
@@ -48,6 +49,7 @@ export default function CutListTab() {
   };
 
   const activeJobCuts = getJobCuts(
+    'draft',
     activeJob.customerName || 'Draft Job',
     activeJob.projectName || 'Draft Project',
     activeJob.tiles,
@@ -56,7 +58,7 @@ export default function CutListTab() {
 
   const savedJobsCuts = jobs
     .filter((job) => (job.cuttingStatus === 'pending' || job.cuttingStatus === 'ongoing'))
-    .map((job) => getJobCuts(job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending'))
+    .map((job) => getJobCuts(job.id, job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending'))
     .filter((jc) => jc.totalPieces > 0);
 
   const allJobCuts = [
@@ -129,16 +131,26 @@ export default function CutListTab() {
                     <span>{jobCut.jobName} &mdash; <span className="text-primary">{jobCut.projectName}</span></span>
                   </h3>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${
-                    jobCut.cuttingStatus === 'draft'
-                      ? 'bg-slate-100 text-slate-600 border-slate-300'
-                      : jobCut.cuttingStatus === 'pending'
-                      ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                      : 'bg-blue-600/10 text-blue-600 border-blue-600/20'
-                  }`}>
-                    {jobCut.cuttingStatus === 'draft' ? 'Current Draft' : `${jobCut.cuttingStatus} cutting`}
-                  </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {jobCut.jobId !== 'draft' && (
+                    <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-sm px-2.5 py-1.5 shadow-2xs">
+                      <span className="text-[9px] font-extrabold text-slate-400 uppercase">Fabrication Status:</span>
+                      <select
+                        value={jobCut.cuttingStatus}
+                        onChange={(e) => updateJobCuttingStatus(jobCut.jobId, e.target.value as 'pending' | 'ongoing' | 'done')}
+                        className="text-[9px] font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none cursor-pointer uppercase"
+                      >
+                        <option value="pending">Queued / Pending</option>
+                        <option value="ongoing">Ongoing Cutting</option>
+                        <option value="done">Completed / Done</option>
+                      </select>
+                    </div>
+                  )}
+                  {jobCut.jobId === 'draft' && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border bg-slate-100 text-slate-650 border-slate-300">
+                      Current Draft
+                    </span>
+                  )}
                   <span className="text-2xs bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded-sm font-bold">
                     {jobCut.totalPieces} pieces
                   </span>
