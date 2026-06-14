@@ -24,7 +24,7 @@ export default function ProfileTab({ user, onProfileUpdate }: ProfileTabProps) {
       setPhoneNumber(user.user_metadata.phone_number || '');
       setAccentColor(user.user_metadata.accent_color || '#6e2020');
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Apply preview accent color in real-time
   const handleAccentChange = (val: string) => {
