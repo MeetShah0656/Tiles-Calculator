@@ -21,6 +21,25 @@ export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
   const jobToPrint = detailJob || activeJob;
 
+  const [jobViewModes, setJobViewModes] = useState<Record<string, 'compact' | 'full'>>({});
+  const [singlePrintJobId, setSinglePrintJobId] = useState<string | null>(null);
+
+  // Listen for browser print dialog closure to reset single print filtering
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleAfterPrint = () => setSinglePrintJobId(null);
+      window.addEventListener('afterprint', handleAfterPrint);
+      return () => window.removeEventListener('afterprint', handleAfterPrint);
+    }
+  }, []);
+
+  const handlePrintSingleJob = (jobId: string) => {
+    setSinglePrintJobId(jobId);
+    setTimeout(() => {
+      window.print();
+    }, 50);
+  };
+
   // Apply user custom theme accent color in real-time
   useEffect(() => {
     if (user?.user_metadata?.accent_color) {
@@ -148,7 +167,14 @@ export default function Home() {
       case 'history':
         return <JobHistory setCurrentTab={setCurrentTab} onViewJob={setDetailJob} />;
       case 'cutlist':
-        return <CutListTab onViewJob={setDetailJob} />;
+        return (
+          <CutListTab 
+            onViewJob={setDetailJob} 
+            jobViewModes={jobViewModes}
+            setJobViewModes={setJobViewModes}
+            onPrintSingleJob={handlePrintSingleJob}
+          />
+        );
       case 'reports':
         return <ReportsTab />;
       case 'profile':
@@ -359,28 +385,61 @@ export default function Home() {
           {/* Job Sections */}
           <div className="space-y-4 mt-3">
             {(() => {
-              const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
+              const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string, mode: 'compact' | 'full') => {
                 const tileCuts = tiles.map((tile) => {
-                  const map: Record<string, { length: string; width: string; quantity: number; roundedLength: number; roundedWidth: number }> = {};
-                  tile.rows.forEach((row: any) => {
-                    if (!row.lengthInches || !row.widthInches) return;
-                    const key = `${Number(row.lengthInches).toFixed(2)}x${Number(row.widthInches).toFixed(2)}`;
-                    if (map[key]) {
-                      map[key].quantity += row.quantity;
-                    } else {
-                      map[key] = {
-                        length: row.lengthInches,
-                        width: row.widthInches,
-                        quantity: row.quantity,
-                        roundedLength: row.roundedLengthFt,
-                        roundedWidth: row.roundedWidthFt
-                      };
-                    }
-                  });
+                  let cuts: any[] = [];
+                  if (mode === 'compact') {
+                    const map: Record<string, { length: number; width: number; quantity: number; roundedLength: number; roundedWidth: number; locations: string[] }> = {};
+                    tile.rows.forEach((row: any) => {
+                      if (!row.lengthInches || !row.widthInches) return;
+                      const len = Number(row.lengthInches);
+                      const wid = Number(row.widthInches);
+                      const maxDim = Math.max(len, wid);
+                      const minDim = Math.min(len, wid);
+                      const key = `${maxDim.toFixed(2)}x${minDim.toFixed(2)}`;
+                      
+                      const rLen = row.roundedLengthFt || 0;
+                      const rWid = row.roundedWidthFt || 0;
+                      const maxRLen = Math.max(rLen, rWid);
+                      const minRLen = Math.min(rLen, rWid);
+
+                      if (map[key]) {
+                        map[key].quantity += Number(row.quantity) || 0;
+                        if (row.location) map[key].locations.push(row.location);
+                      } else {
+                        map[key] = {
+                          length: maxDim,
+                          width: minDim,
+                          quantity: Number(row.quantity) || 0,
+                          roundedLength: maxRLen,
+                          roundedWidth: minRLen,
+                          locations: row.location ? [row.location] : []
+                        };
+                      }
+                    });
+                    cuts = Object.values(map).map(c => ({
+                      length: c.length.toString(),
+                      width: c.width.toString(),
+                      quantity: c.quantity,
+                      roundedLength: c.roundedLength,
+                      roundedWidth: c.roundedWidth,
+                      location: Array.from(new Set(c.locations)).filter(Boolean).join(', ') || '-'
+                    }));
+                  } else {
+                    cuts = tile.rows.filter((row: any) => row.lengthInches && row.widthInches).map((row: any) => ({
+                      length: row.lengthInches,
+                      width: row.widthInches,
+                      quantity: Number(row.quantity) || 0,
+                      roundedLength: row.roundedLengthFt || 0,
+                      roundedWidth: row.roundedWidthFt || 0,
+                      location: row.location || '-'
+                    }));
+                  }
+
                   return {
                     tileName: tile.tileName || 'Unnamed Tile Group',
-                    cuts: Object.values(map),
-                    totalPieces: tile.rows.reduce((sum: number, r: any) => sum + (r.lengthInches && r.widthInches ? r.quantity : 0), 0)
+                    cuts,
+                    totalPieces: cuts.reduce((sum, c) => sum + c.quantity, 0)
                   };
                 }).filter(group => group.cuts.length > 0);
 
@@ -399,18 +458,23 @@ export default function Home() {
                 activeJob.customerName || 'Draft Job',
                 activeJob.projectName || 'Draft Project',
                 activeJob.tiles,
-                'draft'
+                'draft',
+                jobViewModes['draft'] || 'compact'
               );
 
               const savedJobsCuts = jobs
                 .filter((job) => (job.cuttingStatus === 'pending' || job.cuttingStatus === 'ongoing'))
-                .map((job) => getJobCuts(job.id, job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending'))
+                .map((job) => getJobCuts(job.id, job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending', jobViewModes[job.id] || 'compact'))
                 .filter((jc) => jc.totalPieces > 0);
 
-              const allJobCuts = [
+              let allJobCuts = [
                 ...(activeJobCuts.totalPieces > 0 ? [activeJobCuts] : []),
                 ...savedJobsCuts
               ];
+
+              if (singlePrintJobId !== null) {
+                allJobCuts = allJobCuts.filter(jc => jc.jobId === singlePrintJobId);
+              }
 
               return allJobCuts.map((jobCut, jIdx) => (
                 <div key={jIdx} className="border border-slate-200 rounded-sm p-3 bg-white space-y-2.5 avoid-break border-l-2 border-l-primary">
@@ -419,9 +483,13 @@ export default function Home() {
                       <span className="text-5xs font-bold uppercase tracking-wider text-slate-400">Client / Project</span>
                       <h3 className="text-4xs font-extrabold text-slate-900">{jobCut.jobName} &mdash; <span className="text-primary">{jobCut.projectName}</span></h3>
                     </div>
-                    <span className="text-5xs font-bold text-slate-650 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
-                      {jobCut.jobId === 'draft' ? 'Current Draft' : jobCut.cuttingStatus === 'ongoing' ? 'Ongoing Cutting' : 'Queued'}
-                    </span>
+                    <div className="flex items-center space-x-2 text-5xs font-bold">
+                      <span className="text-slate-400 font-medium">View: {jobViewModes[jobCut.jobId] || 'compact'}</span>
+                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-650 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
+                        {jobCut.jobId === 'draft' ? 'Current Draft' : jobCut.cuttingStatus === 'ongoing' ? 'Ongoing Cutting' : 'Queued'}
+                      </span>
+                    </div>
                   </div>
 
                   {jobCut.tileCuts.map((tileGroup, idx) => (
@@ -434,6 +502,7 @@ export default function Home() {
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-5xs">
                             <th className="px-1.5 py-0.5 border border-slate-200 text-center w-5">#</th>
+                            <th className="px-1.5 py-0.5 border border-slate-200">Location</th>
                             <th className="px-1.5 py-0.5 border border-slate-200">Length (in)</th>
                             <th className="px-1.5 py-0.5 border border-slate-200">Width (in)</th>
                             <th className="px-1.5 py-0.5 border border-slate-200 text-center">Qty</th>
@@ -445,10 +514,11 @@ export default function Home() {
                           {tileGroup.cuts.map((item, cIdx) => (
                             <tr key={cIdx}>
                               <td className="px-1.5 py-0.5 border border-slate-200 text-center">{cIdx + 1}</td>
+                              <td className="px-1.5 py-0.5 border border-slate-200 font-semibold truncate max-w-[80px]" title={item.location}>{item.location}</td>
                               <td className="px-1.5 py-0.5 border border-slate-200 font-semibold">{Number(item.length).toFixed(2)}"</td>
                               <td className="px-1.5 py-0.5 border border-slate-200 font-semibold">{Number(item.width).toFixed(2)}"</td>
                               <td className="px-1.5 py-0.5 border border-slate-200 text-center font-extrabold text-slate-900 text-[8.5px]">{item.quantity}</td>
-                              <td className="px-1.5 py-0.5 border border-slate-200">{item.roundedLength.toFixed(2)} x {item.roundedWidth.toFixed(2)} ft</td>
+                              <td className="px-1.5 py-0.5 border border-slate-200">{Number(item.roundedLength).toFixed(2)} x {Number(item.roundedWidth).toFixed(2)} ft</td>
                               <td className="px-1.5 py-0.5 border border-slate-200 text-center">
                                 <span className="inline-block w-2.5 h-2.5 border border-slate-400 rounded-sm"></span>
                               </td>

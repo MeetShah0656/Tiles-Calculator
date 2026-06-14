@@ -5,40 +5,71 @@ import { Scissors, Printer, ClipboardCheck, Sparkles, FolderOpen, User, Activity
 
 interface CutListTabProps {
   onViewJob?: (job: Job) => void;
+  jobViewModes?: Record<string, 'compact' | 'full'>;
+  setJobViewModes?: React.Dispatch<React.SetStateAction<Record<string, 'compact' | 'full'>>>;
+  onPrintSingleJob?: (jobId: string) => void;
 }
 
-export default function CutListTab({ onViewJob }: CutListTabProps) {
+export default function CutListTab({ onViewJob, jobViewModes, setJobViewModes, onPrintSingleJob }: CutListTabProps) {
   const { activeJob, jobs, updateJobCuttingStatus } = useJobStore();
 
-  const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string) => {
+  const getJobCuts = (jobId: string, jobName: string, projectName: string, tiles: any[], cuttingStatus: string, mode: 'compact' | 'full') => {
     const tileCuts = tiles.map((tile) => {
-      const map: Record<string, { length: string; width: string; quantity: number; roundedLength: number; roundedWidth: number; totalArea: number }> = {};
+      let cuts: any[] = [];
+      if (mode === 'compact') {
+        const map: Record<string, { length: number; width: number; quantity: number; roundedLength: number; roundedWidth: number; locations: string[] }> = {};
+        tile.rows.forEach((row: MeasurementRow) => {
+          if (!row.lengthInches || !row.widthInches) return;
+          const len = Number(row.lengthInches);
+          const wid = Number(row.widthInches);
+          const maxDim = Math.max(len, wid);
+          const minDim = Math.min(len, wid);
+          const key = `${maxDim.toFixed(2)}x${minDim.toFixed(2)}`;
 
-      tile.rows.forEach((row: MeasurementRow) => {
-        if (!row.lengthInches || !row.widthInches) return;
-        
-        const key = `${Number(row.lengthInches).toFixed(2)}x${Number(row.widthInches).toFixed(2)}`;
-        
-        if (map[key]) {
-          map[key].quantity += row.quantity;
-        } else {
-          map[key] = {
-            length: row.lengthInches,
-            width: row.widthInches,
-            quantity: row.quantity,
-            roundedLength: row.roundedLengthFt,
-            roundedWidth: row.roundedWidthFt,
-            totalArea: row.totalArea
-          };
-        }
-      });
+          const rLen = row.roundedLengthFt || 0;
+          const rWid = row.roundedWidthFt || 0;
+          const maxRLen = Math.max(rLen, rWid);
+          const minRLen = Math.min(rLen, rWid);
+
+          if (map[key]) {
+            map[key].quantity += Number(row.quantity) || 0;
+            if (row.location) map[key].locations.push(row.location);
+          } else {
+            map[key] = {
+              length: maxDim,
+              width: minDim,
+              quantity: Number(row.quantity) || 0,
+              roundedLength: maxRLen,
+              roundedWidth: minRLen,
+              locations: row.location ? [row.location] : []
+            };
+          }
+        });
+        cuts = Object.values(map).map(c => ({
+          length: c.length.toString(),
+          width: c.width.toString(),
+          quantity: c.quantity,
+          roundedLength: c.roundedLength,
+          roundedWidth: c.roundedWidth,
+          location: Array.from(new Set(c.locations)).filter(Boolean).join(', ') || '-'
+        }));
+      } else {
+        cuts = tile.rows.filter((row: MeasurementRow) => row.lengthInches && row.widthInches).map((row: MeasurementRow) => ({
+          length: row.lengthInches,
+          width: row.widthInches,
+          quantity: Number(row.quantity) || 0,
+          roundedLength: row.roundedLengthFt || 0,
+          roundedWidth: row.roundedWidthFt || 0,
+          location: row.location || '-'
+        }));
+      }
 
       return {
         tileId: tile.id,
         tileName: tile.tileName || 'Unnamed Tile Group',
         ratePerSqft: tile.ratePerSqft,
-        cuts: Object.values(map),
-        totalPieces: tile.rows.reduce((sum: number, r: MeasurementRow) => sum + (r.lengthInches && r.widthInches ? r.quantity : 0), 0)
+        cuts,
+        totalPieces: cuts.reduce((sum, c) => sum + c.quantity, 0)
       };
     }).filter(group => group.cuts.length > 0);
 
@@ -57,12 +88,13 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
     activeJob.customerName || 'Draft Job',
     activeJob.projectName || 'Draft Project',
     activeJob.tiles,
-    'draft'
+    'draft',
+    (jobViewModes && jobViewModes['draft']) || 'compact'
   );
 
   const savedJobsCuts = jobs
     .filter((job) => (job.cuttingStatus === 'pending' || job.cuttingStatus === 'ongoing'))
-    .map((job) => getJobCuts(job.id, job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending'))
+    .map((job) => getJobCuts(job.id, job.customerName, job.projectName, job.tiles, job.cuttingStatus || 'pending', (jobViewModes && jobViewModes[job.id]) || 'compact'))
     .filter((jc) => jc.totalPieces > 0);
 
   const allJobCuts = [
@@ -127,7 +159,7 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
           {allJobCuts.map((jobCut, jIdx) => (
             <div key={jIdx} className="bg-slate-50/50 border border-slate-200 rounded-sm p-4 md:p-6 shadow-sm space-y-4">
               {/* Job Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div 
                   onClick={() => {
                     if (jobCut.jobId === 'draft') {
@@ -143,7 +175,7 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                       if (savedJob) onViewJob?.(savedJob);
                     }
                   }}
-                  className="cursor-pointer hover:opacity-75 transition-opacity"
+                  className="cursor-pointer hover:opacity-75 transition-opacity flex-grow"
                   title="Click to view details"
                 >
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-slate-450 hover:text-primary transition-colors flex items-center space-x-1">
@@ -155,10 +187,43 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                     <span>{jobCut.jobName} &mdash; <span className="text-primary">{jobCut.projectName}</span></span>
                   </h3>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                  {/* Compact / Full View Switcher */}
+                  <div className="flex items-center bg-slate-100 p-0.5 rounded border border-slate-200 text-[9px] font-bold shadow-3xs">
+                    <button
+                      onClick={() => setJobViewModes?.(prev => ({ ...prev, [jobCut.jobId]: 'compact' }))}
+                      className={`px-2.5 py-1 rounded-sm transition-all cursor-pointer ${
+                        ((jobViewModes && jobViewModes[jobCut.jobId]) || 'compact') === 'compact'
+                          ? 'bg-white text-primary shadow-2xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Compact
+                    </button>
+                    <button
+                      onClick={() => setJobViewModes?.(prev => ({ ...prev, [jobCut.jobId]: 'full' }))}
+                      className={`px-2.5 py-1 rounded-sm transition-all cursor-pointer ${
+                        ((jobViewModes && jobViewModes[jobCut.jobId]) || 'compact') === 'full'
+                          ? 'bg-white text-primary shadow-2xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      Full
+                    </button>
+                  </div>
+
+                  {/* Individual Print Button */}
+                  <button
+                    onClick={() => onPrintSingleJob?.(jobCut.jobId)}
+                    className="flex items-center justify-center p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-primary rounded shadow-3xs transition-all cursor-pointer"
+                    title="Print This Job"
+                  >
+                    <Printer size={13} />
+                  </button>
+
                   {jobCut.jobId !== 'draft' && (
-                    <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-sm px-2.5 py-1.5 shadow-2xs">
-                      <span className="text-[9px] font-extrabold text-slate-400 uppercase">Fabrication Status:</span>
+                    <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded px-2.5 py-1 shadow-3xs">
+                      <span className="text-[9px] font-extrabold text-slate-400 uppercase">Status:</span>
                       <select
                         value={jobCut.cuttingStatus}
                         onChange={(e) => updateJobCuttingStatus(jobCut.jobId, e.target.value as 'pending' | 'ongoing' | 'done')}
@@ -171,11 +236,11 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                     </div>
                   )}
                   {jobCut.jobId === 'draft' && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border bg-slate-100 text-slate-650 border-slate-300">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border bg-slate-100 text-slate-650 border-slate-300">
                       Current Draft
                     </span>
                   )}
-                  <span className="text-2xs bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded-sm font-bold">
+                  <span className="text-2xs bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold shadow-3xs">
                     {jobCut.totalPieces} pieces
                   </span>
                 </div>
@@ -188,7 +253,7 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                     <div className="flex items-center space-x-2 mb-4 pb-2 border-b border-slate-150">
                       <FolderOpen className="text-primary" size={16} />
                       <span className="font-extrabold text-sm text-slate-800">{tileGroup.tileName}</span>
-                      <span className="text-3xs bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded-sm font-bold">
+                      <span className="text-3xs bg-slate-100 border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold">
                         {tileGroup.totalPieces} pcs
                       </span>
                     </div>
@@ -197,7 +262,7 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                       {tileGroup.cuts.map((item, cIdx) => (
                         <div 
                           key={cIdx}
-                          className="flex items-center justify-between p-3 rounded-sm bg-white border border-slate-150 hover:border-primary/20 transition-all group"
+                          className="flex items-center justify-between p-3 rounded bg-white border border-slate-150 hover:border-primary/20 transition-all group"
                         >
                           {/* Dimensions Display */}
                           <div>
@@ -210,7 +275,11 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
                                 {Number(item.width).toFixed(2)}"
                               </span>
                             </div>
-                            <div className="flex items-center space-x-1 mt-0.5 text-[9px] text-slate-500 font-semibold">
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[9px] text-slate-500 font-semibold">
+                              <span className="bg-slate-50 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded-sm text-[8px] font-bold">
+                                {item.location || '-'}
+                              </span>
+                              <span className="text-slate-300">&bull;</span>
                               <Sparkles size={8} className="text-primary" />
                               <span>Rounded: {item.roundedLength.toFixed(2)} ft x {item.roundedWidth.toFixed(2)} ft</span>
                             </div>
@@ -218,7 +287,7 @@ export default function CutListTab({ onViewJob }: CutListTabProps) {
 
                           {/* Quantity Badge */}
                           <div className="flex items-center space-x-4">
-                            <div className="bg-primary/5 text-primary px-3 py-1 rounded-sm text-center min-w-[60px]">
+                            <div className="bg-primary/5 text-primary px-3 py-1 rounded text-center min-w-[60px]">
                               <span className="block text-[8px] uppercase font-extrabold tracking-wider text-primary/70">Qty</span>
                               <span className="text-sm font-extrabold">{item.quantity}</span>
                             </div>
