@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Job } from '@/store/store';
-import { X } from 'lucide-react';
+import { X, Printer } from 'lucide-react';
 
 interface JobDetailsModalProps {
   job: Job | null;
@@ -164,10 +164,17 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
         </div>
 
         {/* Modal Footer */}
-        <div className="flex justify-end pt-3 border-t border-slate-200 flex-shrink-0">
+        <div className="flex justify-end items-center space-x-2.5 pt-3 border-t border-slate-200 flex-shrink-0">
+          <button 
+            onClick={() => window.print()}
+            className="flex items-center justify-center space-x-1.5 bg-primary hover:opacity-90 active:opacity-95 text-white font-bold px-5 py-2.5 rounded-sm text-xs cursor-pointer shadow-md transition-all w-full sm:w-auto text-center"
+          >
+            <Printer size={14} />
+            <span>Print Estimate</span>
+          </button>
           <button 
             onClick={onClose}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-sm text-xs cursor-pointer shadow-md transition-all w-full sm:w-auto text-center"
+            className="bg-slate-200 hover:bg-slate-350 text-slate-800 font-bold px-5 py-2.5 rounded-sm text-xs cursor-pointer shadow-sm transition-all w-full sm:w-auto text-center"
           >
             Close Details
           </button>

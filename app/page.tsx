@@ -18,6 +18,7 @@ export default function Home() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [detailJob, setDetailJob] = useState<Job | null>(null);
   const activeJob = useJobStore((state) => state.activeJob);
+  const jobToPrint = detailJob || activeJob;
 
   // Apply user custom theme accent color in real-time
   useEffect(() => {
@@ -199,7 +200,9 @@ export default function Home() {
           </div>
           <div className="text-right">
             <h2 className="text-lg font-black text-slate-950 uppercase">Estimate / Quote</h2>
-            <p className="text-3xs text-slate-400 mt-1">Date: {new Date().toLocaleDateString('en-IN')}</p>
+            <p className="text-3xs text-slate-400 mt-1">
+              Date: {(detailJob && detailJob.createdAt) ? new Date(detailJob.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
+            </p>
           </div>
         </div>
 
@@ -207,19 +210,19 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 mt-4 p-3 border border-slate-200 rounded-sm bg-slate-50/50">
           <div>
             <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Customer Details</span>
-            <p className="font-extrabold text-slate-900 mt-0.5">{activeJob.customerName || 'N/A'}</p>
-            {activeJob.phoneNumber && <p className="text-3xs text-slate-500 mt-0.5">Phone: {activeJob.phoneNumber}</p>}
-            {activeJob.siteAddress && <p className="text-3xs text-slate-500 mt-0.5">Site: {activeJob.siteAddress}</p>}
+            <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.customerName || 'N/A'}</p>
+            {jobToPrint.phoneNumber && <p className="text-3xs text-slate-500 mt-0.5">Phone: {jobToPrint.phoneNumber}</p>}
+            {jobToPrint.siteAddress && <p className="text-3xs text-slate-500 mt-0.5">Site: {jobToPrint.siteAddress}</p>}
           </div>
           <div>
             <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Project Details</span>
-            <p className="font-extrabold text-slate-900 mt-0.5">{activeJob.projectName || 'N/A'}</p>
-            {activeJob.notes && <p className="text-3xs text-slate-500 mt-0.5 italic">Notes: "{activeJob.notes}"</p>}
+            <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.projectName || 'N/A'}</p>
+            {jobToPrint.notes && <p className="text-3xs text-slate-500 mt-0.5 italic">Notes: "{jobToPrint.notes.split('\n\n__TILES_DATA__')[0]}"</p>}
           </div>
         </div>
 
         {/* Measurements List Table */}
-        {activeJob.tiles.map((tile, tIdx) => (
+        {jobToPrint.tiles && jobToPrint.tiles.map((tile, tIdx) => (
           <div key={tile.id || tIdx} className="mt-6">
             <h3 className="font-extrabold text-slate-900 text-xs uppercase mb-1.5 bg-slate-100 p-2 border border-slate-205 rounded-sm">
               {tile.tileName || `Tile Group ${tIdx + 1}`} &mdash; ₹{tile.ratePerSqft}/sq ft
@@ -276,16 +279,16 @@ export default function Home() {
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Qty (All Tiles):</span>
               <span className="font-extrabold text-slate-900">
-                {activeJob.totalQuantity || activeJob.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs
+                {jobToPrint.totalQuantity || jobToPrint.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs
               </span>
             </div>
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Area (All Tiles):</span>
-              <span className="font-extrabold text-slate-900">{activeJob.totalArea.toFixed(2)} sq ft</span>
+              <span className="font-extrabold text-slate-900">{jobToPrint.totalArea.toFixed(2)} sq ft</span>
             </div>
             <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-sm">
               <span>Grand Total:</span>
-              <span className="text-primary font-extrabold">{formatCurrency(activeJob.grandTotal)}</span>
+              <span className="text-primary font-extrabold">{formatCurrency(jobToPrint.grandTotal)}</span>
             </div>
           </div>
         </div>
