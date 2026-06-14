@@ -536,6 +536,12 @@ export const useJobStore = create<JobStore>()(
           const { createClient } = await import('@supabase/supabase-js');
           const supabase = createClient(supabaseUrl, supabaseKey);
 
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.log("No authenticated user session found, deferring sync.");
+            return;
+          }
+
           for (const job of pending) {
             // Flatten first tile rate for legacy rate_per_sqft column support
             const rate_per_sqft = job.tiles[0]?.ratePerSqft || 0;
@@ -547,6 +553,7 @@ export const useJobStore = create<JobStore>()(
 
             const { error } = await supabase.from('jobs').upsert({
               id: job.id,
+              user_id: user.id,
               customer_name: job.customerName,
               phone_number: job.phoneNumber,
               project_name: job.projectName,
@@ -605,10 +612,11 @@ export const useJobStore = create<JobStore>()(
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
 
-          // Fetch jobs sorted by created_at desc
+          // Fetch jobs sorted by created_at desc, filtered by current user
           const { data: dbJobs, error } = await supabase
             .from('jobs')
             .select('*')
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;

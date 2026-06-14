@@ -57,8 +57,8 @@ CREATE POLICY "Users can insert own profile" ON public.profiles
 
 -- Jobs Policies
 CREATE POLICY "Users can manage own jobs" ON public.jobs 
-  USING (auth.uid() = user_id OR user_id IS NULL) 
-  WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+  USING (auth.uid() = user_id) 
+  WITH CHECK (auth.uid() = user_id);
 
 -- Measurement Rows Policies
 CREATE POLICY "Users can manage own rows" ON public.measurement_rows 
@@ -66,14 +66,14 @@ CREATE POLICY "Users can manage own rows" ON public.measurement_rows
     EXISTS (
       SELECT 1 FROM public.jobs 
       WHERE jobs.id = measurement_rows.job_id 
-      AND (jobs.user_id = auth.uid() OR jobs.user_id IS NULL)
+      AND jobs.user_id = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.jobs 
       WHERE jobs.id = measurement_rows.job_id 
-      AND (jobs.user_id = auth.uid() OR jobs.user_id IS NULL)
+      AND jobs.user_id = auth.uid()
     )
   );
 
