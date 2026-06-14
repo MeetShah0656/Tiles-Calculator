@@ -146,6 +146,10 @@ body {
     background: transparent !important;
     padding: 0 !important;
   }
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
 .print-only {
   display: none;
