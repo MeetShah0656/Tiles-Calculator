@@ -184,88 +184,88 @@ export default function Home() {
       <JobDetailsModal job={detailJob} onClose={() => setDetailJob(null)} />
 
       {/* High-Fidelity Printable Invoice Layout (Only active during print rendering) */}
-      <div id="printable-invoice" className="print-only p-8 bg-white text-black min-h-screen text-2xs font-sans">
+      <div id="printable-invoice" className="print-only p-6 bg-white text-black min-h-screen text-3xs font-sans">
         {/* Invoice Header */}
-        <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+        <div className="flex justify-between items-start border-b border-slate-900 pb-2.5">
           <div>
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-900 uppercase">
+            <h1 className="text-sm font-extrabold tracking-tight text-slate-900 uppercase">
               {user?.user_metadata?.business_name || 'YASH MARBLE & TILES'}
             </h1>
-            <p className="text-3xs text-slate-500 mt-0.5">
+            <p className="text-4xs text-slate-500 mt-0.5">
               Marble, Granite, Stone, Tiles & Custom Edge Fabrication Works
             </p>
-            <p className="text-3xs text-slate-400 mt-1">
+            <p className="text-4xs text-slate-400 mt-0.5">
               Contact: {user?.user_metadata?.phone_number || 'N/A'} | Email: {user?.email}
             </p>
           </div>
           <div className="text-right">
-            <h2 className="text-base font-black text-slate-950 uppercase">Estimate / Quote</h2>
-            <p className="text-3xs text-slate-400 mt-1">
+            <h2 className="text-xs font-black text-slate-950 uppercase">Estimate / Quote</h2>
+            <p className="text-4xs text-slate-400 mt-0.5">
               Date: {(detailJob && detailJob.createdAt) ? new Date(detailJob.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
             </p>
           </div>
         </div>
 
         {/* Client & Project Details */}
-        <div className="grid grid-cols-2 gap-4 mt-4 p-3 border border-slate-200 rounded-sm bg-slate-50/50 text-2xs">
+        <div className="grid grid-cols-2 gap-3 mt-3 p-2.5 border border-slate-200 rounded-sm bg-slate-50/50 text-3xs">
           <div>
-            <span className="block text-3xs font-bold uppercase tracking-wider text-slate-400">Customer Details</span>
+            <span className="block text-4xs font-bold uppercase tracking-wider text-slate-400">Customer Details</span>
             <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.customerName || 'N/A'}</p>
-            {jobToPrint.phoneNumber && <p className="text-3xs text-slate-500 mt-0.5">Phone: {jobToPrint.phoneNumber}</p>}
-            {jobToPrint.siteAddress && <p className="text-3xs text-slate-500 mt-0.5">Site: {jobToPrint.siteAddress}</p>}
+            {jobToPrint.phoneNumber && <p className="text-4xs text-slate-500 mt-0.5">Phone: {jobToPrint.phoneNumber}</p>}
+            {jobToPrint.siteAddress && <p className="text-4xs text-slate-500 mt-0.5">Site: {jobToPrint.siteAddress}</p>}
           </div>
           <div>
-            <span className="block text-3xs font-bold uppercase tracking-wider text-slate-400">Project Details</span>
+            <span className="block text-4xs font-bold uppercase tracking-wider text-slate-400">Project Details</span>
             <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.projectName || 'N/A'}</p>
-            {jobToPrint.notes && <p className="text-3xs text-slate-500 mt-0.5 italic">Notes: "{jobToPrint.notes.split('\n\n__TILES_DATA__')[0]}"</p>}
+            {jobToPrint.notes && <p className="text-4xs text-slate-500 mt-0.5 italic">Notes: "{jobToPrint.notes.split('\n\n__TILES_DATA__')[0]}"</p>}
           </div>
         </div>
 
         {/* Measurements List Table */}
         {jobToPrint.tiles && jobToPrint.tiles.map((tile, tIdx) => (
-          <div key={tile.id || tIdx} className="mt-6">
-            <h3 className="font-extrabold text-slate-900 text-2xs uppercase mb-1.5 bg-slate-100 p-2 border border-slate-205 rounded-sm">
+          <div key={tile.id || tIdx} className="mt-4">
+            <h3 className="font-extrabold text-slate-900 text-3xs uppercase mb-1 bg-slate-100 px-2.5 py-1 border border-slate-200 rounded-sm">
               {tile.tileName || `Tile Group ${tIdx + 1}`} &mdash; ₹{tile.ratePerSqft}/sq ft
             </h3>
-            <table className="w-full text-left border-collapse border border-slate-200 text-3xs">
+            <table className="w-full text-left border-collapse border border-slate-200 text-4xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-3xs">
-                  <th className="p-2 border border-slate-200 text-center w-8">#</th>
-                  <th className="p-2 border border-slate-200">Location</th>
-                  <th className="p-2 border border-slate-200">Length (in)</th>
-                  <th className="p-2 border border-slate-200">Width (in)</th>
-                  <th className="p-2 border border-slate-200 text-center">Qty</th>
-                  <th className="p-2 border border-slate-200">Rounded Length (ft)</th>
-                  <th className="p-2 border border-slate-200">Rounded Width (ft)</th>
-                  <th className="p-2 border border-slate-200 text-right">Area/Piece (sq ft)</th>
-                  <th className="p-2 border border-slate-200 text-right">Total Area (sq ft)</th>
+                <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-4xs">
+                  <th className="px-2 py-1 border border-slate-200 text-center w-6">#</th>
+                  <th className="px-2 py-1 border border-slate-200">Location</th>
+                  <th className="px-2 py-1 border border-slate-200">Length (in)</th>
+                  <th className="px-2 py-1 border border-slate-200">Width (in)</th>
+                  <th className="px-2 py-1 border border-slate-200 text-center">Qty</th>
+                  <th className="px-2 py-1 border border-slate-200">Rounded Length (ft)</th>
+                  <th className="px-2 py-1 border border-slate-200">Rounded Width (ft)</th>
+                  <th className="px-2 py-1 border border-slate-200 text-right">Area/Piece (sq ft)</th>
+                  <th className="px-2 py-1 border border-slate-200 text-right">Total Area (sq ft)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {tile.rows.map((row, idx) => (
                   <tr key={row.id}>
-                    <td className="p-2 border border-slate-200 text-center">{idx + 1}</td>
-                    <td className="p-2 border border-slate-200 font-semibold">{row.location || '-'}</td>
-                    <td className="p-2 border border-slate-200 font-semibold">{row.lengthInches || '-'}</td>
-                    <td className="p-2 border border-slate-200 font-semibold">{row.widthInches || '-'}</td>
-                    <td className="p-2 border border-slate-200 text-center font-semibold">{row.quantity}</td>
-                    <td className="p-2 border border-slate-200">{row.roundedLengthFt > 0 ? `${row.roundedLengthFt.toFixed(2)} ft` : '-'}</td>
-                    <td className="p-2 border border-slate-200">{row.roundedWidthFt > 0 ? `${row.roundedWidthFt.toFixed(2)} ft` : '-'}</td>
-                    <td className="p-2 border border-slate-200 text-right font-medium">{row.areaPerPiece > 0 ? row.areaPerPiece.toFixed(2) : '-'}</td>
-                    <td className="p-2 border border-slate-200 text-right font-bold">{row.totalArea > 0 ? row.totalArea.toFixed(2) : '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 text-center">{idx + 1}</td>
+                    <td className="px-2 py-1 border border-slate-200 font-semibold">{row.location || '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 font-semibold">{row.lengthInches || '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 font-semibold">{row.widthInches || '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 text-center font-semibold">{row.quantity}</td>
+                    <td className="px-2 py-1 border border-slate-200">{row.roundedLengthFt > 0 ? `${row.roundedLengthFt.toFixed(2)} ft` : '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200">{row.roundedWidthFt > 0 ? `${row.roundedWidthFt.toFixed(2)} ft` : '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 text-right font-medium">{row.areaPerPiece > 0 ? row.areaPerPiece.toFixed(2) : '-'}</td>
+                    <td className="px-2 py-1 border border-slate-200 text-right font-bold">{row.totalArea > 0 ? row.totalArea.toFixed(2) : '-'}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-50 font-extrabold border-t-2 border-slate-350 text-3xs text-slate-800">
-                  <td className="p-2 border border-slate-200 text-center" colSpan={4}>Group Total</td>
-                  <td className="p-2 border border-slate-200 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
-                  <td className="p-2 border border-slate-200" colSpan={3}></td>
-                  <td className="p-2 border border-slate-200 text-right">{tile.totalArea.toFixed(2)} sq ft</td>
+                <tr className="bg-slate-50 font-extrabold border-t border-slate-350 text-4xs text-slate-800">
+                  <td className="px-2 py-1 border border-slate-200 text-center" colSpan={4}>Group Total</td>
+                  <td className="px-2 py-1 border border-slate-200 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
+                  <td className="px-2 py-1 border border-slate-200" colSpan={3}></td>
+                  <td className="px-2 py-1 border border-slate-200 text-right">{tile.totalArea.toFixed(2)} sq ft</td>
                 </tr>
               </tfoot>
             </table>
-            <div className="flex justify-end text-3xs font-bold text-slate-700 mt-1.5 pr-1 space-x-4">
+            <div className="flex justify-end text-4xs font-bold text-slate-700 mt-1 pr-1 space-x-3">
               <span>Total Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs</span>
               <span>Total Area: {tile.totalArea.toFixed(2)} sq ft</span>
               <span>Subtotal: {formatCurrency(tile.subtotal)}</span>
@@ -274,28 +274,28 @@ export default function Home() {
         ))}
 
         {/* Pricing Summary */}
-        <div className="flex justify-end mt-6">
-          <div className="w-1/2 space-y-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-sm text-3xs">
+        <div className="flex justify-end mt-4">
+          <div className="w-1/2 space-y-1 p-2.5 bg-slate-50 border border-slate-200 rounded-sm text-4xs">
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Qty (All Tiles):</span>
-              <span className="font-extrabold text-slate-900">
+              <span className="font-extrabold text-slate-900 text-[8.5px]">
                 {jobToPrint.totalQuantity || jobToPrint.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs
               </span>
             </div>
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Area (All Tiles):</span>
-              <span className="font-extrabold text-slate-900">{jobToPrint.totalArea.toFixed(2)} sq ft</span>
+              <span className="font-extrabold text-slate-900 text-[8.5px]">{jobToPrint.totalArea.toFixed(2)} sq ft</span>
             </div>
-            <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-2xs">
+            <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1 text-3xs">
               <span>Grand Total:</span>
               <span className="text-primary font-black text-xs">{formatCurrency(jobToPrint.grandTotal)}</span>
             </div>
           </div>
         </div>
         {/* Footer Disclaimers */}
-        <div className="mt-12 pt-6 border-t border-slate-200 text-center text-[10px] text-slate-400">
+        <div className="mt-8 pt-4 border-t border-slate-200 text-center text-[8.5px] text-slate-400">
           <p>This is a computer-generated quote. Running dimensions rounded to the nearest 0.25 ft increment.</p>
-          <p className="mt-1 font-semibold text-slate-600">&copy; {user?.user_metadata?.business_name || 'TileSuite'} &bull; Thank you for your business!</p>
+          <p className="mt-0.5 font-semibold text-slate-600">&copy; {user?.user_metadata?.business_name || 'TileSuite'} &bull; Thank you for your business!</p>
         </div>
       </div>
 
