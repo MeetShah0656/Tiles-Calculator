@@ -32,7 +32,7 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
 
   return (
     <div 
-      className="fixed inset-0 z-55 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+      className="fixed inset-0 z-55 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fadeIn no-print"
       onClick={onClose}
     >
       <div 
