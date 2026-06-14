@@ -70,8 +70,7 @@ export default function ProfileTab({ user, onProfileUpdate }: ProfileTabProps) {
           id: user.id,
           business_name: businessName,
           phone_number: phoneNumber,
-          accent_color: accentColor,
-          updated_at: new Date().toISOString()
+          accent_color: accentColor
         });
 
       if (error) throw error;
