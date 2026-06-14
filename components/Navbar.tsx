@@ -51,6 +51,16 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
 
       // Restrict horizontal swiping gestures
       if (Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+        // Prevent default browser navigation (history back/forward swipe) on Chrome/Firefox
+        const isSwipeToOpen = !isDrawerOpen && startX < 50 && diffX > 0;
+        const isSwipeToClose = isDrawerOpen && diffX < 0;
+
+        if (isSwipeToOpen || isSwipeToClose) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+        }
+
         // Swipe Right to Open: starts near the left screen edge (less than 50px) and moves right
         if (!isDrawerOpen && startX < 50 && diffX > 80) {
           setIsDrawerOpen(true);
@@ -67,7 +77,8 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    // Register touchmove with { passive: false } to allow e.preventDefault()
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
 
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
@@ -194,12 +205,16 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
         <div 
           onClick={() => setIsDrawerOpen(false)}
           className="absolute inset-0 bg-black/40 backdrop-blur-2xs transition-opacity duration-300" 
+          style={{ touchAction: 'none' }}
         />
         
         {/* Drawer panel content */}
-        <div className={`absolute top-0 bottom-0 left-0 w-64 bg-white shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out border-r border-slate-200 ${
-          isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
+        <div 
+          className={`absolute top-0 bottom-0 left-0 w-64 bg-white shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out border-r border-slate-200 ${
+            isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          style={{ touchAction: 'pan-y' }}
+        >
           <div>
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-250 bg-slate-50/50">
