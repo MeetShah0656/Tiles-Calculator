@@ -7,7 +7,7 @@
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   
-  --color-primary: #6e2020;
+  --color-primary: var(--primary-accent, #6e2020);
   --color-primary-foreground: #ffffff;
   
   --color-secondary: hsl(var(--secondary));

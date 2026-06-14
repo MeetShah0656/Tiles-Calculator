@@ -9,12 +9,22 @@ import JobHistory from '@/components/JobHistory';
 import CutListTab from '@/components/CutListTab';
 import ReportsTab from '@/components/ReportsTab';
 import { useJobStore } from '@/store/store';
+import ProfileTab from '@/components/ProfileTab';
 import { Printer, FileText } from 'lucide-react';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const activeJob = useJobStore((state) => state.activeJob);
+
+  // Apply user custom theme accent color in real-time
+  useEffect(() => {
+    if (user?.user_metadata?.accent_color) {
+      document.documentElement.style.setProperty('--primary-accent', user.user_metadata.accent_color);
+    } else {
+      document.documentElement.style.setProperty('--primary-accent', '#6e2020');
+    }
+  }, [user]);
 
   // Sync online status changes
   useEffect(() => {
@@ -59,7 +69,8 @@ export default function Home() {
                 user_metadata: {
                   ...authUser.user_metadata,
                   business_name: prof.business_name || authUser.user_metadata?.business_name,
-                  phone_number: prof.phone_number || authUser.user_metadata?.phone_number
+                  phone_number: prof.phone_number || authUser.user_metadata?.phone_number,
+                  accent_color: prof.accent_color || authUser.user_metadata?.accent_color
                 }
               };
             }
@@ -136,6 +147,8 @@ export default function Home() {
         return <CutListTab />;
       case 'reports':
         return <ReportsTab />;
+      case 'profile':
+        return <ProfileTab user={user} onProfileUpdate={setUser} />;
       default:
         return <Dashboard setCurrentTab={setCurrentTab} user={user} />;
     }

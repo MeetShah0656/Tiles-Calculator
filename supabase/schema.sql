@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   business_name TEXT,
   phone_number TEXT,
   logo_url TEXT,
+  accent_color TEXT DEFAULT '#6e2020',
   role TEXT DEFAULT 'supervisor', -- 'admin', 'supervisor', 'fabricator'
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

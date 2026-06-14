@@ -9,7 +9,8 @@ import {
   FileBarChart2, 
   Wifi, 
   WifiOff, 
-  LogOut 
+  LogOut,
+  User
 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -35,6 +36,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
     { id: 'history', name: 'Job History', icon: History },
     { id: 'cutlist', name: 'Cut List', icon: Scissors },
     { id: 'reports', name: 'Reports', icon: FileBarChart2 },
+    { id: 'profile', name: 'Profile', icon: User },
   ];
 
   return (
