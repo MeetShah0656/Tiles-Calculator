@@ -184,14 +184,14 @@ export default function Home() {
       <JobDetailsModal job={detailJob} onClose={() => setDetailJob(null)} />
 
       {/* High-Fidelity Printable Invoice Layout (Only active during print rendering) */}
-      <div id="printable-invoice" className="print-only p-8 bg-white text-black min-h-screen text-xs font-sans">
+      <div id="printable-invoice" className="print-only p-8 bg-white text-black min-h-screen text-2xs font-sans">
         {/* Invoice Header */}
         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 uppercase">
+            <h1 className="text-lg font-extrabold tracking-tight text-slate-900 uppercase">
               {user?.user_metadata?.business_name || 'YASH MARBLE & TILES'}
             </h1>
-            <p className="text-2xs text-slate-500 mt-0.5">
+            <p className="text-3xs text-slate-500 mt-0.5">
               Marble, Granite, Stone, Tiles & Custom Edge Fabrication Works
             </p>
             <p className="text-3xs text-slate-400 mt-1">
@@ -199,7 +199,7 @@ export default function Home() {
             </p>
           </div>
           <div className="text-right">
-            <h2 className="text-lg font-black text-slate-950 uppercase">Estimate / Quote</h2>
+            <h2 className="text-base font-black text-slate-950 uppercase">Estimate / Quote</h2>
             <p className="text-3xs text-slate-400 mt-1">
               Date: {(detailJob && detailJob.createdAt) ? new Date(detailJob.createdAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')}
             </p>
@@ -207,15 +207,15 @@ export default function Home() {
         </div>
 
         {/* Client & Project Details */}
-        <div className="grid grid-cols-2 gap-4 mt-4 p-3 border border-slate-200 rounded-sm bg-slate-50/50">
+        <div className="grid grid-cols-2 gap-4 mt-4 p-3 border border-slate-200 rounded-sm bg-slate-50/50 text-2xs">
           <div>
-            <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Customer Details</span>
+            <span className="block text-3xs font-bold uppercase tracking-wider text-slate-400">Customer Details</span>
             <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.customerName || 'N/A'}</p>
             {jobToPrint.phoneNumber && <p className="text-3xs text-slate-500 mt-0.5">Phone: {jobToPrint.phoneNumber}</p>}
             {jobToPrint.siteAddress && <p className="text-3xs text-slate-500 mt-0.5">Site: {jobToPrint.siteAddress}</p>}
           </div>
           <div>
-            <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Project Details</span>
+            <span className="block text-3xs font-bold uppercase tracking-wider text-slate-400">Project Details</span>
             <p className="font-extrabold text-slate-900 mt-0.5">{jobToPrint.projectName || 'N/A'}</p>
             {jobToPrint.notes && <p className="text-3xs text-slate-500 mt-0.5 italic">Notes: "{jobToPrint.notes.split('\n\n__TILES_DATA__')[0]}"</p>}
           </div>
@@ -224,12 +224,12 @@ export default function Home() {
         {/* Measurements List Table */}
         {jobToPrint.tiles && jobToPrint.tiles.map((tile, tIdx) => (
           <div key={tile.id || tIdx} className="mt-6">
-            <h3 className="font-extrabold text-slate-900 text-xs uppercase mb-1.5 bg-slate-100 p-2 border border-slate-205 rounded-sm">
+            <h3 className="font-extrabold text-slate-900 text-2xs uppercase mb-1.5 bg-slate-100 p-2 border border-slate-205 rounded-sm">
               {tile.tileName || `Tile Group ${tIdx + 1}`} &mdash; ₹{tile.ratePerSqft}/sq ft
             </h3>
-            <table className="w-full text-left border-collapse border border-slate-200">
+            <table className="w-full text-left border-collapse border border-slate-200 text-3xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-[9px]">
+                <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-3xs">
                   <th className="p-2 border border-slate-200 text-center w-8">#</th>
                   <th className="p-2 border border-slate-200">Location</th>
                   <th className="p-2 border border-slate-200">Length (in)</th>
@@ -257,7 +257,7 @@ export default function Home() {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-50 font-extrabold border-t-2 border-slate-350 text-[10px] text-slate-800">
+                <tr className="bg-slate-50 font-extrabold border-t-2 border-slate-350 text-3xs text-slate-800">
                   <td className="p-2 border border-slate-200 text-center" colSpan={4}>Group Total</td>
                   <td className="p-2 border border-slate-200 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
                   <td className="p-2 border border-slate-200" colSpan={3}></td>
@@ -265,7 +265,7 @@ export default function Home() {
                 </tr>
               </tfoot>
             </table>
-            <div className="flex justify-end text-2xs font-bold text-slate-700 mt-1.5 pr-1 space-x-4">
+            <div className="flex justify-end text-3xs font-bold text-slate-700 mt-1.5 pr-1 space-x-4">
               <span>Total Qty: {tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs</span>
               <span>Total Area: {tile.totalArea.toFixed(2)} sq ft</span>
               <span>Subtotal: {formatCurrency(tile.subtotal)}</span>
@@ -275,7 +275,7 @@ export default function Home() {
 
         {/* Pricing Summary */}
         <div className="flex justify-end mt-6">
-          <div className="w-1/2 space-y-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-sm">
+          <div className="w-1/2 space-y-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-sm text-3xs">
             <div className="flex justify-between font-medium text-slate-500">
               <span>Total Qty (All Tiles):</span>
               <span className="font-extrabold text-slate-900">
@@ -286,9 +286,9 @@ export default function Home() {
               <span>Total Area (All Tiles):</span>
               <span className="font-extrabold text-slate-900">{jobToPrint.totalArea.toFixed(2)} sq ft</span>
             </div>
-            <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-sm">
+            <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-2xs">
               <span>Grand Total:</span>
-              <span className="text-primary font-extrabold">{formatCurrency(jobToPrint.grandTotal)}</span>
+              <span className="text-primary font-black text-xs">{formatCurrency(jobToPrint.grandTotal)}</span>
             </div>
           </div>
         </div>

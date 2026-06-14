@@ -63,6 +63,9 @@
   --radius-lg: 0.125rem;
   --radius-md: 0.0625rem;
   --radius-sm: 0rem;
+
+  --font-size-2xs: 0.625rem;
+  --font-size-3xs: 0.525rem;
 }
 
 :root {

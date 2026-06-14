@@ -42,9 +42,9 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
         {/* Modal Header */}
         <div className="flex justify-between items-start border-b border-slate-200 pb-3 flex-shrink-0">
           <div>
-            <span className="text-[10px] uppercase font-black text-primary tracking-wider">Job Detailed View</span>
-            <h3 className="text-lg font-black text-slate-900 mt-0.5">{job.customerName}</h3>
-            <p className="text-xs font-semibold text-slate-500 mt-0.5">{job.projectName}</p>
+            <span className="text-3xs uppercase font-black text-primary tracking-wider">Job Detailed View</span>
+            <h3 className="text-base font-black text-slate-900 mt-0.5">{job.customerName}</h3>
+            <p className="text-2xs font-semibold text-slate-500 mt-0.5">{job.projectName}</p>
           </div>
           <button 
             onClick={onClose}
@@ -57,49 +57,49 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
         {/* Modal Body (Details) */}
         <div className="space-y-4 flex-grow overflow-y-auto pr-1 my-3">
           {/* Info Blocks */}
-          <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-sm border border-slate-200 text-xs">
+          <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-sm border border-slate-200 text-2xs">
             <div>
-              <span className="block text-[8px] uppercase font-bold text-slate-400">Date Logged</span>
+              <span className="block text-3xs uppercase font-bold text-slate-400">Date Logged</span>
               <p className="font-semibold text-slate-700 mt-0.5">{formatDate(job.createdAt)}</p>
             </div>
             {job.siteAddress && (
               <div>
-                <span className="block text-[8px] uppercase font-bold text-slate-400">Site Address</span>
+                <span className="block text-3xs uppercase font-bold text-slate-400">Site Address</span>
                 <p className="font-semibold text-slate-700 mt-0.5">{job.siteAddress}</p>
               </div>
             )}
             {job.phoneNumber && (
               <div className="col-span-2 border-t border-slate-200 pt-2 mt-1">
-                <span className="block text-[8px] uppercase font-bold text-slate-400">Contact Number</span>
+                <span className="block text-3xs uppercase font-bold text-slate-400">Contact Number</span>
                 <p className="font-semibold text-slate-700 mt-0.5">{job.phoneNumber}</p>
               </div>
             )}
             {job.notes && (
               <div className="col-span-2 border-t border-slate-200 pt-2 mt-1">
-                <span className="block text-[8px] uppercase font-bold text-slate-400">Notes / Instructions</span>
-                <p className="font-semibold text-slate-600 mt-0.5 italic">"{job.notes.split('\n\n__TILES_DATA__')[0]}"</p>
+                <span className="block text-3xs uppercase font-bold text-slate-400">Notes / Instructions</span>
+                <p className="font-semibold text-slate-700 mt-0.5 italic">"{job.notes.split('\n\n__TILES_DATA__')[0]}"</p>
               </div>
             )}
           </div>
 
           {/* Tiles Detailed Breakdown */}
           <div className="space-y-4">
-            <h4 className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Measurements Breakdown</h4>
+            <h4 className="text-3xs uppercase font-black text-slate-400 tracking-wider">Measurements Breakdown</h4>
             {job.tiles && job.tiles.map((tile, tIdx) => (
               <div key={tile.id || tIdx} className="bg-white border border-slate-200 rounded-sm overflow-hidden shadow-2xs">
                 {/* Tile Header */}
-                <div className="bg-slate-50/80 px-4 py-2 border-b border-slate-200 flex justify-between items-center text-xs">
+                <div className="bg-slate-50/80 px-4 py-2 border-b border-slate-200 flex justify-between items-center text-2xs">
                   <span className="font-extrabold text-slate-800">{tile.tileName || `Tile ${tIdx + 1}`}</span>
-                  <span className="font-extrabold text-slate-900 bg-slate-200/60 px-2.5 py-0.5 rounded-sm border border-slate-200/80 text-[10px]">
+                  <span className="font-extrabold text-slate-900 bg-slate-200/60 px-2.5 py-0.5 rounded-sm border border-slate-200/80 text-3xs">
                     ₹{tile.ratePerSqft}/sq ft
                   </span>
                 </div>
                 {/* Rows */}
                 <div className="p-3 space-y-2">
                   <div className="overflow-x-auto -mx-3 px-3">
-                    <table className="w-full text-left border-collapse text-2xs min-w-[280px]">
+                    <table className="w-full text-left border-collapse text-3xs min-w-[280px]">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                        <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-3xs">
                           <th className="pb-2">Location</th>
                           <th className="pb-2 text-center">Size (in)</th>
                           <th className="pb-2 text-center">Qty</th>
@@ -115,7 +115,7 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
                             </td>
                             <td className="py-2 text-center whitespace-nowrap">
                               <div>{row.lengthInches}" x {row.widthInches}"</div>
-                              <div className="text-[9px] text-slate-400 font-medium sm:hidden mt-0.5">
+                              <div className="text-3xs text-slate-400 font-medium sm:hidden mt-0.5">
                                 R: {row.roundedLengthFt.toFixed(2)} x {row.roundedWidthFt.toFixed(2)} ft
                               </div>
                             </td>
@@ -126,7 +126,7 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className="bg-slate-50 border-t border-slate-200 text-slate-800 font-extrabold text-[10px]">
+                        <tr className="bg-slate-50 border-t border-slate-200 text-slate-800 font-extrabold text-3xs">
                           <td className="py-1.5 text-slate-700 font-bold" colSpan={2}>Group Total:</td>
                           <td className="py-1.5 text-center">{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)}</td>
                           <td className="py-1.5 hidden sm:table-cell"></td>
@@ -135,7 +135,7 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
                       </tfoot>
                     </table>
                   </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-bold text-slate-900 border-t border-slate-100 pt-2 mt-1 gap-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-2xs font-bold text-slate-900 border-t border-slate-100 pt-2 mt-1 gap-1">
                     <span className="text-slate-500 font-medium">Tile Summary:</span>
                     <span>{tile.totalQuantity || tile.rows.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0)} pcs &bull; {tile.totalArea.toFixed(2)} sq ft &bull; <span className="text-primary font-black">{formatCurrency(tile.subtotal)}</span></span>
                   </div>
@@ -145,20 +145,20 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
           </div>
 
           {/* Grand Summary */}
-          <div className="bg-slate-55 border border-slate-200 p-4 rounded-sm flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm font-bold text-slate-800 gap-3">
+          <div className="bg-slate-55 border border-slate-200 p-4 rounded-sm flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-bold text-slate-800 gap-3">
             <div className="flex flex-col sm:flex-row sm:space-x-6 gap-1.5 sm:gap-0">
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-bold block">Grand Qty</span>
+                <span className="text-slate-400 text-3xs uppercase font-bold block">Grand Qty</span>
                 <span className="font-extrabold text-slate-900">{job.totalQuantity || job.tiles.reduce((sum, t) => sum + (t.totalQuantity || 0), 0)} pcs</span>
               </div>
               <div className="sm:border-l sm:border-slate-200 sm:pl-6">
-                <span className="text-slate-400 text-[10px] uppercase font-bold block">Grand Area</span>
+                <span className="text-slate-400 text-3xs uppercase font-bold block">Grand Area</span>
                 <span className="font-extrabold text-slate-900">{job.totalArea.toFixed(2)} sq ft</span>
               </div>
             </div>
             <div className="w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-200 flex justify-between sm:block">
-              <span className="text-slate-400 text-[10px] uppercase font-bold block sm:hidden">Total Cost</span>
-              <span className="text-primary text-lg font-black">{formatCurrency(job.grandTotal)}</span>
+              <span className="text-slate-400 text-3xs uppercase font-bold block sm:hidden">Total Cost</span>
+              <span className="text-primary text-base font-black">{formatCurrency(job.grandTotal)}</span>
             </div>
           </div>
         </div>
