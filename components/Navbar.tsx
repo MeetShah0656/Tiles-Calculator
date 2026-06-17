@@ -26,6 +26,11 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
   const { isOnline } = useJobStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  const isDrawerOpenRef = React.useRef(isDrawerOpen);
+  useEffect(() => {
+    isDrawerOpenRef.current = isDrawerOpen;
+  }, [isDrawerOpen]);
+
   // Force light theme class on html element
   useEffect(() => {
     const root = window.document.documentElement;
@@ -51,24 +56,15 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
 
       // Restrict horizontal swiping gestures
       if (Math.abs(diffX) > Math.abs(diffY) * 1.5) {
-        // Prevent default browser navigation (history back/forward swipe) on Chrome/Firefox
-        const isSwipeToOpen = !isDrawerOpen && startX < 50 && diffX > 0;
-        const isSwipeToClose = isDrawerOpen && diffX < 0;
-
-        if (isSwipeToOpen || isSwipeToClose) {
-          if (e.cancelable) {
-            e.preventDefault();
-          }
-        }
-
+        const open = isDrawerOpenRef.current;
         // Swipe Right to Open: starts near the left screen edge (less than 50px) and moves right
-        if (!isDrawerOpen && startX < 50 && diffX > 80) {
+        if (!open && startX < 50 && diffX > 80) {
           setIsDrawerOpen(true);
           startX = 0;
           startY = 0;
         }
         // Swipe Left to Close: swiping left anywhere on the screen closes the open drawer
-        else if (isDrawerOpen && diffX < -80) {
+        else if (open && diffX < -80) {
           setIsDrawerOpen(false);
           startX = 0;
           startY = 0;
@@ -77,14 +73,14 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }: NavbarPr
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    // Register touchmove with { passive: false } to allow e.preventDefault()
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    // Register touchmove with { passive: true } to allow scrolling without main-thread blocking
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [isDrawerOpen]);
+  }, []);
 
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },

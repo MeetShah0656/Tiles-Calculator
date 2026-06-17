@@ -7,13 +7,22 @@ export default function PWARegister() {
   const setOnline = useJobStore((state) => state.setOnline);
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
     // Register Service Worker
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+      const registerSW = () => {
         navigator.serviceWorker.register('/sw.js')
           .then((reg) => console.log('ServiceWorker registration successful with scope: ', reg.scope))
           .catch((err) => console.warn('ServiceWorker registration failed: ', err));
-      });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+        cleanup = () => window.removeEventListener('load', registerSW);
+      }
     }
 
     // Monitor Online/Offline Status
@@ -29,6 +38,7 @@ export default function PWARegister() {
     }
 
     return () => {
+      if (cleanup) cleanup();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
