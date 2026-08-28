@@ -12,19 +12,39 @@ import { useJobStore } from '@/store/store.js';
 export default function Home() {
   const [user, setUser] = useState(null);
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [isMounted, setIsMounted] = useState(false);
+
   const activeJob = useJobStore((state) => state.activeJob);
   const quotaActiveJob = useJobStore((state) => state.quotaActiveJob);
 
-  const jobToPrint = currentTab === 'quota' ? quotaActiveJob : activeJob;
+  const rawJobToPrint = currentTab === 'quota' ? quotaActiveJob : activeJob;
+  const jobToPrint = rawJobToPrint || {
+    customerName: '',
+    phoneNumber: '',
+    siteAddress: '',
+    totalArea: 0,
+    totalQuantity: 0,
+    grandTotal: 0,
+    tiles: []
+  };
 
   useEffect(() => {
+    setIsMounted(true);
     document.documentElement.style.setProperty('--primary-accent', '#09090b');
   }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleOnline = () => useJobStore.getState().setOnline(true);
-      const handleOffline = () => useJobStore.getState().setOnline(false);
+      const handleOnline = () => {
+        if (useJobStore.getState().setIsOnline) {
+          useJobStore.getState().setIsOnline(true);
+        }
+      };
+      const handleOffline = () => {
+        if (useJobStore.getState().setIsOnline) {
+          useJobStore.getState().setIsOnline(false);
+        }
+      };
       
       window.addEventListener('online', handleOnline);
       window.addEventListener('offline', handleOffline);
@@ -88,7 +108,7 @@ export default function Home() {
         });
 
         unsubscribe = () => {
-          subscription.unsubscribe();
+          subscription?.unsubscribe?.();
         };
       } catch (err) {
         console.error("Failed to recover session:", err);
@@ -117,6 +137,17 @@ export default function Home() {
     }
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#e8e6e1] text-[#0a0a0a]">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-[#0a0a0a] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <span className="text-xs font-black tracking-[0.3em] uppercase block">TIVERA LOADING...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return <AuthScreen onLoginSuccess={setUser} />;
   }
@@ -141,11 +172,11 @@ export default function Home() {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(val);
+    }).format(val || 0);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#e8e6e1]">
       <div className="no-print flex-grow flex flex-col">
         <Navbar 
           currentTab={currentTab} 
@@ -189,7 +220,7 @@ export default function Home() {
         </div>
 
         <div className="py-2 space-y-3">
-          {jobToPrint.tiles.map((tile, tIdx) => (
+          {(jobToPrint.tiles || []).map((tile, tIdx) => (
             <div key={tile.id || tIdx} className="space-y-1">
               <div className="flex justify-between items-center bg-slate-100 p-1 border border-slate-300">
                 <span className="font-black text-4xs uppercase text-slate-900">
@@ -211,7 +242,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 font-medium">
-                  {tile.rows.map((row, rIdx) => {
+                  {(tile.rows || []).map((row, rIdx) => {
                     if (!row.lengthInches && !row.widthInches) return null;
                     return (
                       <tr key={row.id || rIdx}>
@@ -219,7 +250,7 @@ export default function Home() {
                         <td className="py-1 px-1.5 text-center font-bold">{row.lengthInches}" × {row.widthInches}"</td>
                         <td className="py-1 px-1.5 text-center">{row.quantity}</td>
                         <td className="py-1 px-1.5 text-center text-slate-600">{row.roundedLengthFt}' × {row.roundedWidthFt}'</td>
-                        <td className="py-1 px-1.5 text-right font-black text-slate-950">{row.totalArea.toFixed(2)} sq ft</td>
+                        <td className="py-1 px-1.5 text-right font-black text-slate-950">{(row.totalArea || 0).toFixed(2)} sq ft</td>
                       </tr>
                     );
                   })}
@@ -238,11 +269,11 @@ export default function Home() {
           <div className="text-right border-l border-slate-300 pl-4">
             <div className="flex justify-between space-x-6 text-4xs font-bold text-slate-800">
               <span>Total Measure Area:</span>
-              <span>{jobToPrint.totalArea.toFixed(2)} Sq Ft</span>
+              <span>{(jobToPrint.totalArea || 0).toFixed(2)} Sq Ft</span>
             </div>
             <div className="flex justify-between space-x-6 text-4xs font-bold text-slate-800">
               <span>Total Pieces:</span>
-              <span>{jobToPrint.totalQuantity} Pcs</span>
+              <span>{jobToPrint.totalQuantity || 0} Pcs</span>
             </div>
             <div className="flex justify-between space-x-6 text-3xs font-black text-slate-950 pt-1 border-t border-slate-400 mt-1">
               <span>Grand Total:</span>
