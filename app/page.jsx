@@ -30,19 +30,23 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
-    document.documentElement.style.setProperty('--primary-accent', '#09090b');
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--primary-accent', '#09090b');
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleOnline = () => {
-        if (useJobStore.getState().setIsOnline) {
-          useJobStore.getState().setIsOnline(true);
+        const storeState = useJobStore.getState();
+        if (storeState && typeof storeState.setIsOnline === 'function') {
+          storeState.setIsOnline(true);
         }
       };
       const handleOffline = () => {
-        if (useJobStore.getState().setIsOnline) {
-          useJobStore.getState().setIsOnline(false);
+        const storeState = useJobStore.getState();
+        if (storeState && typeof storeState.setIsOnline === 'function') {
+          storeState.setIsOnline(false);
         }
       };
       
@@ -57,7 +61,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let unsubscribe;
+    let authListenerObj = null;
 
     const checkSession = async () => {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -92,13 +96,13 @@ export default function Home() {
           return authUser;
         };
         
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const merged = await mergeUserProfile(session.user);
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session?.user) {
+          const merged = await mergeUserProfile(sessionData.session.user);
           setUser(merged);
         }
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: listenerData } = supabase.auth.onAuthStateChange(async (_event, session) => {
           if (session?.user) {
             const merged = await mergeUserProfile(session.user);
             setUser(merged);
@@ -107,9 +111,7 @@ export default function Home() {
           }
         });
 
-        unsubscribe = () => {
-          subscription?.unsubscribe?.();
-        };
+        authListenerObj = listenerData?.subscription;
       } catch (err) {
         console.error("Failed to recover session:", err);
       }
@@ -118,7 +120,13 @@ export default function Home() {
     checkSession();
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (authListenerObj && typeof authListenerObj.unsubscribe === 'function') {
+        try {
+          authListenerObj.unsubscribe();
+        } catch (e) {
+          console.error("Error unsubscribing auth listener:", e);
+        }
+      }
     };
   }, []);
 

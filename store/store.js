@@ -46,11 +46,11 @@ const calculateRowDimensions = (lengthInches, widthInches, quantity, step = 0.25
 };
 
 const recalculateTileTotals = (tile, step = 0.25) => {
-  const rows = tile.rows.map((row) => {
+  const rows = (tile?.rows || []).map((row) => {
     const calculations = calculateRowDimensions(row.lengthInches, row.widthInches, row.quantity, step);
     return { ...row, ...calculations };
   });
-  const totalArea = rows.reduce((sum, row) => sum + row.totalArea, 0);
+  const totalArea = rows.reduce((sum, row) => sum + (row.totalArea || 0), 0);
   const totalQuantity = rows.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0);
   const subtotal = totalArea * (tile.ratePerSqft || 0);
   return {
@@ -160,10 +160,10 @@ export const useJobStore = create(
           subtotal: 0
         };
         set((state) => {
-          const currentJob = state[jobKey];
+          const currentJob = state[jobKey] || createInitialJob(jobKey === 'quotaActiveJob' ? 'quota' : 'granite-marble', step);
           const updatedJob = recalculateJobTotals({
             ...currentJob,
-            tiles: [...currentJob.tiles, newTile]
+            tiles: [...(currentJob.tiles || []), newTile]
           });
           return { [jobKey]: updatedJob };
         });
@@ -172,8 +172,9 @@ export const useJobStore = create(
       updateTile: (tileId, fields, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
               return recalculateTileTotals({ ...tile, ...fields }, step);
             }
@@ -186,7 +187,8 @@ export const useJobStore = create(
       deleteTile: (tileId, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
-          const updatedTiles = currentJob.tiles.filter((t) => t.id !== tileId);
+          if (!currentJob) return state;
+          const updatedTiles = (currentJob.tiles || []).filter((t) => t.id !== tileId);
           return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
         });
       },
@@ -194,8 +196,9 @@ export const useJobStore = create(
       addRowToTile: (tileId, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
               const newRow = {
                 id: `row-${Date.now()}`,
@@ -208,7 +211,7 @@ export const useJobStore = create(
                 areaPerPiece: 0,
                 totalArea: 0
               };
-              return recalculateTileTotals({ ...tile, rows: [...tile.rows, newRow] }, step);
+              return recalculateTileTotals({ ...tile, rows: [...(tile.rows || []), newRow] }, step);
             }
             return tile;
           });
@@ -219,10 +222,11 @@ export const useJobStore = create(
       updateTileRow: (tileId, rowId, field, value, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
-              const updatedRows = tile.rows.map((row) => {
+              const updatedRows = (tile.rows || []).map((row) => {
                 if (row.id === rowId) {
                   return { ...row, [field]: value };
                 }
@@ -239,10 +243,11 @@ export const useJobStore = create(
       deleteRowFromTile: (tileId, rowId, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
-              const updatedRows = tile.rows.filter((r) => r.id !== rowId);
+              const updatedRows = (tile.rows || []).filter((r) => r.id !== rowId);
               return recalculateTileTotals({ ...tile, rows: updatedRows }, step);
             }
             return tile;
@@ -254,16 +259,17 @@ export const useJobStore = create(
       duplicateRowInTile: (tileId, rowId, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
-              const rowToCopy = tile.rows.find((r) => r.id === rowId);
+              const rowToCopy = (tile.rows || []).find((r) => r.id === rowId);
               if (!rowToCopy) return tile;
               const newRow = {
                 ...rowToCopy,
                 id: `row-${Date.now()}`
               };
-              return recalculateTileTotals({ ...tile, rows: [...tile.rows, newRow] }, step);
+              return recalculateTileTotals({ ...tile, rows: [...(tile.rows || []), newRow] }, step);
             }
             return tile;
           });
@@ -274,10 +280,11 @@ export const useJobStore = create(
       addScannedRowsToTile: (tileId, scannedRooms, jobKey = 'activeJob') => {
         set((state) => {
           const currentJob = state[jobKey];
+          if (!currentJob) return state;
           const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
-          const updatedTiles = currentJob.tiles.map((tile) => {
+          const updatedTiles = (currentJob.tiles || []).map((tile) => {
             if (tile.id === tileId) {
-              const newRows = scannedRooms.map((room, idx) => ({
+              const newRows = (scannedRooms || []).map((room, idx) => ({
                 id: `row-scanned-${Date.now()}-${idx}`,
                 location: room.name || `Room ${idx + 1}`,
                 lengthInches: room.length ? String(room.length) : '24',
@@ -288,7 +295,7 @@ export const useJobStore = create(
                 areaPerPiece: 0,
                 totalArea: 0
               }));
-              return recalculateTileTotals({ ...tile, rows: [...tile.rows, ...newRows] }, step);
+              return recalculateTileTotals({ ...tile, rows: [...(tile.rows || []), ...newRows] }, step);
             }
             return tile;
           });
@@ -299,7 +306,7 @@ export const useJobStore = create(
       saveCurrentJobToHistory: async (jobKey = 'activeJob') => {
         const state = get();
         const currentJob = state[jobKey];
-        if (!currentJob.customerName && currentJob.totalArea === 0) return;
+        if (!currentJob || (!currentJob.customerName && currentJob.totalArea === 0)) return;
 
         const jobToSave = {
           ...currentJob,
@@ -309,8 +316,8 @@ export const useJobStore = create(
           syncStatus: 'pending_sync'
         };
 
-        const existingIdx = state.jobs.findIndex((j) => j.id === jobToSave.id);
-        let newJobs = [...state.jobs];
+        const existingIdx = (state.jobs || []).findIndex((j) => j.id === jobToSave.id);
+        let newJobs = [...(state.jobs || [])];
         if (existingIdx >= 0) {
           newJobs[existingIdx] = jobToSave;
         } else {
@@ -350,7 +357,7 @@ export const useJobStore = create(
             const { error } = await supabase.from('jobs').upsert(payload);
             if (!error) {
               set((prev) => ({
-                jobs: prev.jobs.map((j) => j.id === jobToSave.id ? { ...j, syncStatus: 'synced' } : j)
+                jobs: (prev.jobs || []).map((j) => j.id === jobToSave.id ? { ...j, syncStatus: 'synced' } : j)
               }));
             }
           } catch (err) {
@@ -405,7 +412,6 @@ export const useJobStore = create(
         paymentId: null
       },
 
-      // Map of userEmail -> { key: string, isUsed: boolean, usedAt: string }
       userActivationKeys: {},
 
       getOrGenerateUserKey: (userEmail) => {
@@ -418,7 +424,6 @@ export const useJobStore = create(
           return existing;
         }
 
-        // Generate unique 7-Day key format: TIVERA-7D-XXXX-YYYY
         const cleanEmail = userEmail.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         const hash1 = cleanEmail.slice(0, 4).padEnd(4, 'X');
         const hash2 = Math.floor(1000 + Math.random() * 9000).toString(16).toUpperCase().padStart(4, '9');
@@ -450,7 +455,6 @@ export const useJobStore = create(
         const keysMap = state.userActivationKeys || {};
         const keyRecord = keysMap[userEmail] || state.getOrGenerateUserKey(userEmail);
 
-        // Check if key matches assigned user key or master activation pattern
         const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
 
         if (!isMatch) {
@@ -464,7 +468,6 @@ export const useJobStore = create(
           };
         }
 
-        // Redeem Key for 7-Day Pro Access
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         const updatedRecord = {
           ...keyRecord,
@@ -535,7 +538,7 @@ export const useJobStore = create(
 
       syncPendingJobs: async () => {
         const state = get();
-        const pending = state.jobs.filter((j) => j.syncStatus === 'pending_sync');
+        const pending = (state.jobs || []).filter((j) => j.syncStatus === 'pending_sync');
         if (pending.length === 0) return;
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -570,7 +573,7 @@ export const useJobStore = create(
             const { error } = await supabase.from('jobs').upsert(payload);
             if (!error) {
               set((prev) => ({
-                jobs: prev.jobs.map((j) => j.id === job.id ? { ...j, syncStatus: 'synced' } : j)
+                jobs: (prev.jobs || []).map((j) => j.id === job.id ? { ...j, syncStatus: 'synced' } : j)
               }));
             }
           }
@@ -587,6 +590,12 @@ export const useJobStore = create(
         jobs: state.jobs,
         subscription: state.subscription || { isPro: false, planName: 'Free' },
         userActivationKeys: state.userActivationKeys || {}
+      }),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState || {}),
+        subscription: (persistedState && persistedState.subscription) || currentState.subscription,
+        userActivationKeys: (persistedState && persistedState.userActivationKeys) || currentState.userActivationKeys
       })
     }
   )
