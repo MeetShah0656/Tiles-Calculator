@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useJobStore } from '@/store/store';
 
 export default function PWARegister() {
-  const setOnline = useJobStore((state) => state.setOnline);
+  const setIsOnline = useJobStore((state) => state.setIsOnline);
 
   useEffect(() => {
     let cleanup;
@@ -32,14 +32,23 @@ export default function PWARegister() {
       }
     }
 
-    const handleOnline = () => setOnline(true);
-    const handleOffline = () => setOnline(false);
+    const handleOnline = () => {
+      if (typeof setIsOnline === 'function') {
+        setIsOnline(true);
+      }
+    };
+    
+    const handleOffline = () => {
+      if (typeof setIsOnline === 'function') {
+        setIsOnline(false);
+      }
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    if (typeof window !== 'undefined') {
-      setOnline(window.navigator.onLine);
+    if (typeof window !== 'undefined' && typeof setIsOnline === 'function') {
+      setIsOnline(window.navigator.onLine);
     }
 
     return () => {
@@ -47,7 +56,7 @@ export default function PWARegister() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [setOnline]);
+  }, [setIsOnline]);
 
   return null;
 }
