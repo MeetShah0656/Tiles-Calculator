@@ -26,13 +26,13 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
-      const file = formData.get('file') as File | null;
+      const fileEntry = formData.get('file');
       const imageStr = formData.get('image') as string | null;
 
-      if (file) {
-        const arrayBuffer = await file.arrayBuffer();
+      if (fileEntry && typeof fileEntry === 'object' && 'arrayBuffer' in fileEntry) {
+        const arrayBuffer = await (fileEntry as Blob).arrayBuffer();
         imageBuffer = Buffer.from(arrayBuffer);
-        detectedMimeType = file.type || 'image/jpeg';
+        detectedMimeType = (fileEntry as Blob).type || 'image/jpeg';
       } else if (imageStr) {
         let base64Data = imageStr;
         if (imageStr.includes(';base64,')) {
@@ -111,22 +111,22 @@ export async function POST(request: NextRequest) {
       console.warn("Python backend unavailable, falling back to direct Node Gemini REST API call:", pythonErr);
     }
 
-    // Direct Node Google Gemini REST API call using GEMINI_API_KEY environment variable
+    // Direct Node Google Gemini REST API call using GEMINI_API_KEY
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
-        error: "GEMINI_API_KEY environment variable is missing on Vercel. Please add GEMINI_API_KEY in Vercel Project Settings > Environment Variables."
+        error: "GEMINI_API_KEY environment variable is missing. Please check your environment configuration."
       }, { status: 500 });
     }
 
     const base64Data = imageBuffer.toString('base64');
     const promptText = `You are an expert natural stone and marble measurement sheet OCR parser.
-Analyze this handwritten or printed measurement sheet image.
-Extract every line item measurement with absolute precision.
+Analyze this handwritten or printed measurement sheet image (which may be a tall vertical paper list).
+Read every single row from top to bottom with absolute precision.
 
 Rules:
-1. Identify location / room / space name if present (e.g., "Living Room", "Passage", "Border", "Kitchen", "Pooja Room"). If missing, use "Item 1", "Item 2", etc.
-2. Extract Length and Width in INCHES (e.g. 72.5, 24, 18.5). If feet are written (like 6'), convert to inches (6 * 12 = 72).
+1. Identify location / room / space name if written (e.g., "Living Room", "Passage", "Border", "Kitchen", "Pooja Room"). If missing, use "Line 1", "Line 2", etc.
+2. Extract Length and Width dimensions in INCHES. Examples: "72 x 24" -> length: 72, width: 24. If fractional like "72 1/2", convert to 72.5. If feet like "6'", convert to 72 inches.
 3. Extract Quantity (number of pieces). Default to 1 if not specified.
 4. Output ONLY valid JSON matching this schema:
 {
