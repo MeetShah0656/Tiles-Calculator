@@ -13,15 +13,6 @@ const RequestSchema = z.object({
   mimeType: z.string().optional()
 });
 
-const RoomSchema = z.object({
-  name: z.string(),
-  length: z.number(),
-  width: z.number(),
-  unit: z.string().default('in'),
-  quantity: z.number().default(1),
-  confidence: z.number()
-});
-
 export async function POST(request: NextRequest) {
   let tempFilePath: string | null = null;
   let fileIdToDelete: string | null = null;
@@ -120,11 +111,11 @@ export async function POST(request: NextRequest) {
       console.warn("Python backend unavailable, falling back to direct Node Gemini REST API call:", pythonErr);
     }
 
-    // Direct Node Google Gemini REST API call using GEMINI_API_KEY
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Direct Node Google Gemini REST API call using GEMINI_API_KEY environment variable
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
-        error: "GEMINI_API_KEY environment variable is not configured."
+        error: "GEMINI_API_KEY environment variable is missing on Vercel. Please add GEMINI_API_KEY in Vercel Project Settings > Environment Variables."
       }, { status: 500 });
     }
 
@@ -150,48 +141,65 @@ Rules:
   ]
 }`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const geminiRes = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: promptText },
+    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+    let lastErrorText = '';
+    let parsedRooms: any[] = [];
+
+    for (const model of modelsToTry) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const geminiRes = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
               {
-                inline_data: {
-                  mime_type: detectedMimeType,
-                  data: base64Data
-                }
+                parts: [
+                  { text: promptText },
+                  {
+                    inline_data: {
+                      mime_type: detectedMimeType,
+                      data: base64Data
+                    }
+                  }
+                ]
               }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini REST API error:", errText);
-      return NextResponse.json({ error: `Gemini API Error: ${errText}` }, { status: 500 });
+        if (!geminiRes.ok) {
+          lastErrorText = await geminiRes.text();
+          console.warn(`Gemini model ${model} failed: ${lastErrorText}`);
+          continue;
+        }
+
+        const geminiData = await geminiRes.json();
+        const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        let cleanText = candidateText.trim();
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanText = jsonMatch[0];
+        }
+
+        const parsedData = JSON.parse(cleanText);
+        parsedRooms = Array.isArray(parsedData) ? parsedData : (parsedData.rooms || []);
+        if (parsedRooms && parsedRooms.length > 0) {
+          break;
+        }
+      } catch (err) {
+        console.warn(`Model ${model} execution error:`, err);
+      }
     }
 
-    const geminiData = await geminiRes.json();
-    const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    let cleanText = candidateText.trim();
-    if (cleanText.startsWith("```")) {
-      const lines = cleanText.splitlines ? cleanText.splitlines() : cleanText.split('\n');
-      if (lines[0].startsWith("```")) lines.shift();
-      if (lines.length && lines[lines.length - 1].startsWith("```")) lines.pop();
-      cleanText = lines.join('\n').trim();
+    if (!parsedRooms || parsedRooms.length === 0) {
+      return NextResponse.json({
+        error: `Could not parse measurements note. ${lastErrorText ? 'Gemini API Error: ' + lastErrorText : 'Please make sure handwriting/printing is legible.'}`
+      }, { status: 500 });
     }
 
-    const parsedData = JSON.parse(cleanText);
-    const roomsList = Array.isArray(parsedData) ? parsedData : (parsedData.rooms || []);
-
-    return NextResponse.json({ rooms: roomsList });
+    return NextResponse.json({ rooms: parsedRooms });
 
   } catch (err: any) {
     console.error("Scan measurements API error:", err);
