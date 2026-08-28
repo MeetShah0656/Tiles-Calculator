@@ -13,7 +13,7 @@ import {
 import { useState } from 'react';
 
 export default function ReportsTab() {
-  const { jobs } = useJobStore();
+  const jobs = useJobStore((state) => state.jobs || []);
   const [activeReport, setActiveReport] = useState('daily');
 
   const formatCurrency = (val) => {

@@ -34,7 +34,7 @@ export default function MeasurementScannerDialog({
   onClose, 
   onImportMeasurements 
 }) {
-  const { subscription } = useJobStore();
+  const subscription = useJobStore((state) => state.subscription);
   const isPro = subscription?.isPro || false;
 
   const [step, setStep] = useState('select'); // 'select' | 'analyzing' | 'verify'

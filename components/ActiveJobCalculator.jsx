@@ -24,7 +24,7 @@ export default function ActiveJobCalculator({
   roundingStep = 0.25,
   categoryTitle = 'Granite & Marble'
 }) {
-  const store = useJobStore();
+  const store = useJobStore((state) => state);
   const targetJob = store[jobType] || store.activeJob;
   const subscription = store.subscription || { isPro: false };
   const isPro = subscription.isPro;

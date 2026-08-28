@@ -5,7 +5,8 @@ import { useJobStore } from '@/store/store.js';
 import { Check, Zap, X, ShieldCheck, Sparkles, CreditCard, Key, AlertTriangle } from 'lucide-react';
 
 export default function UpgradeProModal({ isOpen, onClose }) {
-  const { activateProSubscription, redeemActivationKey } = useJobStore();
+  const activateProSubscription = useJobStore((state) => state.activateProSubscription);
+  const redeemActivationKey = useJobStore((state) => state.redeemActivationKey);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('monthly');

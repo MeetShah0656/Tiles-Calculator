@@ -17,7 +17,8 @@ import {
 import UpgradeProModal from './UpgradeProModal.jsx';
 
 export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
-  const { isOnline, subscription } = useJobStore();
+  const isOnline = useJobStore((state) => state.isOnline);
+  const subscription = useJobStore((state) => state.subscription);
   const isPro = subscription?.isPro || false;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
