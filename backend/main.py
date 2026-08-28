@@ -108,8 +108,7 @@ Rules:
   ]
 }"""
 
-        # Try gemini-2.0-flash first, then gemini-1.5-flash
-        model_name = 'gemini-2.0-flash'
+        model_name = 'gemini-3.6-flash'
         try:
             response = client.models.generate_content(
                 model=model_name,
@@ -119,9 +118,9 @@ Rules:
                 ]
             )
         except Exception as e:
-            print(f"gemini-2.0-flash failed ({e}), retrying with gemini-1.5-flash...")
+            print(f"gemini-3.6-flash failed ({e}), retrying with gemini-2.5-flash...")
             response = client.models.generate_content(
-                model='gemini-1.5-flash',
+                model='gemini-2.5-flash',
                 contents=[
                     prompt,
                     types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
