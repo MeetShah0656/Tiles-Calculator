@@ -27,122 +27,83 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
     isDrawerOpenRef.current = isDrawerOpen;
   }, [isDrawerOpen]);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.add('light');
-    root.classList.remove('dark');
-  }, []);
-
-  useEffect(() => {
-    let startX = 0;
-    let startY = 0;
-
-    const handleTouchStart = (e) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e) => {
-      if (!startX || !startY) return;
-      
-      const diffX = e.touches[0].clientX - startX;
-      const diffY = e.touches[0].clientY - startY;
-
-      if (Math.abs(diffX) > Math.abs(diffY) * 1.5) {
-        const open = isDrawerOpenRef.current;
-        if (!open && startX < 50 && diffX > 80) {
-          setIsDrawerOpen(true);
-          startX = 0;
-          startY = 0;
-        } else if (open && diffX < -80) {
-          setIsDrawerOpen(false);
-          startX = 0;
-          startY = 0;
-        }
-      }
-    };
-
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, []);
-
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { id: 'granite-marble', name: 'Granite / Marble', icon: Layers },
-    { id: 'quota', name: 'Quota', icon: Box },
+    { id: 'granite-marble', name: 'Granite & Marble', icon: Layers },
+    { id: 'quota', name: 'Kota Stone', icon: Box },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
   return (
     <>
+      {/* TOP ANNOUNCEMENT BAR (GAZU REFERENCE STYLE) */}
+      <div className="w-full bg-[#0a0a0a] text-white py-1.5 px-4 text-center text-[10px] font-black uppercase tracking-[0.25em] border-b border-neutral-800 flex justify-between items-center">
+        <span className="hidden sm:inline text-neutral-400">PRECISION STONE ESTIMATOR</span>
+        <span className="mx-auto sm:mx-0">TIVERA PRO SUITE • 0.25 FT & 0.50 FT TRADE ROUNDING</span>
+        <span className="hidden sm:inline text-neutral-400">INSTANT INVOICING</span>
+      </div>
+
       {/* DESKTOP STICKY NAVBAR */}
-      <header className="hidden md:block sticky top-0 z-40 w-full border-b border-zinc-200 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="hidden md:block sticky top-0 z-40 w-full border-b border-[#d4d1ca] bg-[#f4f2ee]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
           {/* TIVERA Brand Logo */}
           <div 
-            className="flex items-center space-x-2.5 cursor-pointer"
+            className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => setCurrentTab('dashboard')}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-zinc-950 text-white font-black text-lg shadow-sm border border-zinc-800">
+            <div className="flex h-10 w-10 items-center justify-center bg-[#0a0a0a] text-white font-black text-xl border border-black shadow-xs">
               T
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl font-black tracking-tight text-zinc-900 uppercase">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-black tracking-[0.3em] text-[#0a0a0a] uppercase group-hover:opacity-80 transition-opacity">
                 TIVERA
               </span>
               {isPro ? (
-                <span className="px-1.5 py-0.5 bg-zinc-950 text-white text-[9px] font-black rounded-2xs uppercase border border-zinc-800">
+                <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-widest uppercase">
                   PRO
                 </span>
               ) : (
-                <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-600 text-[9px] font-bold rounded-2xs uppercase border border-zinc-200">
+                <span className="px-2 py-0.5 bg-[#e8e6e1] text-[#6b6863] text-[9px] font-extrabold tracking-widest uppercase border border-[#d4d1ca]">
                   FREE
                 </span>
               )}
             </div>
           </div>
 
-          {/* Navigation Items (4 Main Tabs) */}
-          <nav className="flex space-x-1">
+          {/* Navigation Items (GAZU Editorial Style) */}
+          <nav className="flex space-x-8">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = currentTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => setCurrentTab(item.id)}
-                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-sm text-xs font-extrabold transition-all duration-200 cursor-pointer ${
+                  className={`py-2 text-xs font-black tracking-[0.2em] uppercase transition-all duration-200 cursor-pointer ${
                     isActive 
-                      ? 'bg-zinc-900 text-white shadow-xs font-black' 
-                      : 'text-zinc-650 hover:text-zinc-950 hover:bg-zinc-100'
+                      ? 'text-[#0a0a0a] border-b-2 border-[#0a0a0a]' 
+                      : 'text-[#6b6863] hover:text-[#0a0a0a] hover:border-b-2 hover:border-[#6b6863]'
                   }`}
                 >
-                  <Icon size={16} />
-                  <span>{item.name}</span>
+                  {item.name}
                 </button>
               );
             })}
           </nav>
 
           {/* Pro Badge & Connection Status & Logout */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {!isPro ? (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-zinc-950 text-white hover:bg-black rounded-sm text-2xs font-extrabold transition-all cursor-pointer shadow-xs border border-zinc-800 uppercase tracking-wider"
+                className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white hover:bg-neutral-800 text-xs font-black tracking-widest uppercase transition-all cursor-pointer border border-black shadow-xs"
               >
                 <Sparkles size={12} className="text-amber-300" />
-                <span>Tivera Pro</span>
+                <span>UPGRADE TO PRO</span>
               </button>
             ) : (
-              <span className="px-2.5 py-1 bg-zinc-950 text-white text-3xs font-black rounded-sm uppercase border border-zinc-800 flex items-center space-x-1">
+              <span className="px-3 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase flex items-center space-x-1">
                 <Sparkles size={12} className="text-amber-300" />
-                <span>Pro Active</span>
+                <span>PRO ACTIVE</span>
               </span>
             )}
 
@@ -151,11 +112,11 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
               className="flex items-center text-xs font-semibold"
             >
               {isOnline ? (
-                <span className="flex items-center text-zinc-900">
+                <span className="flex items-center text-[#0a0a0a]">
                   <Wifi size={16} />
                 </span>
               ) : (
-                <span className="flex items-center text-zinc-500">
+                <span className="flex items-center text-[#6b6863]">
                   <WifiOff size={16} />
                 </span>
               )}
@@ -163,7 +124,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
 
             <button
               onClick={onLogout}
-              className="flex items-center space-x-1 p-2 rounded-sm text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-all duration-200 cursor-pointer"
+              className="flex items-center space-x-1 p-2 text-[#6b6863] hover:text-[#0a0a0a] transition-all cursor-pointer"
               title="Log Out"
             >
               <LogOut size={18} />
@@ -173,10 +134,10 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
       </header>
 
       {/* MOBILE STICKY HEADER BAR */}
-      <div className="md:hidden sticky top-0 z-40 w-full flex h-14 items-center justify-between px-4 bg-white border-b border-zinc-200 shadow-2xs">
+      <div className="md:hidden sticky top-0 z-40 w-full flex h-16 items-center justify-between px-4 bg-[#f4f2ee] border-b border-[#d4d1ca]">
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="text-zinc-700 hover:text-zinc-950 p-2 hover:bg-zinc-100 rounded-sm cursor-pointer transition-colors"
+          className="text-[#0a0a0a] p-2 cursor-pointer"
           aria-label="Open sidebar menu"
         >
           <Menu size={22} />
@@ -184,26 +145,26 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
         
         <span 
           onClick={() => setCurrentTab('dashboard')} 
-          className="text-base font-black tracking-tight text-zinc-950 uppercase cursor-pointer"
+          className="text-lg font-black tracking-[0.3em] text-[#0a0a0a] uppercase cursor-pointer"
         >
           TIVERA
         </span>
         
-        <div className="flex items-center space-x-2 text-xs font-bold">
+        <div className="flex items-center space-x-2">
           {!isPro && (
             <button
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="px-2 py-1 bg-zinc-950 text-white rounded-2xs text-[10px] font-black uppercase"
+              className="px-2 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase"
             >
               PRO
             </button>
           )}
           {isOnline ? (
-            <span className="flex items-center text-zinc-900" title="Online - Synced">
+            <span className="flex items-center text-[#0a0a0a]">
               <Wifi size={16} />
             </span>
           ) : (
-            <span className="flex items-center text-zinc-500" title="Offline - Local">
+            <span className="flex items-center text-[#6b6863]">
               <WifiOff size={16} />
             </span>
           )}
@@ -219,37 +180,33 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
         <div 
           onClick={() => setIsDrawerOpen(false)}
           className="absolute inset-0 bg-black/60 backdrop-blur-2xs transition-opacity duration-300" 
-          style={{ touchAction: 'none' }}
         />
         
         <div 
-          className={`absolute top-0 bottom-0 left-0 w-64 bg-white shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out border-r border-zinc-200 ${
+          className={`absolute top-0 bottom-0 left-0 w-72 bg-[#f4f2ee] shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out border-r border-[#d4d1ca] ${
             isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
-          style={{ touchAction: 'pan-y' }}
         >
           <div>
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 bg-zinc-50/70">
-              <div className="flex items-center space-x-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-zinc-950 text-white font-black text-base shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b border-[#d4d1ca] bg-[#e8e6e1]">
+              <div className="flex items-center space-x-3">
+                <div className="flex h-9 w-9 items-center justify-center bg-[#0a0a0a] text-white font-black text-lg">
                   T
                 </div>
-                <span className="text-base font-black tracking-tight text-zinc-950 uppercase">
+                <span className="text-lg font-black tracking-[0.3em] text-[#0a0a0a] uppercase">
                   TIVERA
                 </span>
               </div>
               <button 
                 onClick={() => setIsDrawerOpen(false)}
-                className="text-zinc-400 hover:text-zinc-800 p-1.5 hover:bg-zinc-100 rounded-sm cursor-pointer transition-colors"
-                aria-label="Close sidebar menu"
+                className="text-[#0a0a0a] p-1.5 cursor-pointer"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
-            <nav className="p-3 space-y-1">
+            <nav className="p-4 space-y-2">
               {navItems.map((item) => {
-                const Icon = item.icon;
                 const isActive = currentTab === item.id;
                 return (
                   <button
@@ -258,31 +215,30 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                       setCurrentTab(item.id);
                       setIsDrawerOpen(false);
                     }}
-                    className={`flex items-center space-x-3 w-full px-3 py-2.5 rounded-sm text-xs font-bold transition-all cursor-pointer ${
+                    className={`block w-full text-left px-4 py-3 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer ${
                       isActive 
-                        ? 'bg-zinc-950 text-white border-l-2 border-zinc-950 font-black' 
-                        : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 border-l-2 border-transparent'
+                        ? 'bg-[#0a0a0a] text-white' 
+                        : 'text-[#6b6863] hover:text-[#0a0a0a] hover:bg-[#e8e6e1]'
                     }`}
                   >
-                    <Icon size={18} />
-                    <span>{item.name}</span>
+                    {item.name}
                   </button>
                 );
               })}
             </nav>
           </div>
 
-          <div className="p-4 border-t border-zinc-200 bg-zinc-50/50 space-y-2">
+          <div className="p-5 border-t border-[#d4d1ca] bg-[#e8e6e1] space-y-3">
             {!isPro && (
               <button
                 onClick={() => {
                   setIsDrawerOpen(false);
                   setIsUpgradeModalOpen(true);
                 }}
-                className="flex items-center justify-center space-x-1.5 w-full py-2.5 bg-zinc-950 text-white rounded-sm text-xs font-black uppercase shadow-sm cursor-pointer"
+                className="flex items-center justify-center space-x-2 w-full py-3 bg-[#0a0a0a] text-white text-xs font-black tracking-widest uppercase cursor-pointer"
               >
                 <Sparkles size={14} className="text-amber-300" />
-                <span>Upgrade to Tivera Pro</span>
+                <span>UPGRADE TO PRO</span>
               </button>
             )}
 
@@ -291,7 +247,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                 setIsDrawerOpen(false);
                 onLogout();
               }}
-              className="flex items-center space-x-3 w-full px-3 py-2.5 rounded-sm text-xs font-bold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-all cursor-pointer"
+              className="flex items-center space-x-3 w-full px-3 py-2.5 text-xs font-bold text-[#6b6863] hover:text-[#0a0a0a] uppercase tracking-wider"
             >
               <LogOut size={18} />
               <span>Log Out</span>

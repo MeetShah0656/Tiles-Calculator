@@ -13,59 +13,42 @@
 }
 
 @theme {
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
+  --color-border: #d4d1ca;
+  --color-input: #d4d1ca;
+  --color-ring: #0a0a0a;
+  --color-background: #e8e6e1;
+  --color-foreground: #0a0a0a;
   
-  --color-primary: var(--primary-accent, #09090b);
+  --color-primary: #0a0a0a;
   --color-primary-foreground: #ffffff;
   
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
+  --color-secondary: #dedbd4;
+  --color-secondary-foreground: #0a0a0a;
+  --color-destructive: #991b1b;
+  --color-destructive-foreground: #ffffff;
+  --color-muted: #dedbd4;
+  --color-muted-foreground: #6b6863;
+  --color-accent: #d6d3cb;
+  --color-accent-foreground: #0a0a0a;
+  --color-popover: #f4f2ee;
+  --color-popover-foreground: #0a0a0a;
+  --color-card: #f4f2ee;
+  --color-card-foreground: #0a0a0a;
 
   --font-sans: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
   --font-serif: 'Vilonti', 'Cinzel', Georgia, serif !important;
 
-  /* Custom theme values */
-  --color-charcoal-50: #f9f9fb;
-  --color-charcoal-100: #f1f2f4;
-  --color-charcoal-200: #e2e4e8;
-  --color-charcoal-300: #cbd0d6;
-  --color-charcoal-400: #9ba3af;
-  --color-charcoal-500: #717c8b;
-  --color-charcoal-600: #556070;
-  --color-charcoal-700: #424b58;
-  --color-charcoal-800: #292f39;
-  --color-charcoal-900: #1b2027;
-  --color-charcoal-950: #0f1217;
+  /* Custom theme values based on GAZU luxury editorial reference */
+  --color-gazu-cream: #e8e6e1;
+  --color-gazu-card: #f4f2ee;
+  --color-gazu-white: #ffffff;
+  --color-gazu-black: #0a0a0a;
+  --color-gazu-gray: #6b6863;
+  --color-gazu-border: #d4d1ca;
 
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
-  --color-slate-950: #020617;
-
-  --radius-lg: 0.125rem;
-  --radius-md: 0.0625rem;
-  --radius-sm: 0rem;
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
 
   --font-size-2xs: 0.625rem;
   --font-size-3xs: 0.525rem;
@@ -74,35 +57,12 @@
 }
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 224 71% 4%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 224 71% 4%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 71% 4%;
-
-  --primary: 0 55% 28%;
-  --primary-foreground: 0 0% 100%;
-
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 0 55% 28%;
-
-  --radius: 0.125rem;
+  --background: #e8e6e1;
+  --foreground: #0a0a0a;
+  --card: #f4f2ee;
+  --card-foreground: #0a0a0a;
+  --border: #d4d1ca;
+  --radius: 0px;
 }
 
 *, ::before, ::after, html, body, input, button, select, textarea, table, th, td, h1, h2, h3, h4, h5, h6, p, span, div {
@@ -110,7 +70,8 @@
 }
 
 body {
-  @apply bg-background text-foreground antialiased;
+  background-color: #e8e6e1 !important;
+  color: #0a0a0a !important;
   font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overscroll-behavior-x: none;
@@ -118,17 +79,17 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #e8e6e1;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-none;
+  background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/45;
+  background: #2a2a2a;
 }
 
 /* Print Layout Styling for Quotation */

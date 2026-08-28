@@ -165,22 +165,32 @@ export default function AuthScreen({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-zinc-100 animate-fadeIn">
-      <div className="w-full max-w-md bg-white border border-zinc-200 rounded-sm shadow-xl p-6 sm:p-8 space-y-6">
-        <div className="text-center space-y-1">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-sm bg-zinc-950 text-white font-black text-2xl shadow-md mb-2 border border-zinc-800">
-            T
-          </div>
-          <h1 className="text-2xl font-black text-zinc-950 tracking-tight uppercase">
-            TIVERA
-          </h1>
-          <p className="text-xs font-bold text-zinc-500">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-[#e8e6e1] animate-fadeIn">
+      {/* Top Brand Bar */}
+      <div className="mb-6 text-center space-y-1">
+        <div className="inline-flex h-14 w-14 items-center justify-center bg-[#0a0a0a] text-white font-black text-2xl shadow-lg border border-black mb-2">
+          T
+        </div>
+        <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.3em] uppercase">
+          TIVERA
+        </h1>
+        <span className="text-[10px] font-black tracking-[0.25em] uppercase text-[#6b6863] block">
+          NATURAL STONE & TILES ESTIMATOR
+        </span>
+      </div>
+
+      <div className="w-full max-w-md bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl p-6 sm:p-8 space-y-6">
+        <div className="text-center space-y-1 border-b border-[#d4d1ca] pb-4">
+          <h2 className="text-sm font-black text-[#0a0a0a] tracking-[0.2em] uppercase">
+            {isLogin ? 'ACCOUNT SIGN IN' : 'CREATE PRO ACCOUNT'}
+          </h2>
+          <p className="text-3xs font-extrabold text-[#6b6863] uppercase tracking-wider">
             {isLogin ? 'Sign in to access your estimates and calculator workspace.' : 'Create an account for your stone business.'}
           </p>
         </div>
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-sm text-xs font-semibold text-rose-800">
+          <div className="p-3 bg-[#0a0a0a] text-white border border-black text-xs font-bold uppercase tracking-wider">
             {error}
           </div>
         )}
@@ -190,7 +200,7 @@ export default function AuthScreen({ onLoginSuccess }) {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex items-center justify-center space-x-3 py-2.5 bg-white hover:bg-zinc-50 text-zinc-950 font-extrabold text-xs rounded-sm shadow-xs border border-zinc-300 transition-all cursor-pointer uppercase tracking-wider"
+          className="w-full flex items-center justify-center space-x-3 py-3 bg-[#f4f2ee] hover:bg-[#e8e6e1] text-[#0a0a0a] font-black text-xs border border-[#0a0a0a] transition-all cursor-pointer uppercase tracking-[0.2em]"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -210,21 +220,21 @@ export default function AuthScreen({ onLoginSuccess }) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>Continue with Google</span>
+          <span>CONTINUE WITH GOOGLE</span>
         </button>
 
         <div className="relative flex items-center justify-center">
-          <div className="border-t border-zinc-200 w-full"></div>
-          <span className="bg-white px-3 text-3xs font-extrabold uppercase text-zinc-400 absolute">or email</span>
+          <div className="border-t border-[#d4d1ca] w-full"></div>
+          <span className="bg-[#f4f2ee] px-3 text-[10px] font-black uppercase text-[#6b6863] tracking-widest absolute">OR EMAIL</span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
               <div>
-                <label className="block text-3xs font-extrabold text-zinc-400 uppercase mb-1">Business Name</label>
+                <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Business Name</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                     <Building2 size={14} />
                   </div>
                   <input
@@ -233,15 +243,15 @@ export default function AuthScreen({ onLoginSuccess }) {
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     placeholder="e.g. TIVERA Natural Stone"
-                    className="w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+                    className="w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-3xs font-extrabold text-zinc-400 uppercase mb-1">Phone Number</label>
+                <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Phone Number</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                     <Phone size={14} />
                   </div>
                   <input
@@ -249,7 +259,7 @@ export default function AuthScreen({ onLoginSuccess }) {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g. +91 98765 43210"
-                    className="w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+                    className="w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
                   />
                 </div>
               </div>
@@ -257,9 +267,9 @@ export default function AuthScreen({ onLoginSuccess }) {
           )}
 
           <div>
-            <label className="block text-3xs font-extrabold text-zinc-400 uppercase mb-1">Email Address</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Email Address</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                 <Mail size={14} />
               </div>
               <input
@@ -268,15 +278,15 @@ export default function AuthScreen({ onLoginSuccess }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="meetshah0656@gmail.com"
-                className="w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+                className="w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-3xs font-extrabold text-zinc-400 uppercase mb-1">Password</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Password</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                 <Lock size={14} />
               </div>
               <input
@@ -285,7 +295,7 @@ export default function AuthScreen({ onLoginSuccess }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+                className="w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
               />
             </div>
           </div>
@@ -293,18 +303,18 @@ export default function AuthScreen({ onLoginSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-zinc-950 hover:bg-black text-white font-bold text-xs rounded-sm shadow-md transition-all cursor-pointer border border-zinc-800 uppercase tracking-wider"
+            className="w-full py-3 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs shadow-md transition-all cursor-pointer border border-black uppercase tracking-[0.2em]"
           >
-            {loading ? 'Signing In...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
           </button>
         </form>
 
         <div className="text-center pt-1">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-xs font-bold text-zinc-950 hover:underline cursor-pointer"
+            className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider hover:underline cursor-pointer"
           >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            {isLogin ? "DON'T HAVE AN ACCOUNT? SIGN UP" : 'ALREADY HAVE AN ACCOUNT? SIGN IN'}
           </button>
         </div>
       </div>

@@ -206,127 +206,127 @@ export default function ActiveJobCalculator({
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header Title & Actions */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-zinc-200 p-4 md:p-6 rounded-sm shadow-2xs">
+      {/* Header Title & Actions (GAZU Style) */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f4f2ee] border border-[#d4d1ca] p-6">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="text-3xs font-extrabold text-zinc-400 uppercase tracking-widest block">
+            <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-[0.25em] block">
               {categoryTitle} ESTIMATOR
             </span>
             {!isPro && (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
-                className="px-2 py-0.5 bg-amber-100 text-amber-950 hover:bg-amber-200 border border-amber-300 text-3xs font-black rounded-2xs uppercase transition-all cursor-pointer flex items-center space-x-1"
+                className="px-2 py-0.5 bg-amber-100 text-amber-950 hover:bg-amber-200 border border-amber-300 text-3xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center space-x-1"
               >
                 <Sparkles size={10} className="text-amber-600" />
-                <span>Upgrade to TIVERA Pro</span>
+                <span>UPGRADE TO PRO</span>
               </button>
             )}
             {isPro && (
-              <span className="px-2 py-0.5 bg-zinc-950 text-white text-3xs font-black rounded-2xs uppercase border border-zinc-800 flex items-center space-x-1">
+              <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-3xs font-black uppercase tracking-wider flex items-center space-x-1">
                 <Sparkles size={10} className="text-amber-300" />
-                <span>TIVERA Pro Active</span>
+                <span>PRO ACTIVE</span>
               </span>
             )}
           </div>
-          <h1 className="text-2xl font-black text-zinc-950 tracking-tight uppercase">
-            {categoryTitle} Operations
+          <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">
+            {categoryTitle} OPERATIONS
           </h1>
-          <p className="text-xs font-bold text-zinc-500 mt-0.5">
-            Enter length & width in inches. Step calculations ({roundingStep} ft rounding) are handled automatically.
+          <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider mt-0.5">
+            Step calculations ({roundingStep} ft rounding) are applied automatically.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handlePrint}
-            className={`flex items-center space-x-1.5 px-3.5 py-2 border rounded-sm text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+            className={`flex items-center space-x-2 px-5 py-3 border font-black text-xs tracking-[0.2em] uppercase transition-all cursor-pointer ${
               isPro 
-                ? 'bg-white border-zinc-300 hover:bg-zinc-100 text-zinc-950'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:border-zinc-950'
+                ? 'bg-white border-black hover:bg-[#e8e6e1] text-[#0a0a0a]'
+                : 'bg-[#e8e6e1] border-[#d4d1ca] text-[#6b6863] hover:border-black'
             }`}
           >
             {isPro ? <Printer size={16} /> : <Lock size={14} className="text-amber-600" />}
-            <span>Print Invoice</span>
+            <span>PRINT INVOICE</span>
           </button>
 
           <button
             onClick={handleWhatsAppShare}
-            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-sm text-xs font-black transition-all cursor-pointer shadow-md border uppercase tracking-wider ${
+            className={`flex items-center space-x-2 px-5 py-3 font-black text-xs tracking-[0.2em] uppercase transition-all cursor-pointer border border-black ${
               isPro
-                ? 'bg-zinc-950 hover:bg-black text-white border-zinc-800'
-                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-900'
+                ? 'bg-[#0a0a0a] hover:bg-neutral-800 text-white'
+                : 'bg-neutral-800 text-neutral-300 hover:bg-[#0a0a0a]'
             }`}
           >
             {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-amber-300" />}
-            <span>WhatsApp Invoice</span>
+            <span>WHATSAPP INVOICE</span>
           </button>
         </div>
       </div>
 
       {!isPro && (
-        <div className="p-4 bg-zinc-950 text-white rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-zinc-800">
+        <div className="p-5 bg-[#0a0a0a] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-black">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-amber-400 text-zinc-950 rounded-2xs font-black">
+            <div className="p-2 bg-amber-400 text-[#0a0a0a] font-black">
               <Lock size={18} />
             </div>
             <div>
-              <h4 className="text-xs font-black uppercase text-amber-300">Free Tier Feature Restrictions</h4>
-              <p className="text-3xs font-medium text-zinc-300">
-                Printing, PDF Export, WhatsApp Sharing, and Paper Note Scanning require a <strong className="text-white">TIVERA Pro</strong> subscription.
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">FREE TIER FEATURE RESTRICTIONS</h4>
+              <p className="text-3xs font-semibold tracking-wider text-neutral-300 uppercase">
+                Printing, PDF Export, WhatsApp Sharing, and Paper Note Scanning require a <strong className="text-white">TIVERA PRO</strong> subscription.
               </p>
             </div>
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="px-4 py-2 bg-white text-zinc-950 rounded-sm text-xs font-black uppercase hover:bg-zinc-200 transition-all cursor-pointer whitespace-nowrap shadow-sm border border-zinc-300"
+            className="px-5 py-2.5 bg-white text-[#0a0a0a] text-xs font-black tracking-[0.2em] uppercase hover:bg-neutral-200 transition-all cursor-pointer whitespace-nowrap border border-white"
           >
-            Upgrade to Pro
+            UPGRADE TO PRO
           </button>
         </div>
       )}
 
       {notification && (
-        <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-bold flex items-center space-x-2 animate-fadeIn border border-zinc-800">
+        <div className="p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 animate-fadeIn border border-black">
           <CheckCircle size={16} className="text-emerald-400" />
           <span>{notification}</span>
         </div>
       )}
 
       {/* Customer Info Form */}
-      <div className="bg-white border border-zinc-200 rounded-sm p-4 md:p-6 shadow-2xs space-y-4">
-        <h2 className="text-xs font-black text-zinc-950 uppercase tracking-wider border-l-2 border-zinc-950 pl-2">
-          Customer & Site Information
+      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-6 space-y-4">
+        <h2 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
+          CUSTOMER & SITE INFORMATION
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-3xs font-extrabold text-zinc-400 uppercase tracking-wider mb-1">Customer Name *</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Customer Name *</label>
             <input
               type="text"
               value={targetJob.customerName}
               onChange={(e) => updateActiveJobDetails({ customerName: e.target.value })}
               placeholder="e.g. Ramesh Patel"
-              className="w-full px-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+              className="w-full px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
             />
           </div>
           <div>
-            <label className="block text-3xs font-extrabold text-zinc-400 uppercase tracking-wider mb-1">Phone Number</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Phone Number</label>
             <input
               type="text"
               value={targetJob.phoneNumber}
               onChange={(e) => updateActiveJobDetails({ phoneNumber: e.target.value })}
               placeholder="e.g. +91 98765 43210"
-              className="w-full px-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+              className="w-full px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
             />
           </div>
           <div>
-            <label className="block text-3xs font-extrabold text-zinc-400 uppercase tracking-wider mb-1">Site Address</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Site Address</label>
             <input
               type="text"
               value={targetJob.siteAddress}
               onChange={(e) => updateActiveJobDetails({ siteAddress: e.target.value })}
               placeholder="e.g. Flat 302, Green Acres"
-              className="w-full px-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs font-bold text-zinc-950 bg-white"
+              className="w-full px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none"
             />
           </div>
         </div>
@@ -335,15 +335,15 @@ export default function ActiveJobCalculator({
       {/* Tile Groups List */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-xs font-black text-zinc-950 uppercase tracking-wider border-l-2 border-zinc-950 pl-2">
-            Measurement Groups ({targetJob.tiles.length})
+          <h2 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
+            MEASUREMENT GROUPS ({targetJob.tiles.length})
           </h2>
           <button
             onClick={addTile}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-zinc-950 text-white border border-zinc-800 hover:bg-black rounded-sm text-xs font-bold transition-all cursor-pointer uppercase tracking-wider"
+            className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white border border-black hover:bg-neutral-800 text-xs font-black transition-all cursor-pointer uppercase tracking-[0.2em]"
           >
             <Plus size={14} />
-            <span>Add Category Group</span>
+            <span>ADD CATEGORY GROUP</span>
           </button>
         </div>
 
@@ -353,14 +353,14 @@ export default function ActiveJobCalculator({
           return (
             <div 
               key={tile.id} 
-              className="bg-white border border-zinc-200 rounded-sm shadow-2xs overflow-hidden transition-all"
+              className="bg-[#f4f2ee] border border-[#d4d1ca] overflow-hidden transition-all"
             >
               {/* Card Header */}
-              <div className="bg-zinc-50/80 p-4 border-b border-zinc-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div className="bg-[#e8e6e1] p-4 border-b border-[#d4d1ca] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div className="flex items-center space-x-3 w-full sm:w-auto">
                   <button
                     onClick={() => toggleTileCollapse(tile.id)}
-                    className="p-1 hover:bg-zinc-200 rounded-2xs text-zinc-600 transition-colors cursor-pointer"
+                    className="p-1 hover:bg-[#d4d1ca] text-[#0a0a0a] transition-colors cursor-pointer"
                   >
                     {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                   </button>
@@ -370,31 +370,31 @@ export default function ActiveJobCalculator({
                       value={tile.tileName}
                       onChange={(e) => updateTile(tile.id, { tileName: e.target.value })}
                       placeholder={`Category ${tileIdx + 1}`}
-                      className="text-sm font-black text-zinc-950 bg-transparent border-b border-dashed border-zinc-300 focus:border-zinc-950 focus:outline-none px-1 py-0.5 w-full sm:w-64 uppercase"
+                      className="text-sm font-black text-[#0a0a0a] bg-transparent border-b border-dashed border-[#0a0a0a] focus:outline-none px-1 py-0.5 w-full sm:w-64 uppercase tracking-wider"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
                   <div className="flex items-center space-x-2">
-                    <span className="text-3xs font-extrabold text-zinc-400 uppercase">Rate/sqft (₹):</span>
+                    <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider">Rate/sqft (₹):</span>
                     <input
                       type="number"
                       value={tile.ratePerSqft}
                       onChange={(e) => updateTile(tile.id, { ratePerSqft: Number(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-20 px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-black text-zinc-950 text-right focus:border-zinc-950 outline-none"
+                      className="w-24 px-2.5 py-1 border border-[#d4d1ca] text-xs font-black text-[#0a0a0a] text-right focus:border-[#0a0a0a] bg-white outline-none"
                     />
                   </div>
 
                   <div className="text-right">
-                    <span className="text-3xs font-extrabold text-zinc-400 uppercase block">Subtotal</span>
-                    <span className="text-sm font-black text-zinc-950">{formatCurrency(tile.subtotal)}</span>
+                    <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider block">Subtotal</span>
+                    <span className="text-sm font-black text-[#0a0a0a]">{formatCurrency(tile.subtotal)}</span>
                   </div>
 
                   <button
                     onClick={() => deleteTile(tile.id)}
-                    className="p-1.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-2xs transition-colors cursor-pointer"
+                    className="p-1.5 text-[#6b6863] hover:text-[#0a0a0a] transition-colors cursor-pointer"
                     title="Delete Category"
                   >
                     <Trash2 size={16} />
@@ -408,7 +408,7 @@ export default function ActiveJobCalculator({
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="border-b border-zinc-200 text-zinc-450 font-black uppercase text-[10px]">
+                        <tr className="border-b border-[#d4d1ca] text-[#6b6863] font-black uppercase text-[10px] tracking-wider">
                           <th className="pb-2 w-1/4">Location / Space</th>
                           <th className="pb-2 text-center">Length (in)</th>
                           <th className="pb-2 text-center">Width (in)</th>
@@ -419,16 +419,16 @@ export default function ActiveJobCalculator({
                           <th className="pb-2 text-center w-16">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-150 font-semibold text-zinc-800">
+                      <tbody className="divide-y divide-[#d4d1ca] font-semibold text-[#0a0a0a]">
                         {tile.rows.map((row) => (
-                          <tr key={row.id} className="hover:bg-zinc-50 transition-colors">
+                          <tr key={row.id} className="hover:bg-[#e8e6e1] transition-colors">
                             <td className="py-2 pr-2">
                               <input
                                 type="text"
                                 value={row.location}
                                 onChange={(e) => updateTileRow(tile.id, row.id, 'location', e.target.value)}
                                 placeholder="e.g. Living Room Floor"
-                                className="w-full px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 focus:border-zinc-950 outline-none"
+                                className="w-full px-2 py-1 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] focus:border-[#0a0a0a] bg-white outline-none"
                               />
                             </td>
                             <td className="py-2 text-center px-1">
@@ -437,7 +437,7 @@ export default function ActiveJobCalculator({
                                 value={row.lengthInches}
                                 onChange={(e) => updateTileRow(tile.id, row.id, 'lengthInches', e.target.value)}
                                 placeholder="0"
-                                className="w-16 px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 text-center focus:border-zinc-950 outline-none"
+                                className="w-16 px-2 py-1 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center focus:border-[#0a0a0a] bg-white outline-none"
                               />
                             </td>
                             <td className="py-2 text-center px-1">
@@ -446,7 +446,7 @@ export default function ActiveJobCalculator({
                                 value={row.widthInches}
                                 onChange={(e) => updateTileRow(tile.id, row.id, 'widthInches', e.target.value)}
                                 placeholder="0"
-                                className="w-16 px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 text-center focus:border-zinc-950 outline-none"
+                                className="w-16 px-2 py-1 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center focus:border-[#0a0a0a] bg-white outline-none"
                               />
                             </td>
                             <td className="py-2 text-center px-1">
@@ -454,31 +454,31 @@ export default function ActiveJobCalculator({
                                 type="number"
                                 value={row.quantity}
                                 onChange={(e) => updateTileRow(tile.id, row.id, 'quantity', e.target.value)}
-                                className="w-14 px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 text-center focus:border-zinc-950 outline-none"
+                                className="w-14 px-2 py-1 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center focus:border-[#0a0a0a] bg-white outline-none"
                               />
                             </td>
-                            <td className="py-2 text-center text-zinc-500 font-medium">
+                            <td className="py-2 text-center text-[#6b6863] font-bold">
                               {row.roundedLengthFt > 0 || row.roundedWidthFt > 0 
                                 ? `${row.roundedLengthFt}' × ${row.roundedWidthFt}'` 
                                 : '-'}
                             </td>
-                            <td className="py-2 text-right font-bold text-zinc-900">
+                            <td className="py-2 text-right font-bold text-[#0a0a0a]">
                               {row.areaPerPiece > 0 ? row.areaPerPiece.toFixed(2) : '-'}
                             </td>
-                            <td className="py-2 text-right font-black text-zinc-950">
+                            <td className="py-2 text-right font-black text-[#0a0a0a]">
                               {row.totalArea > 0 ? `${row.totalArea.toFixed(2)} sq ft` : '-'}
                             </td>
                             <td className="py-2 text-center space-x-1">
                               <button
                                 onClick={() => handleDuplicateRowInTile(tile.id, row.id)}
-                                className="p-1 text-zinc-400 hover:text-zinc-950 rounded-2xs transition-colors cursor-pointer"
+                                className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer"
                                 title="Duplicate Row"
                               >
                                 <Copy size={14} />
                               </button>
                               <button
                                 onClick={() => deleteRowFromTile(tile.id, row.id)}
-                                className="p-1 text-zinc-400 hover:text-black rounded-2xs transition-colors cursor-pointer"
+                                className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer"
                                 title="Delete Row"
                               >
                                 <Trash2 size={14} />
@@ -491,24 +491,24 @@ export default function ActiveJobCalculator({
                   </div>
 
                   {/* Action Bar for scanning paper notes & adding rows at bottom of table */}
-                  <div className="flex justify-between items-center pt-3 border-t border-zinc-150">
+                  <div className="flex justify-between items-center pt-3 border-t border-[#d4d1ca]">
                     <button
                       onClick={() => handleAddRowToTile(tile.id)}
-                      className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-950 hover:underline cursor-pointer uppercase tracking-wider"
+                      className="flex items-center space-x-1 text-xs font-black text-[#0a0a0a] hover:underline cursor-pointer uppercase tracking-widest"
                     >
                       <Plus size={14} />
-                      <span>Add Measurement Row</span>
+                      <span>ADD MEASUREMENT ROW</span>
                     </button>
                     <button
                       onClick={() => handleOpenScanner(tile.id)}
-                      className={`flex items-center space-x-1 px-2.5 py-1 border rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                      className={`flex items-center space-x-1 px-3 py-1.5 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest ${
                         isPro 
-                          ? 'bg-zinc-950 text-white border-zinc-800 hover:bg-black' 
-                          : 'bg-zinc-100 text-zinc-600 border-zinc-300 hover:border-zinc-950'
+                          ? 'bg-[#0a0a0a] text-white border-black hover:bg-neutral-800' 
+                          : 'bg-[#e8e6e1] text-[#6b6863] border-[#d4d1ca] hover:border-black'
                       }`}
                     >
                       {isPro ? <Camera size={12} className="text-white" /> : <Lock size={12} className="text-amber-600" />}
-                      <span>Scan Paper Sheet</span>
+                      <span>SCAN PAPER SHEET</span>
                     </button>
                   </div>
                 </div>
@@ -519,21 +519,21 @@ export default function ActiveJobCalculator({
       </div>
 
       {/* Summary Footer */}
-      <div className="bg-zinc-950 text-white p-4 md:p-6 rounded-sm shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-zinc-800">
-        <div className="flex items-center space-x-8 text-xs font-bold">
+      <div className="bg-[#0a0a0a] text-white p-6 md:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-black">
+        <div className="flex items-center space-x-10 text-xs font-black tracking-widest uppercase">
           <div>
-            <span className="text-zinc-400 text-3xs uppercase block">Total Area</span>
-            <span className="text-base font-black text-white">{targetJob.totalArea.toFixed(2)} Sq Ft</span>
+            <span className="text-neutral-400 text-[10px] block">TOTAL AREA</span>
+            <span className="text-lg font-black text-white">{targetJob.totalArea.toFixed(2)} SQ FT</span>
           </div>
           <div>
-            <span className="text-zinc-400 text-3xs uppercase block">Total Pieces</span>
-            <span className="text-base font-black text-zinc-300">{targetJob.totalQuantity} Pcs</span>
+            <span className="text-neutral-400 text-[10px] block">TOTAL PIECES</span>
+            <span className="text-lg font-black text-neutral-300">{targetJob.totalQuantity} PCS</span>
           </div>
         </div>
 
         <div className="text-right">
-          <span className="text-zinc-400 text-3xs uppercase block font-extrabold">Grand Total</span>
-          <span className="text-2xl font-black text-white">{formatCurrency(targetJob.grandTotal)}</span>
+          <span className="text-neutral-400 text-[10px] uppercase block font-black tracking-widest">GRAND TOTAL</span>
+          <span className="text-3xl font-black text-white tracking-wider">{formatCurrency(targetJob.grandTotal)}</span>
         </div>
       </div>
 
@@ -557,39 +557,39 @@ export default function ActiveJobCalculator({
 
       {/* WhatsApp Share Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-zinc-200 pb-3">
-              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider">Share Estimate Invoice</h3>
-              <button onClick={() => setIsShareModalOpen(false)} className="text-zinc-400 hover:text-zinc-800 cursor-pointer">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-[#d4d1ca] pb-3">
+              <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-widest">SHARE ESTIMATE INVOICE</h3>
+              <button onClick={() => setIsShareModalOpen(false)} className="text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer">
                 <X size={18} />
               </button>
             </div>
 
             {shareStatus === 'generating' && (
               <div className="py-8 text-center space-y-3">
-                <div className="w-8 h-8 border-3 border-zinc-950 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="text-xs font-bold text-zinc-600">Generating PDF Invoice document...</p>
+                <div className="w-8 h-8 border-3 border-[#0a0a0a] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider">Generating PDF Invoice...</p>
               </div>
             )}
 
             {shareStatus === 'ready' && (
               <div className="space-y-4">
-                <p className="text-xs font-semibold text-zinc-600">
+                <p className="text-xs font-semibold text-[#6b6863] uppercase tracking-wider">
                   Ready! Click below to send PDF invoice & text summary on WhatsApp.
                 </p>
                 <button
                   onClick={executeWebShare}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-sm shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2 uppercase tracking-wider"
+                  className="w-full py-3 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs tracking-widest cursor-pointer flex items-center justify-center space-x-2 uppercase border border-black"
                 >
                   <Share2 size={16} />
-                  <span>Send PDF Invoice on WhatsApp</span>
+                  <span>SEND PDF ON WHATSAPP</span>
                 </button>
                 <button
                   onClick={handleCopyText}
-                  className="w-full py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs rounded-sm transition-all cursor-pointer"
+                  className="w-full py-2.5 bg-[#e8e6e1] hover:bg-[#d4d1ca] text-[#0a0a0a] font-black text-xs cursor-pointer uppercase tracking-wider"
                 >
-                  Copy Text Summary Only
+                  COPY TEXT SUMMARY ONLY
                 </button>
               </div>
             )}
@@ -599,9 +599,9 @@ export default function ActiveJobCalculator({
                 <p className="text-xs font-bold text-rose-700">{shareError}</p>
                 <button
                   onClick={handleCopyText}
-                  className="w-full py-2 bg-zinc-950 text-white font-bold text-xs rounded-sm cursor-pointer"
+                  className="w-full py-2.5 bg-[#0a0a0a] text-white font-black text-xs uppercase tracking-wider"
                 >
-                  Copy Summary Text
+                  COPY SUMMARY TEXT
                 </button>
               </div>
             )}

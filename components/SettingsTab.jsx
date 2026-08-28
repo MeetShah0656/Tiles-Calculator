@@ -101,27 +101,26 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12 animate-fadeIn">
-      <div className="bg-white border border-zinc-200 rounded-sm shadow-xs p-6">
-        <div className="border-b border-zinc-200 pb-4 mb-6">
-          <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">TIVERA Preferences</span>
-          <h1 className="text-2xl font-black text-zinc-950 mt-0.5">Settings & Subscription</h1>
-          <p className="text-xs font-semibold text-zinc-500 mt-0.5">
+      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-8">
+        <div className="border-b border-[#d4d1ca] pb-4 mb-6">
+          <span className="text-[10px] uppercase font-black text-[#6b6863] tracking-[0.25em]">TIVERA PREFERENCES</span>
+          <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">SETTINGS & BILLING</h1>
+          <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider mt-1">
             Manage your business profile info, Razorpay subscription, and cloud database synchronization.
           </p>
         </div>
 
         {successMsg && (
-          <div className="mb-5 p-3 bg-zinc-900 text-white rounded-sm text-xs flex items-center space-x-2 font-semibold shadow-xs">
+          <div className="mb-5 p-4 bg-[#0a0a0a] text-white text-xs flex items-center space-x-2 font-black uppercase tracking-wider border border-black">
             <Check size={16} className="text-emerald-400 flex-shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {errorMsg && (
-          <div className="mb-5 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-sm text-xs flex items-start space-x-2 font-semibold">
+          <div className="mb-5 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2 font-bold uppercase tracking-wider">
             <AlertTriangle size={16} className="text-rose-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <span className="font-bold">Notice: </span>
               <span>{errorMsg}</span>
             </div>
           </div>
@@ -129,30 +128,30 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* Subscription & Membership Box */}
-          <div className="p-4 bg-zinc-950 text-white rounded-sm border border-zinc-800 space-y-3">
+          <div className="p-6 bg-[#0a0a0a] text-white border border-black space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Sparkles size={16} className="text-amber-300" />
-                <span className="text-xs font-black uppercase tracking-wider">Subscription & Membership</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em]">SUBSCRIPTION STATUS</span>
               </div>
               {isPro ? (
-                <span className="px-2 py-0.5 bg-emerald-500 text-white text-3xs font-black rounded-2xs uppercase">
-                  Active Pro Member
+                <span className="px-3 py-1 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest">
+                  ACTIVE PRO MEMBER
                 </span>
               ) : (
-                <span className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-3xs font-extrabold rounded-2xs uppercase">
-                  Free Tier (5 items limit)
+                <span className="px-3 py-1 bg-neutral-800 text-neutral-300 text-[10px] font-black uppercase tracking-widest">
+                  FREE TIER (RESTRICTED)
                 </span>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-neutral-800">
               <div>
-                <h3 className="text-lg font-black">{isPro ? 'TIVERA Pro Plan' : 'Free Tier'}</h3>
-                <p className="text-3xs text-zinc-400 font-semibold">
+                <h3 className="text-xl font-black uppercase tracking-wider">{isPro ? 'TIVERA PRO PLAN' : 'FREE TIER'}</h3>
+                <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-1">
                   {isPro 
                     ? 'Unlimited sheet scans, unlimited manual measurement rows, and custom invoice branding.' 
-                    : 'Limited to 5 scanned values and 5 manual measurement rows per job.'}
+                    : 'Restricted features. Upgrade to Tivera Pro for unlimited commercial estimates.'}
                 </p>
               </div>
 
@@ -160,50 +159,50 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 <button
                   type="button"
                   onClick={() => setIsUpgradeModalOpen(true)}
-                  className="px-4 py-2 bg-white text-zinc-950 hover:bg-zinc-100 rounded-2xs text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center space-x-1.5 whitespace-nowrap"
+                  className="px-6 py-3 bg-white text-[#0a0a0a] hover:bg-neutral-200 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer whitespace-nowrap border border-white flex items-center space-x-2"
                 >
                   <CreditCard size={14} />
-                  <span>Upgrade to Pro</span>
+                  <span>UPGRADE TO PRO</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={cancelProSubscription}
-                  className="px-3 py-1.5 border border-zinc-700 text-zinc-400 hover:text-white rounded-2xs text-3xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  Manage / Downgrade
+                  DOWNGRADE TO FREE
                 </button>
               )}
             </div>
           </div>
 
-          <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-sm flex items-center justify-between">
+          <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-zinc-950 text-white flex items-center justify-center font-black uppercase text-sm border border-zinc-800">
+              <div className="w-10 h-10 bg-[#0a0a0a] text-white flex items-center justify-center font-black uppercase text-base border border-black">
                 {user?.email?.slice(0, 2) || 'TV'}
               </div>
               <div>
-                <span className="block text-[10px] font-extrabold text-zinc-450 uppercase tracking-wider">Logged In Account</span>
-                <span className="font-black text-zinc-950 text-sm">{user?.email || 'TIVERA User'}</span>
+                <span className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest">LOGGED IN ACCOUNT</span>
+                <span className="font-black text-[#0a0a0a] text-sm uppercase">{user?.email || 'TIVERA User'}</span>
               </div>
             </div>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-sm text-3xs font-black uppercase tracking-wider bg-zinc-950 text-white border border-zinc-800">
-              <ShieldCheck size={12} className="mr-1" /> Active Session
+            <span className="inline-flex items-center px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-[#0a0a0a] text-white">
+              <ShieldCheck size={12} className="mr-1" /> ACTIVE SESSION
             </span>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-black text-zinc-950 uppercase tracking-wider border-l-2 border-zinc-950 pl-2">
-              Business Profile Details
+            <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
+              BUSINESS PROFILE DETAILS
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="businessName" className="block text-2xs font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5">
+                <label htmlFor="businessName" className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">
                   Business Name / Company Title
                 </label>
-                <div className="relative rounded-sm shadow-2xs">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-zinc-400">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                     <Briefcase size={14} />
                   </div>
                   <input
@@ -211,18 +210,18 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                     id="businessName"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="block w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs text-zinc-950 font-bold bg-white"
+                    className="block w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs text-[#0a0a0a] font-bold bg-white outline-none"
                     placeholder="e.g. TIVERA Natural Stone"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="phoneNumber" className="block text-2xs font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5">
+                <label htmlFor="phoneNumber" className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">
                   Contact Phone Number
                 </label>
-                <div className="relative rounded-sm shadow-2xs">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-zinc-400">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6b6863]">
                     <Phone size={14} />
                   </div>
                   <input
@@ -230,7 +229,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                     id="phoneNumber"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="block w-full pl-9 pr-3 py-2 border border-zinc-200 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 rounded-sm text-xs text-zinc-950 font-bold bg-white"
+                    className="block w-full pl-9 pr-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs text-[#0a0a0a] font-bold bg-white outline-none"
                     placeholder="e.g. +91 98765 43210"
                   />
                 </div>
@@ -238,21 +237,21 @@ export default function SettingsTab({ user, onProfileUpdate }) {
             </div>
           </div>
 
-          <div className="space-y-4 pt-2 border-t border-zinc-200">
-            <h3 className="text-xs font-black text-zinc-950 uppercase tracking-wider border-l-2 border-zinc-950 pl-2">
-              Cloud Database & Storage
+          <div className="space-y-4 pt-4 border-t border-[#d4d1ca]">
+            <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
+              CLOUD DATABASE & STORAGE
             </h3>
             
-            <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <Cloud size={16} className="text-zinc-900" />
-                  <span className="font-extrabold text-xs text-zinc-950">
-                    Network Connection: {isOnline ? 'Online (Connected)' : 'Offline (Local Only)'}
+                  <Cloud size={16} className="text-[#0a0a0a]" />
+                  <span className="font-black text-xs text-[#0a0a0a] uppercase tracking-wider">
+                    NETWORK STATUS: {isOnline ? 'ONLINE (CONNECTED)' : 'OFFLINE (LOCAL MODE)'}
                   </span>
                 </div>
-                <p className="text-3xs text-zinc-500 font-semibold">
-                  Saved estimates: <strong className="text-zinc-900">{jobs.length} total</strong> ({jobs.filter(j => j.syncStatus === 'pending_sync').length} pending sync)
+                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">
+                  Saved estimates: <strong className="text-[#0a0a0a]">{jobs.length} total</strong> ({jobs.filter(j => j.syncStatus === 'pending_sync').length} pending sync)
                 </p>
               </div>
 
@@ -260,29 +259,29 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing || !isOnline}
-                className="flex items-center space-x-1.5 bg-zinc-950 hover:bg-black text-white text-2xs font-extrabold px-3 py-2 rounded-sm shadow-xs disabled:opacity-40 transition-all cursor-pointer"
+                className="flex items-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black tracking-widest uppercase px-4 py-2.5 disabled:opacity-40 transition-all cursor-pointer border border-black"
               >
                 <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
-                <span>{isSyncing ? 'Syncing...' : 'Sync Cloud Data'}</span>
+                <span>{isSyncing ? 'SYNCING...' : 'SYNC CLOUD DATA'}</span>
               </button>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-200 flex justify-end">
+          <div className="pt-4 border-t border-[#d4d1ca] flex justify-end">
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center space-x-2 bg-zinc-950 hover:bg-black text-white font-bold px-6 py-2.5 rounded-sm text-xs shadow-md disabled:opacity-50 transition-all cursor-pointer border border-zinc-800 uppercase tracking-wider"
+              className="flex items-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black px-8 py-3 text-xs tracking-[0.2em] disabled:opacity-50 transition-all cursor-pointer border border-black uppercase"
             >
               {isSaving ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
-                  <span>Saving Settings...</span>
+                  <span>SAVING...</span>
                 </>
               ) : (
                 <>
                   <Check size={14} />
-                  <span>Save Settings</span>
+                  <span>SAVE SETTINGS</span>
                 </>
               )}
             </button>
