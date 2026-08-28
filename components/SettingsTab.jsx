@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Briefcase, Check, AlertTriangle, RefreshCw, Cloud, ShieldCheck, Sparkles, CreditCard, ShieldAlert } from 'lucide-react';
+import { User, Phone, Briefcase, Check, AlertTriangle, RefreshCw, Cloud, ShieldCheck, Sparkles, CreditCard } from 'lucide-react';
 import { useJobStore } from '@/store/store.js';
 import UpgradeProModal from '@/components/UpgradeProModal.jsx';
 
@@ -17,8 +17,6 @@ export default function SettingsTab({ user, onProfileUpdate }) {
   const jobs = useJobStore((state) => state.jobs);
   const subscription = useJobStore((state) => state.subscription);
   const isPro = subscription?.isPro || false;
-  
-  const activateProSubscription = useJobStore((state) => state.activateProSubscription);
   const cancelProSubscription = useJobStore((state) => state.cancelProSubscription);
 
   const syncPendingJobs = useJobStore((state) => state.syncPendingJobs);
@@ -32,20 +30,6 @@ export default function SettingsTab({ user, onProfileUpdate }) {
       setPhoneNumber(user.user_metadata.phone_number || '');
     }
   }, [user?.id]);
-
-  const handleToggleAdminProStatus = () => {
-    if (isPro) {
-      cancelProSubscription();
-      setSuccessMsg("User status manually set to FREE TIER.");
-    } else {
-      activateProSubscription({
-        paymentId: 'admin_manual_override_' + Date.now(),
-        planName: 'Tivera Pro (Admin Manual Grant)'
-      });
-      setSuccessMsg("User status manually upgraded to TIVERA PRO!");
-    }
-    setTimeout(() => setSuccessMsg(null), 4000);
-  };
 
   const handleManualSync = async () => {
     setIsSyncing(true);
@@ -171,37 +155,24 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                {!isPro ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsUpgradeModalOpen(true)}
-                    className="px-6 py-3 bg-white text-[#0a0a0a] hover:bg-neutral-200 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer whitespace-nowrap border border-white flex items-center space-x-2"
-                  >
-                    <CreditCard size={14} />
-                    <span>UPGRADE TO PRO</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={cancelProSubscription}
-                    className="px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                  >
-                    DOWNGRADE TO FREE
-                  </button>
-                )}
-
-                {/* Admin Manual Override Toggle */}
+              {!isPro ? (
                 <button
                   type="button"
-                  onClick={handleToggleAdminProStatus}
-                  className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-[10px] font-black uppercase tracking-widest border border-neutral-700 transition-all cursor-pointer flex items-center space-x-1.5 justify-center"
-                  title="Manually switch user status between Free & Pro without payment"
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="px-6 py-3 bg-white text-[#0a0a0a] hover:bg-neutral-200 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer whitespace-nowrap border border-white flex items-center space-x-2"
                 >
-                  <ShieldAlert size={12} className="text-neutral-300" />
-                  <span>{isPro ? 'Set to Free (Admin)' : 'Set to Pro (Admin)'}</span>
+                  <CreditCard size={14} />
+                  <span>UPGRADE TO PRO</span>
                 </button>
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={cancelProSubscription}
+                  className="px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  DOWNGRADE TO FREE
+                </button>
+              )}
             </div>
           </div>
 
