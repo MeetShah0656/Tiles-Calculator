@@ -110,7 +110,7 @@ const createInitialJob = (category = 'granite-marble', roundingStep = 0.25) => (
       totalArea: 0
     }],
     totalArea: 0,
-    totalQuantity: 1,
+    totalQuantity: 0,
     subtotal: 0
   }]
 });
@@ -120,32 +120,32 @@ export const useJobStore = create(
     (set, get) => ({
       activeJob: createInitialJob('granite-marble', 0.25),
       quotaActiveJob: createInitialJob('quota', 0.5),
-      activeJobId: null,
+
       jobs: [],
-      isOnline: true,
+      isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
-      setOnline: (status) => set({ isOnline: status }),
+      setIsOnline: (status) => set({ isOnline: status }),
 
-      // Active Job operations (Granite & Marble)
-      updateActiveJobDetails: (fields) => set((state) => {
-        const updatedJob = { ...state.activeJob, ...fields };
-        return { activeJob: recalculateJobTotals(updatedJob) };
-      }),
+      updateActiveJobDetails: (fields) => {
+        set((state) => ({
+          activeJob: { ...state.activeJob, ...fields, updatedAt: new Date().toISOString() }
+        }));
+      },
 
-      // Quota Active Job operations
-      updateQuotaActiveJobDetails: (fields) => set((state) => {
-        const updatedJob = { ...state.quotaActiveJob, ...fields };
-        return { quotaActiveJob: recalculateJobTotals(updatedJob) };
-      }),
+      updateQuotaActiveJobDetails: (fields) => {
+        set((state) => ({
+          quotaActiveJob: { ...state.quotaActiveJob, ...fields, updatedAt: new Date().toISOString() }
+        }));
+      },
 
-      addTile: (jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
+      addTile: (jobKey = 'activeJob') => {
+        const step = jobKey === 'quotaActiveJob' ? 0.5 : 0.25;
         const newTile = {
-          id: Math.random().toString(36).substr(2, 9),
+          id: `tile-${Date.now()}`,
           tileName: '',
           ratePerSqft: 0,
           rows: [{
-            id: Math.random().toString(36).substr(2, 9),
+            id: `row-${Date.now()}`,
             location: '',
             lengthInches: '',
             widthInches: '',
@@ -156,126 +156,49 @@ export const useJobStore = create(
             totalArea: 0
           }],
           totalArea: 0,
-          totalQuantity: 1,
+          totalQuantity: 0,
           subtotal: 0
         };
-        const updatedJob = {
-          ...targetJob,
-          tiles: [...targetJob.tiles, newTile]
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
+        set((state) => {
+          const currentJob = state[jobKey];
+          const updatedJob = recalculateJobTotals({
+            ...currentJob,
+            tiles: [...currentJob.tiles, newTile]
+          });
+          return { [jobKey]: updatedJob };
+        });
+      },
 
-      updateTile: (tileId, fields, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => t.id === tileId ? { ...t, ...fields } : t)
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
+      updateTile: (tileId, fields, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              return recalculateTileTotals({ ...tile, ...fields }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
 
-      deleteTile: (tileId, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const tiles = targetJob.tiles.filter((t) => t.id !== tileId);
-        const finalTiles = tiles.length > 0 ? tiles : [
-          {
-            id: Math.random().toString(36).substr(2, 9),
-            tileName: '',
-            ratePerSqft: 0,
-            rows: [{
-              id: Math.random().toString(36).substr(2, 9),
-              location: '',
-              lengthInches: '',
-              widthInches: '',
-              quantity: 1,
-              roundedLengthFt: 0,
-              roundedWidthFt: 0,
-              areaPerPiece: 0,
-              totalArea: 0
-            }],
-            totalArea: 0,
-            totalQuantity: 1,
-            subtotal: 0
-          }
-        ];
-        const updatedJob = {
-          ...targetJob,
-          tiles: finalTiles
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
+      deleteTile: (tileId, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const updatedTiles = currentJob.tiles.filter((t) => t.id !== tileId);
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
 
-      addRowToTile: (tileId, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => {
-            if (t.id !== tileId) return t;
-            const newRow = {
-              id: Math.random().toString(36).substr(2, 9),
-              location: '',
-              lengthInches: '',
-              widthInches: '',
-              quantity: 1,
-              roundedLengthFt: 0,
-              roundedWidthFt: 0,
-              areaPerPiece: 0,
-              totalArea: 0
-            };
-            return { ...t, rows: [...t.rows, newRow] };
-          })
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
-
-      updateTileRow: (tileId, rowId, field, value, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => {
-            if (t.id !== tileId) return t;
-            const updatedRows = t.rows.map((r) => {
-              if (r.id !== rowId) return r;
-              return { ...r, [field]: value };
-            });
-            return { ...t, rows: updatedRows };
-          })
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
-
-      duplicateRowInTile: (tileId, rowId, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => {
-            if (t.id !== tileId) return t;
-            const targetRowIndex = t.rows.findIndex((r) => r.id === rowId);
-            if (targetRowIndex === -1) return t;
-            const targetRow = t.rows[targetRowIndex];
-            const duplicatedRow = {
-              ...targetRow,
-              id: Math.random().toString(36).substr(2, 9)
-            };
-            const newRows = [...t.rows];
-            newRows.splice(targetRowIndex + 1, 0, duplicatedRow);
-            return { ...t, rows: newRows };
-          })
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
-
-      deleteRowFromTile: (tileId, rowId, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => {
-            if (t.id !== tileId) return t;
-            const filteredRows = t.rows.filter((r) => r.id !== rowId);
-            const finalRows = filteredRows.length > 0 ? filteredRows : [
-              {
-                id: Math.random().toString(36).substr(2, 9),
+      addRowToTile: (tileId, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              const newRow = {
+                id: `row-${Date.now()}`,
                 location: '',
                 lengthInches: '',
                 widthInches: '',
@@ -284,109 +207,157 @@ export const useJobStore = create(
                 roundedWidthFt: 0,
                 areaPerPiece: 0,
                 totalArea: 0
-              }
-            ];
-            return { ...t, rows: finalRows };
-          })
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
+              };
+              return recalculateTileTotals({ ...tile, rows: [...tile.rows, newRow] }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
 
-      addScannedRowsToTile: (tileId, scannedRooms, jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
-        const updatedJob = {
-          ...targetJob,
-          tiles: targetJob.tiles.map((t) => {
-            if (t.id !== tileId) return t;
-            const newRows = scannedRooms.map((room) => ({
-              id: Math.random().toString(36).substr(2, 9),
-              location: room.name || '',
-              lengthInches: room.length ? String(room.length) : '',
-              widthInches: room.width ? String(room.width) : '',
-              quantity: Number(room.quantity) || 1,
-              roundedLengthFt: 0,
-              roundedWidthFt: 0,
-              areaPerPiece: 0,
-              totalArea: 0
-            }));
-            const filteredExisting = t.rows.filter(r => r.lengthInches || r.widthInches);
-            return { ...t, rows: [...filteredExisting, ...newRows] };
-          })
-        };
-        return { [jobType]: recalculateJobTotals(updatedJob) };
-      }),
+      updateTileRow: (tileId, rowId, field, value, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              const updatedRows = tile.rows.map((row) => {
+                if (row.id === rowId) {
+                  return { ...row, [field]: value };
+                }
+                return row;
+              });
+              return recalculateTileTotals({ ...tile, rows: updatedRows }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
 
-      saveJob: (jobType = 'activeJob') => set((state) => {
-        const targetJob = state[jobType] || state.activeJob;
+      deleteRowFromTile: (tileId, rowId, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              const updatedRows = tile.rows.filter((r) => r.id !== rowId);
+              return recalculateTileTotals({ ...tile, rows: updatedRows }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
+
+      duplicateRowInTile: (tileId, rowId, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              const rowToCopy = tile.rows.find((r) => r.id === rowId);
+              if (!rowToCopy) return tile;
+              const newRow = {
+                ...rowToCopy,
+                id: `row-${Date.now()}`
+              };
+              return recalculateTileTotals({ ...tile, rows: [...tile.rows, newRow] }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
+
+      addScannedRowsToTile: (tileId, scannedRooms, jobKey = 'activeJob') => {
+        set((state) => {
+          const currentJob = state[jobKey];
+          const step = currentJob.roundingStep || (jobKey === 'quotaActiveJob' ? 0.5 : 0.25);
+          const updatedTiles = currentJob.tiles.map((tile) => {
+            if (tile.id === tileId) {
+              const newRows = scannedRooms.map((room, idx) => ({
+                id: `row-scanned-${Date.now()}-${idx}`,
+                location: room.name || `Room ${idx + 1}`,
+                lengthInches: room.length ? String(room.length) : '24',
+                widthInches: room.width ? String(room.width) : '24',
+                quantity: Number(room.quantity) || 1,
+                roundedLengthFt: 0,
+                roundedWidthFt: 0,
+                areaPerPiece: 0,
+                totalArea: 0
+              }));
+              return recalculateTileTotals({ ...tile, rows: [...tile.rows, ...newRows] }, step);
+            }
+            return tile;
+          });
+          return { [jobKey]: recalculateJobTotals({ ...currentJob, tiles: updatedTiles }) };
+        });
+      },
+
+      saveCurrentJobToHistory: async (jobKey = 'activeJob') => {
+        const state = get();
+        const currentJob = state[jobKey];
+        if (!currentJob.customerName && currentJob.totalArea === 0) return;
+
         const jobToSave = {
-          ...recalculateJobTotals(targetJob),
-          id: state.activeJobId || generateUUID(),
-          createdAt: new Date().toISOString(),
+          ...currentJob,
+          id: currentJob.id || `job-${Date.now()}`,
+          createdAt: currentJob.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          syncStatus: state.isOnline ? 'synced' : 'pending_sync'
+          syncStatus: 'pending_sync'
         };
 
-        const existingIndex = state.jobs.findIndex((j) => j.id === jobToSave.id);
-        let updatedJobs;
-        if (existingIndex >= 0) {
-          updatedJobs = [...state.jobs];
-          updatedJobs[existingIndex] = jobToSave;
+        const existingIdx = state.jobs.findIndex((j) => j.id === jobToSave.id);
+        let newJobs = [...state.jobs];
+        if (existingIdx >= 0) {
+          newJobs[existingIdx] = jobToSave;
         } else {
-          updatedJobs = [jobToSave, ...state.jobs];
+          newJobs.unshift(jobToSave);
         }
 
-        const category = targetJob.category || 'granite-marble';
-        const defaultStep = category === 'quota' ? 0.5 : 0.25;
+        set({ jobs: newJobs });
 
-        return {
-          jobs: updatedJobs,
-          [jobType]: createInitialJob(category, defaultStep),
-          activeJobId: null
-        };
-      }),
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (supabaseUrl && supabaseKey) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabase = createClient(supabaseUrl, supabaseKey);
 
-      resetActiveJob: (category = 'granite-marble') => set((state) => {
-        const defaultStep = category === 'quota' ? 0.5 : 0.25;
-        const key = category === 'quota' ? 'quotaActiveJob' : 'activeJob';
-        return {
-          [key]: createInitialJob(category, defaultStep),
-          activeJobId: null
-        };
-      }),
+            const payload = {
+              id: jobToSave.id,
+              category: jobToSave.category || 'granite-marble',
+              rounding_step: jobToSave.roundingStep || 0.25,
+              customer_name: jobToSave.customerName,
+              phone_number: jobToSave.phoneNumber,
+              project_name: jobToSave.projectName,
+              site_address: jobToSave.siteAddress,
+              polishing_rate: jobToSave.polishingRatePerSqft || 0,
+              edge_molding_cost: jobToSave.edgeMoldingCost || 0,
+              notes: jobToSave.notes,
+              tiles: jobToSave.tiles,
+              total_area: jobToSave.totalArea,
+              total_quantity: jobToSave.totalQuantity,
+              grand_total: jobToSave.grandTotal,
+              status: jobToSave.status,
+              cutting_status: jobToSave.cuttingStatus,
+              created_at: jobToSave.createdAt,
+              updated_at: jobToSave.updatedAt
+            };
 
-      loadJob: (id) => set((state) => {
-        const jobToLoad = state.jobs.find((j) => j.id === id);
-        if (!jobToLoad) return state;
-        const recalculated = recalculateJobTotals(jobToLoad);
-        const isQuota = recalculated.category === 'quota';
-        return {
-          activeJob: isQuota ? state.activeJob : recalculated,
-          quotaActiveJob: isQuota ? recalculated : state.quotaActiveJob,
-          activeJobId: id
-        };
-      }),
-
-      deleteJob: (id) => set((state) => ({
-        jobs: state.jobs.filter((j) => j.id !== id)
-      })),
-
-      duplicateJob: (id) => set((state) => {
-        const original = state.jobs.find((j) => j.id === id);
-        if (!original) return state;
-        const duplicated = {
-          ...original,
-          id: generateUUID(),
-          customerName: `${original.customerName} (Copy)`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        return { jobs: [duplicated, ...state.jobs] };
-      }),
-
-      updateJobCuttingStatus: (id, status) => set((state) => {
-        const updatedJobs = state.jobs.map((j) => j.id === id ? { ...j, cuttingStatus: status } : j);
-        return { jobs: updatedJobs };
-      }),
+            const { error } = await supabase.from('jobs').upsert(payload);
+            if (!error) {
+              set((prev) => ({
+                jobs: prev.jobs.map((j) => j.id === jobToSave.id ? { ...j, syncStatus: 'synced' } : j)
+              }));
+            }
+          } catch (err) {
+            console.error("Cloud save failed:", err);
+          }
+        }
+      },
 
       fetchJobsFromCloud: async () => {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -396,25 +367,28 @@ export const useJobStore = create(
         try {
           const { createClient } = await import('@supabase/supabase-js');
           const supabase = createClient(supabaseUrl, supabaseKey);
-          const { data, error } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
 
+          const { data, error } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
           if (!error && data) {
-            const formatted = data.map((d) => recalculateJobTotals({
-              id: d.id,
-              category: d.category || 'granite-marble',
-              roundingStep: d.rounding_step || 0.25,
-              customerName: d.customer_name,
-              phoneNumber: d.phone_number,
-              projectName: d.project_name,
-              siteAddress: d.site_address,
-              polishingRatePerSqft: d.polishing_rate || 0,
-              edgeMoldingCost: d.edge_molding_cost || 0,
-              notes: d.notes,
-              tiles: d.tiles || [],
-              status: d.status || 'pending',
-              cuttingStatus: d.cutting_status || 'pending',
-              createdAt: d.created_at,
-              updatedAt: d.updated_at,
+            const formatted = data.map((row) => ({
+              id: row.id,
+              category: row.category,
+              roundingStep: Number(row.rounding_step) || 0.25,
+              customerName: row.customer_name || '',
+              phoneNumber: row.phone_number || '',
+              projectName: row.project_name || '',
+              siteAddress: row.site_address || '',
+              polishingRatePerSqft: Number(row.polishing_rate) || 0,
+              edgeMoldingCost: Number(row.edge_molding_cost) || 0,
+              notes: row.notes || '',
+              tiles: row.tiles || [],
+              totalArea: Number(row.total_area) || 0,
+              totalQuantity: Number(row.total_quantity) || 0,
+              grandTotal: Number(row.grand_total) || 0,
+              status: row.status || 'pending',
+              cuttingStatus: row.cutting_status || 'pending',
+              createdAt: row.created_at,
+              updatedAt: row.updated_at,
               syncStatus: 'synced'
             }));
             set({ jobs: formatted });
@@ -431,11 +405,113 @@ export const useJobStore = create(
         paymentId: null
       },
 
+      // Map of userEmail -> { key: string, isUsed: boolean, usedAt: string }
+      userActivationKeys: {},
+
+      getOrGenerateUserKey: (userEmail) => {
+        if (!userEmail) userEmail = 'default_user@tivera.app';
+        const state = get();
+        const existing = state.userActivationKeys[userEmail];
+        
+        if (existing) {
+          return existing;
+        }
+
+        // Generate unique 7-Day key format: TIVERA-7D-XXXX-YYYY
+        const cleanEmail = userEmail.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        const hash1 = cleanEmail.slice(0, 4).padEnd(4, 'X');
+        const hash2 = Math.floor(1000 + Math.random() * 9000).toString(16).toUpperCase().padStart(4, '9');
+        const newKey = `TIVERA-7D-${hash1}-${hash2}`;
+
+        const keyRecord = {
+          key: newKey,
+          isUsed: false,
+          usedAt: null
+        };
+
+        set((prev) => ({
+          userActivationKeys: {
+            ...prev.userActivationKeys,
+            [userEmail]: keyRecord
+          }
+        }));
+
+        return keyRecord;
+      },
+
+      redeemActivationKey: (inputKey, userEmail) => {
+        if (!inputKey) {
+          return { success: false, error: 'Please enter an activation key.' };
+        }
+
+        const state = get();
+        const cleanInput = inputKey.trim().toUpperCase();
+        const keyRecord = state.userActivationKeys[userEmail] || state.getOrGenerateUserKey(userEmail);
+
+        // Check if key matches assigned user key or master activation pattern
+        const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
+
+        if (!isMatch) {
+          return { success: false, error: 'Invalid activation key. Please check your key format.' };
+        }
+
+        if (keyRecord.isUsed) {
+          return { 
+            success: false, 
+            error: `This 7-Day Activation Key (${keyRecord.key}) has already been used on ${new Date(keyRecord.usedAt).toLocaleDateString()} and cannot be used again.` 
+          };
+        }
+
+        // Redeem Key for 7-Day Pro Access
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const updatedRecord = {
+          ...keyRecord,
+          isUsed: true,
+          usedAt: new Date().toISOString()
+        };
+
+        set((prev) => ({
+          subscription: {
+            isPro: true,
+            planName: 'TIVERA PRO (7-Day Trial)',
+            expiresAt,
+            paymentId: `key_redeem_${cleanInput}`,
+            activatedAt: new Date().toISOString()
+          },
+          userActivationKeys: {
+            ...prev.userActivationKeys,
+            [userEmail]: updatedRecord
+          }
+        }));
+
+        return { 
+          success: true, 
+          message: 'Congratulations! 7-Day TIVERA PRO Trial activated successfully.' 
+        };
+      },
+
+      resetKeyUsage: (userEmail) => {
+        const state = get();
+        const existing = state.userActivationKeys[userEmail];
+        if (existing) {
+          set((prev) => ({
+            userActivationKeys: {
+              ...prev.userActivationKeys,
+              [userEmail]: {
+                ...existing,
+                isUsed: false,
+                usedAt: null
+              }
+            }
+          }));
+        }
+      },
+
       activateProSubscription: (details = {}) => {
         set({
           subscription: {
             isPro: true,
-            planName: 'Tivera Pro',
+            planName: details.planName || 'Tivera Pro',
             expiresAt: details.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             paymentId: details.paymentId || 'pay_razorpay_success',
             activatedAt: new Date().toISOString()
@@ -506,7 +582,8 @@ export const useJobStore = create(
         activeJob: state.activeJob,
         quotaActiveJob: state.quotaActiveJob,
         jobs: state.jobs,
-        subscription: state.subscription
+        subscription: state.subscription,
+        userActivationKeys: state.userActivationKeys
       })
     }
   )

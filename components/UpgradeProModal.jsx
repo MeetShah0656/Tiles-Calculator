@@ -2,15 +2,34 @@
 
 import React, { useState } from 'react';
 import { useJobStore } from '@/store/store.js';
-import { Check, Zap, X, ShieldCheck, Sparkles, CreditCard } from 'lucide-react';
+import { Check, Zap, X, ShieldCheck, Sparkles, CreditCard, Key, AlertTriangle } from 'lucide-react';
 
 export default function UpgradeProModal({ isOpen, onClose }) {
-  const { activateProSubscription } = useJobStore();
+  const { activateProSubscription, redeemActivationKey } = useJobStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [keyInput, setKeyInput] = useState('');
+  const [keySuccess, setKeySuccess] = useState('');
+  const [showKeyForm, setShowKeyForm] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleRedeemTrialKey = (e) => {
+    e.preventDefault();
+    setError('');
+    setKeySuccess('');
+
+    const res = redeemActivationKey(keyInput, 'meetshah0656@gmail.com');
+    if (res.success) {
+      setKeySuccess(res.message);
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } else {
+      setError(res.error);
+    }
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -143,10 +162,51 @@ export default function UpgradeProModal({ isOpen, onClose }) {
         {/* Modal Body */}
         <div className="p-6 space-y-5">
           {error && (
-            <div className="p-3 bg-[#0a0a0a] text-white border border-black text-xs font-bold uppercase tracking-wider">
-              {error}
+            <div className="p-3 bg-[#0a0a0a] text-white border border-black text-xs font-bold uppercase tracking-wider flex items-center space-x-2">
+              <AlertTriangle size={16} className="text-rose-400 flex-shrink-0" />
+              <span>{error}</span>
             </div>
           )}
+
+          {keySuccess && (
+            <div className="p-3 bg-[#0a0a0a] text-white border border-black text-xs font-black uppercase tracking-wider flex items-center space-x-2">
+              <Check size={16} className="text-emerald-400" />
+              <span>{keySuccess}</span>
+            </div>
+          )}
+
+          {/* Redeem Key Section Toggle */}
+          <div className="border border-[#d4d1ca] p-3 bg-[#e8e6e1]">
+            <button
+              type="button"
+              onClick={() => setShowKeyForm(!showKeyForm)}
+              className="flex items-center justify-between w-full text-xs font-black text-[#0a0a0a] uppercase tracking-wider cursor-pointer"
+            >
+              <div className="flex items-center space-x-2">
+                <Key size={14} />
+                <span>HAVE A 7-DAY PRO ACTIVATION KEY?</span>
+              </div>
+              <span className="text-[10px] text-[#6b6863] underline">{showKeyForm ? 'HIDE' : 'REDEEM KEY'}</span>
+            </button>
+
+            {showKeyForm && (
+              <form onSubmit={handleRedeemTrialKey} className="mt-3 space-y-2 pt-2 border-t border-[#d4d1ca]">
+                <input
+                  type="text"
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                  placeholder="Enter TIVERA-7D-XXXX-YYYY"
+                  className="w-full px-3 py-2 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] bg-white outline-none uppercase tracking-widest"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#0a0a0a] text-white font-black text-xs uppercase tracking-widest hover:bg-neutral-800 cursor-pointer"
+                >
+                  ACTIVATE 7-DAY FREE PRO TRIAL
+                </button>
+              </form>
+            )}
+          </div>
 
           {/* Plan Selector Toggle */}
           <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#e8e6e1] border border-[#d4d1ca]">
