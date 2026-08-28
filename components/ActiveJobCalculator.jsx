@@ -137,24 +137,24 @@ export default function ActiveJobCalculator({
     setShareError('');
 
     try {
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default || html2pdfModule;
+      const html2canvasModule = await import('html2canvas');
+      const html2canvas = html2canvasModule.default || html2canvasModule;
+      const { jsPDF } = await import('jspdf');
 
       const element = document.getElementById('printable-invoice');
       if (!element) throw new Error("Printable invoice DOM element not found.");
 
-      const options = {
-        margin: [8, 8, 8, 8],
-        filename: 'TIVERA_Estimate.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
-      const pdf = await html2pdf().from(element).set(options).outputPdf();
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
       
       const blob = pdf.output('blob');
-      const safeCustomerName = (targetJob.customerName || 'Customer').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const safeCustomerName = (targetJob?.customerName || 'Customer').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       const filename = `Estimate_${safeCustomerName}_TIVERA.pdf`;
       
       setSharePdfBlob(blob);

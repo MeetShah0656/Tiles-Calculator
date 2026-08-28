@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import Navbar from '@/components/Navbar.jsx';
 import AuthScreen from '@/components/AuthScreen.jsx';
 import Dashboard from '@/components/Dashboard.jsx';
@@ -9,7 +9,49 @@ import QuotaStoneTab from '@/components/QuotaStoneTab.jsx';
 import SettingsTab from '@/components/SettingsTab.jsx';
 import { useJobStore } from '@/store/store.js';
 
-export default function Home() {
+class AppErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("AppErrorBoundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col justify-center items-center p-6 bg-[#e8e6e1] text-[#0a0a0a]">
+          <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-8 max-w-md w-full shadow-2xl text-center space-y-4">
+            <div className="w-12 h-12 bg-[#0a0a0a] text-white flex items-center justify-center font-black text-xl mx-auto">
+              T
+            </div>
+            <h2 className="text-xl font-black uppercase tracking-[0.2em]">TIVERA RECOVERY</h2>
+            <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider">
+              A temporary display error occurred. Click below to refresh your session.
+            </p>
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.localStorage.removeItem('tivera-stone-calculator-storage');
+                  window.location.reload();
+                }
+              }}
+              className="w-full py-3 bg-[#0a0a0a] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-neutral-800 cursor-pointer border border-black"
+            >
+              RESET APP SESSION & RELOAD
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function MainApp() {
   const [user, setUser] = useState(null);
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [isMounted, setIsMounted] = useState(false);
@@ -296,5 +338,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <AppErrorBoundary>
+      <MainApp />
+    </AppErrorBoundary>
   );
 }
