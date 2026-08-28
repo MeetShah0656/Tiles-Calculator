@@ -55,19 +55,19 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     }
   }, [user?.id]);
 
-  const handleRedeemKey = (e) => {
+  const handleRedeemKey = async (e) => {
     e.preventDefault();
     setKeyRedeemMsg(null);
     setKeyRedeemError(null);
 
     if (!redeemActivationKey) return;
 
-    const res = redeemActivationKey(inputKey, userEmail);
+    const res = await redeemActivationKey(inputKey, userEmail, user?.id);
     if (res?.success) {
       setKeyRedeemMsg(res.message);
       setInputKey('');
       if (getOrGenerateUserKey) {
-        setUserKeyRecord(getOrGenerateUserKey(userEmail));
+        setUserKeyRecord({ ...getOrGenerateUserKey(userEmail), isUsed: true });
       }
     } else {
       setKeyRedeemError(res?.error || 'Failed to redeem key.');
@@ -157,7 +157,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
           <span className="text-[10px] uppercase font-black text-[#6b6863] tracking-[0.25em]">TIVERA PREFERENCES</span>
           <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">SETTINGS & BILLING</h1>
           <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider mt-1">
-            Manage your business profile info, 7-Day activation key, Razorpay subscription, and cloud database synchronization.
+            Manage your business profile info, activation key, Razorpay subscription, and cloud database synchronization.
           </p>
         </div>
 
@@ -227,82 +227,77 @@ export default function SettingsTab({ user, onProfileUpdate }) {
             </div>
           </div>
 
-          {/* UNIQUE 7-DAY ACTIVATION KEY CARD */}
-          <div className="p-6 bg-[#e8e6e1] border border-[#d4d1ca] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Key size={18} className="text-[#0a0a0a]" />
-                <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em]">
-                  YOUR UNIQUE 7-DAY PRO ACTIVATION KEY
-                </h3>
-              </div>
-              {userKeyRecord?.isUsed ? (
-                <span className="px-2.5 py-0.5 bg-neutral-800 text-neutral-300 text-[9px] font-black uppercase tracking-widest flex items-center space-x-1">
-                  <Lock size={10} />
-                  <span>REDEEMED & USED</span>
-                </span>
-              ) : (
+          {/* UNIQUE 7-DAY ACTIVATION KEY CARD - ONLY VISIBLE IF UNUSED */}
+          {!userKeyRecord?.isUsed && (
+            <div className="p-6 bg-[#e8e6e1] border border-[#d4d1ca] space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Key size={18} className="text-[#0a0a0a]" />
+                  <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em]">
+                    YOUR UNIQUE 7-DAY PRO ACTIVATION KEY
+                  </h3>
+                </div>
                 <span className="px-2.5 py-0.5 bg-emerald-700 text-white text-[9px] font-black uppercase tracking-widest">
                   UNUSED (READY)
                 </span>
-              )}
-            </div>
-
-            <div className="bg-white border border-[#d4d1ca] p-4 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-widest block">Assigned Single-Use Code</span>
-                <span className="text-lg font-black text-[#0a0a0a] tracking-[0.25em] select-all">
-                  {userKeyRecord?.key || 'TIVERA-7D-MEET-0656'}
-                </span>
               </div>
-              <button
-                type="button"
-                onClick={handleCopyKey}
-                className="px-3 py-1.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-wider flex items-center space-x-1 cursor-pointer"
-              >
-                {copiedKey ? <CheckCircle2 size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                <span>{copiedKey ? 'COPIED' : 'COPY'}</span>
-              </button>
-            </div>
 
-            {/* Redeem Key Input Form */}
-            <div className="pt-2">
-              <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">
-                Redeem 7-Day Pro Access Key
-              </label>
-              
-              {keyRedeemMsg && (
-                <div className="mb-3 p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 border border-black">
-                  <Check size={16} className="text-emerald-400" />
-                  <span>{keyRedeemMsg}</span>
+              <div className="bg-white border border-[#d4d1ca] p-4 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-widest block">Assigned Single-Use Code</span>
+                  <span className="text-lg font-black text-[#0a0a0a] tracking-[0.25em] select-all">
+                    {userKeyRecord?.key || 'TIVERA-7D-MEET-0656'}
+                  </span>
                 </div>
-              )}
-
-              {keyRedeemError && (
-                <div className="mb-3 p-3 bg-rose-100 border border-rose-300 text-rose-900 text-xs font-bold uppercase tracking-wider flex items-start space-x-2">
-                  <AlertTriangle size={16} className="text-rose-700 mt-0.5 flex-shrink-0" />
-                  <span>{keyRedeemError}</span>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={inputKey}
-                  onChange={(e) => setInputKey(e.target.value)}
-                  placeholder="Enter TIVERA-7D-XXXX-YYYY"
-                  className="flex-1 px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none uppercase tracking-widest"
-                />
                 <button
                   type="button"
-                  onClick={handleRedeemKey}
-                  className="px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap"
+                  onClick={handleCopyKey}
+                  className="px-3 py-1.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-wider flex items-center space-x-1 cursor-pointer"
                 >
-                  REDEEM 7-DAY TRIAL
+                  {copiedKey ? <CheckCircle2 size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  <span>{copiedKey ? 'COPIED' : 'COPY'}</span>
                 </button>
               </div>
+
+              {/* Redeem Key Input Form */}
+              <div className="pt-2">
+                <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">
+                  Redeem 7-Day Pro Access Key
+                </label>
+                
+                {keyRedeemMsg && (
+                  <div className="mb-3 p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 border border-black">
+                    <Check size={16} className="text-emerald-400" />
+                    <span>{keyRedeemMsg}</span>
+                  </div>
+                )}
+
+                {keyRedeemError && (
+                  <div className="mb-3 p-3 bg-rose-100 border border-rose-300 text-rose-900 text-xs font-bold uppercase tracking-wider flex items-start space-x-2">
+                    <AlertTriangle size={16} className="text-rose-700 mt-0.5 flex-shrink-0" />
+                    <span>{keyRedeemError}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={inputKey}
+                    onChange={(e) => setInputKey(e.target.value)}
+                    placeholder="Enter TIVERA-7D-XXXX-YYYY"
+                    className="flex-1 px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none uppercase tracking-widest"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRedeemKey}
+                    className="px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap"
+                  >
+                    REDEEM 7-DAY TRIAL
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3.5">

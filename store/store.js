@@ -436,7 +436,7 @@ export const useJobStore = create(
         };
       },
 
-      redeemActivationKey: (inputKey, userEmail) => {
+      redeemActivationKey: async (inputKey, userEmail, userId = null) => {
         if (!inputKey) {
           return { success: false, error: 'Please enter an activation key.' };
         }
@@ -455,15 +455,16 @@ export const useJobStore = create(
         if (keyRecord.isUsed) {
           return { 
             success: false, 
-            error: `This 7-Day Activation Key (${keyRecord.key}) has already been used on ${keyRecord.usedAt ? new Date(keyRecord.usedAt).toLocaleDateString() : 'earlier'} and cannot be used again.` 
+            error: `This 7-Day Activation Key has already been used and cannot be used again.` 
           };
         }
 
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const usedAt = new Date().toISOString();
         const updatedRecord = {
           ...keyRecord,
           isUsed: true,
-          usedAt: new Date().toISOString()
+          usedAt
         };
 
         set((prev) => ({
@@ -472,13 +473,35 @@ export const useJobStore = create(
             planName: 'TIVERA PRO (7-Day Trial)',
             expiresAt,
             paymentId: `key_redeem_${cleanInput}`,
-            activatedAt: new Date().toISOString()
+            activatedAt: usedAt
           },
           userActivationKeys: {
             ...(prev.userActivationKeys || {}),
             [userEmail]: updatedRecord
           }
         }));
+
+        // Persist key redemption status to Supabase Database 'profiles' table
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (supabaseUrl && supabaseKey) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
+            if (userId) {
+              await supabase.from('profiles').upsert({
+                id: userId,
+                activation_key: keyRecord.key,
+                key_is_used: true,
+                key_used_at: usedAt,
+                pro_expires_at: expiresAt
+              });
+            }
+          } catch (err) {
+            console.error("Failed to sync key usage to Supabase database:", err);
+          }
+        }
 
         return { 
           success: true, 
