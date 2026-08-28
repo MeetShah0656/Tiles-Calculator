@@ -13,7 +13,7 @@ export default function Dashboard({ setCurrentTab, user }) {
     {
       id: 'granite-marble',
       name: 'Granite & Marble',
-      description: 'Slab calculators with 0.25 ft rounding & AI paper sheet scanner',
+      description: 'Slab calculators with 0.25 ft rounding & paper sheet scanner',
       icon: Layers,
       color: 'bg-zinc-950 text-white border-zinc-800',
       action: () => setCurrentTab('granite-marble')

@@ -411,7 +411,7 @@ export default function ActiveJobCalculator({
                       className="flex items-center space-x-1 px-2.5 py-1 bg-zinc-950 text-white border border-zinc-800 hover:bg-black rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider"
                     >
                       <Camera size={12} className="text-white" />
-                      <span>Scan Paper Sheet with AI</span>
+                      <span>Scan Paper Sheet</span>
                     </button>
                   </div>
                 </div>

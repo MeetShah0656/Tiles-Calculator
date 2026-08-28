@@ -115,20 +115,18 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           </nav>
 
           {/* Connection Status & Logout */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <div 
               title={isOnline ? 'Online - Synced' : 'Offline - Local Mode'} 
-              className="flex items-center space-x-1 text-xs font-semibold"
+              className="flex items-center text-xs font-semibold"
             >
               {isOnline ? (
-                <span className="flex items-center space-x-1 text-zinc-900">
-                  <Wifi size={14} />
-                  <span className="hidden lg:inline text-3xs font-extrabold uppercase tracking-wider">Online</span>
+                <span className="flex items-center text-zinc-900">
+                  <Wifi size={16} />
                 </span>
               ) : (
-                <span className="flex items-center space-x-1 text-zinc-500">
-                  <WifiOff size={14} />
-                  <span className="hidden lg:inline text-3xs font-extrabold uppercase tracking-wider">Offline</span>
+                <span className="flex items-center text-zinc-500">
+                  <WifiOff size={16} />
                 </span>
               )}
             </div>

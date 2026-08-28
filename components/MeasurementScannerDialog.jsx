@@ -162,7 +162,7 @@ export default function MeasurementScannerDialog({
         {/* Header */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-zinc-200 bg-zinc-50/70">
           <div>
-            <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">AI Measurement Sheet Scanner</span>
+            <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">Measurement Sheet Scanner</span>
             <h2 className="text-base font-black text-zinc-950">Scan Paper Notes</h2>
           </div>
           <button 
@@ -256,7 +256,7 @@ export default function MeasurementScannerDialog({
           {step === 'analyzing' && (
             <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
               <div className="w-10 h-10 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs font-black text-zinc-950 uppercase tracking-wider">Analyzing Note with Gemini AI...</p>
+              <p className="text-xs font-black text-zinc-950 uppercase tracking-wider">Analyzing Note...</p>
               <p className="text-3xs text-zinc-500">Reading handwritten dimensions, room labels, and quantities.</p>
             </div>
           )}
