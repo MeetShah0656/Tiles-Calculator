@@ -311,24 +311,6 @@ export default function ActiveJobCalculator({
 
               {!isCollapsed && (
                 <div className="p-4 space-y-4">
-                  {/* Action Bar for scanning AI */}
-                  <div className="flex justify-between items-center pb-2 border-b border-zinc-150">
-                    <button
-                      onClick={() => addRowToTile(tile.id)}
-                      className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-950 hover:underline cursor-pointer uppercase tracking-wider"
-                    >
-                      <Plus size={14} />
-                      <span>Add Measurement Row</span>
-                    </button>
-                    <button
-                      onClick={() => setScanningTileId(tile.id)}
-                      className="flex items-center space-x-1 px-2.5 py-1 bg-zinc-950 text-white border border-zinc-800 hover:bg-black rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider"
-                    >
-                      <Camera size={12} className="text-white" />
-                      <span>Scan Paper Sheet with AI</span>
-                    </button>
-                  </div>
-
                   {/* Rows Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
@@ -413,6 +395,24 @@ export default function ActiveJobCalculator({
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Action Bar for scanning AI & adding rows at bottom of table */}
+                  <div className="flex justify-between items-center pt-3 border-t border-zinc-150">
+                    <button
+                      onClick={() => addRowToTile(tile.id)}
+                      className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-950 hover:underline cursor-pointer uppercase tracking-wider"
+                    >
+                      <Plus size={14} />
+                      <span>Add Measurement Row</span>
+                    </button>
+                    <button
+                      onClick={() => setScanningTileId(tile.id)}
+                      className="flex items-center space-x-1 px-2.5 py-1 bg-zinc-950 text-white border border-zinc-800 hover:bg-black rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider"
+                    >
+                      <Camera size={12} className="text-white" />
+                      <span>Scan Paper Sheet with AI</span>
+                    </button>
                   </div>
                 </div>
               )}
