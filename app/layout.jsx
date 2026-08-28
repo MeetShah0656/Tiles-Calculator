@@ -9,9 +9,20 @@ export const viewport = {
 };
 
 export const metadata = {
+  metadataBase: new URL('https://tivera.vercel.app'),
   title: 'TIVERA | Natural Stone & Tiles Estimator',
   description: 'Square footage calculator and quotation builder for granite, marble, tiles, and Kota stone projects. Powered by TIVERA.',
   manifest: '/manifest.json',
+  alternates: {
+    canonical: 'https://tivera.vercel.app',
+  },
+  openGraph: {
+    title: 'TIVERA | Natural Stone & Tiles Estimator',
+    description: 'Square footage calculator and quotation builder for granite, marble, tiles, and Kota stone projects.',
+    url: 'https://tivera.vercel.app',
+    siteName: 'TIVERA',
+    type: 'website',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -22,7 +33,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="light h-full">
-      <body className="h-full bg-white text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
+      <body className="h-full bg-white text-zinc-950 font-sans selection:bg-zinc-950 selection:text-white">
         <PWARegister />
         {children}
       </body>
