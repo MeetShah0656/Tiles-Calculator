@@ -111,7 +111,6 @@ export default function MeasurementScannerDialog({
 
       setRawTotalScanned(rooms.length);
 
-      // Apply 5-item cap for Free Tier users
       if (!isPro && rooms.length > 5) {
         setScannedRooms(rooms.slice(0, 5));
       } else {
@@ -163,34 +162,34 @@ export default function MeasurementScannerDialog({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-        <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
+        <div className="bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
-          <div className="flex justify-between items-center px-5 py-4 border-b border-zinc-200 bg-zinc-50/70">
+          <div className="flex justify-between items-center px-6 py-5 border-b border-[#d4d1ca] bg-[#e8e6e1]">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">Measurement Sheet Scanner</span>
+                <span className="text-[10px] uppercase font-black text-[#6b6863] tracking-[0.25em]">Measurement Sheet Scanner</span>
                 {!isPro && (
-                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-black rounded-2xs uppercase">
+                  <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black uppercase tracking-wider">
                     Free Plan (5 items cap)
                   </span>
                 )}
               </div>
-              <h2 className="text-base font-black text-zinc-950">Scan Paper Notes</h2>
+              <h2 className="text-lg font-black text-[#0a0a0a] tracking-wider uppercase mt-0.5">Scan Paper Notes</h2>
             </div>
             <button 
               onClick={onClose}
-              className="p-1 text-zinc-400 hover:text-zinc-800 rounded-sm cursor-pointer"
+              className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Modal Body */}
-          <div className="p-5 flex-grow overflow-y-auto space-y-4">
+          <div className="p-6 flex-grow overflow-y-auto space-y-4">
             {error && (
-              <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-semibold flex items-start space-x-2 border border-zinc-800">
-                <AlertTriangle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
+              <div className="p-3 bg-[#0a0a0a] text-white text-xs font-bold uppercase tracking-wider border border-black flex items-start space-x-2">
+                <AlertTriangle size={16} className="text-white mt-0.5 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -203,17 +202,17 @@ export default function MeasurementScannerDialog({
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-sm p-8 text-center cursor-pointer transition-all ${
+                    className={`border-2 border-dashed p-10 text-center cursor-pointer transition-all ${
                       isDragOver 
-                        ? 'border-zinc-950 bg-zinc-100' 
-                        : 'border-zinc-300 hover:border-zinc-950 bg-zinc-50/50'
+                        ? 'border-[#0a0a0a] bg-[#e8e6e1]' 
+                        : 'border-[#d4d1ca] hover:border-[#0a0a0a] bg-[#f4f2ee]'
                     }`}
                   >
-                    <Upload size={36} className="mx-auto stroke-1 text-zinc-600 mb-2" />
-                    <p className="text-xs font-bold text-zinc-950">
+                    <Upload size={36} className="mx-auto stroke-1 text-[#0a0a0a] mb-2" />
+                    <p className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider">
                       Click to select or drag & drop handwritten measurement note
                     </p>
-                    <p className="text-3xs text-zinc-500 mt-1">Supports PNG, JPG, WEBP formats up to 10MB</p>
+                    <p className="text-[10px] text-[#6b6863] uppercase font-bold mt-1 tracking-wider">Supports PNG, JPG, WEBP formats up to 10MB</p>
                     
                     <input 
                       ref={fileInputRef} 
@@ -232,7 +231,7 @@ export default function MeasurementScannerDialog({
                     />
                   </div>
                 ) : (
-                  <div className="relative rounded-sm border border-zinc-200 overflow-hidden max-h-[260px] bg-zinc-950 flex justify-center items-center">
+                  <div className="relative border border-[#d4d1ca] overflow-hidden max-h-[260px] bg-[#0a0a0a] flex justify-center items-center">
                     <img src={imagePreview} alt="Scanned note preview" className="max-h-[260px] object-contain" />
                     <button 
                       onClick={() => setImagePreview(null)} 
@@ -247,9 +246,9 @@ export default function MeasurementScannerDialog({
                   <button
                     type="button"
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex items-center space-x-1.5 px-3 py-2 border border-zinc-300 hover:bg-zinc-100 rounded-sm text-xs font-bold text-zinc-950 cursor-pointer"
+                    className="flex items-center space-x-1.5 px-4 py-2.5 border border-[#0a0a0a] bg-white hover:bg-[#e8e6e1] text-xs font-black text-[#0a0a0a] cursor-pointer uppercase tracking-wider"
                   >
-                    <Camera size={14} className="text-zinc-950" />
+                    <Camera size={14} className="text-[#0a0a0a]" />
                     <span>Take Photo with Camera</span>
                   </button>
 
@@ -257,7 +256,7 @@ export default function MeasurementScannerDialog({
                     <button
                       type="button"
                       onClick={handleAnalyze}
-                      className="flex items-center space-x-1.5 px-5 py-2 bg-zinc-950 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md cursor-pointer border border-zinc-800 uppercase tracking-wider"
+                      className="flex items-center space-x-1.5 px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs shadow-md cursor-pointer border border-black uppercase tracking-[0.2em]"
                     >
                       <span>Extract Measurements</span>
                     </button>
@@ -267,24 +266,24 @@ export default function MeasurementScannerDialog({
             )}
 
             {step === 'analyzing' && (
-              <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
-                <div className="w-10 h-10 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs font-black text-zinc-950 uppercase tracking-wider">Analyzing Note...</p>
-                <p className="text-3xs text-zinc-500">Reading handwritten dimensions, room labels, and quantities.</p>
+              <div className="py-14 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="w-10 h-10 border-4 border-[#0a0a0a] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.25em]">Analyzing Note...</p>
+                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-widest">Reading handwritten dimensions, room labels, and quantities.</p>
               </div>
             )}
 
             {step === 'verify' && (
               <div className="space-y-4">
                 {!isPro && rawTotalScanned > 5 && (
-                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-sm flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-xs font-bold text-amber-900">
-                      <Lock size={16} className="text-amber-700" />
-                      <span>Free Plan: Extracted 5 of {rawTotalScanned} items.</span>
+                  <div className="p-4 bg-[#0a0a0a] text-white flex items-center justify-between border border-black">
+                    <div className="flex items-center space-x-2 text-xs font-bold">
+                      <Lock size={16} className="text-white" />
+                      <span className="uppercase tracking-wider">Free Plan: Extracted 5 of {rawTotalScanned} items.</span>
                     </div>
                     <button
                       onClick={() => setIsUpgradeModalOpen(true)}
-                      className="px-3 py-1 bg-zinc-950 text-white rounded-2xs text-3xs font-extrabold uppercase hover:bg-black cursor-pointer"
+                      className="px-4 py-1.5 bg-white text-[#0a0a0a] text-[10px] font-black uppercase hover:bg-neutral-200 cursor-pointer tracking-widest"
                     >
                       Upgrade to Pro
                     </button>
@@ -293,14 +292,14 @@ export default function MeasurementScannerDialog({
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-black text-zinc-950 uppercase">Extracted Measurements</span>
-                    <span className="px-2 py-0.5 bg-zinc-100 text-zinc-800 text-3xs font-black rounded-full">
+                    <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider">Extracted Measurements</span>
+                    <span className="px-2.5 py-0.5 bg-[#0a0a0a] text-white text-[10px] font-black">
                       {scannedRooms.length} items
                     </span>
                   </div>
                   <button
                     onClick={() => setStep('select')}
-                    className="flex items-center space-x-1 text-xs font-bold text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                    className="flex items-center space-x-1 text-xs font-bold text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer uppercase tracking-wider"
                   >
                     <RotateCcw size={14} />
                     <span>Rescan Sheet</span>
@@ -308,26 +307,26 @@ export default function MeasurementScannerDialog({
                 </div>
 
                 {/* Table of Scanned Items */}
-                <div className="overflow-x-auto border border-zinc-200 rounded-sm">
-                  <table className="w-full text-left text-xs divide-y divide-zinc-200">
-                    <thead className="bg-zinc-50 font-black text-zinc-500 uppercase text-[10px]">
+                <div className="overflow-x-auto border border-[#d4d1ca] bg-white">
+                  <table className="w-full text-left text-xs divide-y divide-[#d4d1ca]">
+                    <thead className="bg-[#e8e6e1] font-black text-[#6b6863] uppercase text-[10px] tracking-wider">
                       <tr>
-                        <th className="p-2.5">Location Name</th>
-                        <th className="p-2.5 text-center">Length (in)</th>
-                        <th className="p-2.5 text-center">Width (in)</th>
-                        <th className="p-2.5 text-center">Qty</th>
-                        <th className="p-2.5 text-center">Action</th>
+                        <th className="p-3">Location Name</th>
+                        <th className="p-3 text-center">Length (in)</th>
+                        <th className="p-3 text-center">Width (in)</th>
+                        <th className="p-3 text-center">Qty</th>
+                        <th className="p-3 text-center">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-150 font-semibold text-zinc-800">
+                    <tbody className="divide-y divide-[#d4d1ca] font-semibold text-[#0a0a0a]">
                       {scannedRooms.map((room, idx) => (
-                        <tr key={idx} className="hover:bg-zinc-50">
+                        <tr key={idx} className="hover:bg-[#f4f2ee]">
                           <td className="p-2">
                             <input
                               type="text"
                               value={room.name}
                               onChange={(e) => handleRoomChange(idx, 'name', e.target.value)}
-                              className="w-full px-2 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                              className="w-full px-2 py-1.5 border border-[#d4d1ca] font-bold text-xs bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </td>
                           <td className="p-2 text-center">
@@ -335,7 +334,7 @@ export default function MeasurementScannerDialog({
                               type="text"
                               value={room.length}
                               onChange={(e) => handleRoomChange(idx, 'length', e.target.value)}
-                              className="w-16 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                              className="w-16 text-center px-1 py-1.5 border border-[#d4d1ca] font-bold text-xs bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </td>
                           <td className="p-2 text-center">
@@ -343,7 +342,7 @@ export default function MeasurementScannerDialog({
                               type="text"
                               value={room.width}
                               onChange={(e) => handleRoomChange(idx, 'width', e.target.value)}
-                              className="w-16 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                              className="w-16 text-center px-1 py-1.5 border border-[#d4d1ca] font-bold text-xs bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </td>
                           <td className="p-2 text-center">
@@ -351,13 +350,13 @@ export default function MeasurementScannerDialog({
                               type="number"
                               value={room.quantity}
                               onChange={(e) => handleRoomChange(idx, 'quantity', e.target.value)}
-                              className="w-14 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                              className="w-14 text-center px-1 py-1.5 border border-[#d4d1ca] font-bold text-xs bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </td>
                           <td className="p-2 text-center">
                             <button
                               onClick={() => handleDeleteRow(idx)}
-                              className="p-1 text-zinc-400 hover:text-rose-600 rounded-2xs cursor-pointer"
+                              className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -368,25 +367,25 @@ export default function MeasurementScannerDialog({
                   </table>
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-zinc-200">
+                <div className="flex justify-between items-center pt-3 border-t border-[#d4d1ca]">
                   <button
                     onClick={handleAddRow}
-                    className="flex items-center space-x-1 text-xs font-bold text-zinc-950 hover:underline cursor-pointer"
+                    className="flex items-center space-x-1 text-xs font-black text-[#0a0a0a] hover:underline cursor-pointer uppercase tracking-wider"
                   >
                     <Plus size={14} />
                     <span>Add Manual Line</span>
                   </button>
 
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3">
                     <button
                       onClick={onClose}
-                      className="px-4 py-2 border border-zinc-300 rounded-sm text-xs font-bold text-zinc-700 hover:bg-zinc-100 cursor-pointer"
+                      className="px-5 py-2.5 border border-[#d4d1ca] bg-white text-xs font-black text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer uppercase tracking-wider"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmImport}
-                      className="flex items-center space-x-1 px-5 py-2 bg-zinc-950 text-white rounded-sm text-xs font-extrabold uppercase hover:bg-black cursor-pointer shadow-md"
+                      className="flex items-center space-x-1.5 px-6 py-2.5 bg-[#0a0a0a] text-white text-xs font-black uppercase hover:bg-neutral-800 cursor-pointer shadow-md tracking-[0.2em] border border-black"
                     >
                       <Check size={14} />
                       <span>Import Scanned Data</span>

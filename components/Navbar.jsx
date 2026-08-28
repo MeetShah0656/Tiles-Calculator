@@ -37,7 +37,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
   return (
     <>
       {/* TOP ANNOUNCEMENT BAR (GAZU REFERENCE STYLE) */}
-      <div className="w-full bg-[#0a0a0a] text-white py-1.5 px-4 text-center text-[10px] font-black uppercase tracking-[0.25em] border-b border-neutral-800 flex justify-between items-center">
+      <div className="w-full bg-[#0a0a0a] text-white py-2 px-6 text-center text-[10px] font-black uppercase tracking-[0.25em] border-b border-neutral-800 flex justify-between items-center">
         <span className="hidden sm:inline text-neutral-400">PRECISION STONE ESTIMATOR</span>
         <span className="mx-auto sm:mx-0">TIVERA PRO SUITE • 0.25 FT & 0.50 FT TRADE ROUNDING</span>
         <span className="hidden sm:inline text-neutral-400">INSTANT INVOICING</span>
@@ -71,7 +71,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           </div>
 
           {/* Navigation Items (GAZU Editorial Style) */}
-          <nav className="flex space-x-8">
+          <nav className="flex items-center space-x-8 h-full">
             {navItems.map((item) => {
               const isActive = currentTab === item.id;
               return (
@@ -97,12 +97,12 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                 onClick={() => setIsUpgradeModalOpen(true)}
                 className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white hover:bg-neutral-800 text-xs font-black tracking-widest uppercase transition-all cursor-pointer border border-black shadow-xs"
               >
-                <Sparkles size={12} className="text-amber-300" />
+                <Sparkles size={12} className="text-neutral-300" />
                 <span>UPGRADE TO PRO</span>
               </button>
             ) : (
-              <span className="px-3 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase flex items-center space-x-1">
-                <Sparkles size={12} className="text-amber-300" />
+              <span className="px-3 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase flex items-center space-x-1 border border-black">
+                <Sparkles size={12} className="text-neutral-300" />
                 <span>PRO ACTIVE</span>
               </span>
             )}
@@ -154,7 +154,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           {!isPro && (
             <button
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="px-2 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase"
+              className="px-2.5 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase"
             >
               PRO
             </button>
@@ -237,7 +237,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                 }}
                 className="flex items-center justify-center space-x-2 w-full py-3 bg-[#0a0a0a] text-white text-xs font-black tracking-widest uppercase cursor-pointer"
               >
-                <Sparkles size={14} className="text-amber-300" />
+                <Sparkles size={14} className="text-neutral-300" />
                 <span>UPGRADE TO PRO</span>
               </button>
             )}

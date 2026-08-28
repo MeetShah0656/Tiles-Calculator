@@ -33,8 +33,8 @@ export default function Dashboard({ setCurrentTab, user }) {
               NATURAL STONE & TILES ESTIMATOR
             </span>
             {isPro ? (
-              <span className="px-2.5 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-widest uppercase flex items-center space-x-1">
-                <Sparkles size={10} className="text-amber-300" />
+              <span className="px-2.5 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-widest uppercase flex items-center space-x-1 border border-black">
+                <Sparkles size={10} className="text-white" />
                 <span>PRO SUITE</span>
               </span>
             ) : (
@@ -52,7 +52,7 @@ export default function Dashboard({ setCurrentTab, user }) {
             Professional Marble, Granite & Kota Stone quotation workspace. Configured with 0.25 ft and 0.50 ft trade rounding rules.
           </p>
 
-          <div className="pt-4 flex flex-wrap gap-4">
+          <div className="pt-4 flex flex-wrap gap-4 items-center">
             <button
               onClick={() => setCurrentTab('granite-marble')}
               className="px-8 py-4 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs tracking-[0.2em] uppercase transition-all cursor-pointer border border-black flex items-center space-x-2"
@@ -80,7 +80,7 @@ export default function Dashboard({ setCurrentTab, user }) {
       {!isPro && (
         <div className="bg-[#0a0a0a] text-white p-8 md:p-12 border border-black shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="space-y-3 max-w-2xl">
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase text-amber-300 block">
+            <span className="text-[10px] font-black tracking-[0.3em] uppercase text-neutral-300 block">
               NEW COLLECTION 2024 • TIVERA PRO PLAN
             </span>
             <h2 className="text-2xl md:text-4xl font-black tracking-[0.15em] uppercase text-white leading-tight">
@@ -93,7 +93,7 @@ export default function Dashboard({ setCurrentTab, user }) {
 
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="px-8 py-4 bg-white hover:bg-neutral-200 text-[#0a0a0a] font-black text-xs tracking-[0.25em] uppercase transition-all cursor-pointer whitespace-nowrap shadow-lg flex items-center space-x-2"
+            className="px-8 py-4 bg-white hover:bg-neutral-200 text-[#0a0a0a] font-black text-xs tracking-[0.25em] uppercase transition-all cursor-pointer whitespace-nowrap shadow-lg flex items-center space-x-2 border border-white"
           >
             <CreditCard size={16} />
             <span>SUBSCRIBE FOR ₹499/MO</span>
@@ -110,7 +110,7 @@ export default function Dashboard({ setCurrentTab, user }) {
           <span className="text-[10px] font-bold text-[#6b6863] uppercase tracking-widest">SELECT MODULE</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           {/* Card 1: Granite & Marble */}
           <div 
             onClick={() => setCurrentTab('granite-marble')}

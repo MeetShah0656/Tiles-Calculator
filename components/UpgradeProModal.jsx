@@ -127,8 +127,8 @@ export default function UpgradeProModal({ isOpen, onClose }) {
             <X size={20} />
           </button>
           
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/10 text-amber-300 text-[10px] font-black uppercase tracking-[0.25em] mb-3 border border-amber-300/30">
-            <Sparkles size={12} />
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/10 text-white text-[10px] font-black uppercase tracking-[0.25em] mb-3 border border-neutral-700">
+            <Sparkles size={12} className="text-white" />
             <span>TIVERA PRO PLAN</span>
           </div>
 

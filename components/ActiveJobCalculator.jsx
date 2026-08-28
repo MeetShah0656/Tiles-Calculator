@@ -206,7 +206,7 @@ export default function ActiveJobCalculator({
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header Title & Actions (GAZU Style) */}
+      {/* Header Title & Actions (GAZU Style Alignment) */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f4f2ee] border border-[#d4d1ca] p-6">
         <div>
           <div className="flex items-center space-x-2">
@@ -216,15 +216,15 @@ export default function ActiveJobCalculator({
             {!isPro && (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
-                className="px-2 py-0.5 bg-amber-100 text-amber-950 hover:bg-amber-200 border border-amber-300 text-3xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center space-x-1"
+                className="px-2.5 py-0.5 bg-[#e8e6e1] text-[#0a0a0a] hover:bg-[#d4d1ca] border border-[#d4d1ca] text-3xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center space-x-1"
               >
-                <Sparkles size={10} className="text-amber-600" />
+                <Sparkles size={10} className="text-[#0a0a0a]" />
                 <span>UPGRADE TO PRO</span>
               </button>
             )}
             {isPro && (
-              <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-3xs font-black uppercase tracking-wider flex items-center space-x-1">
-                <Sparkles size={10} className="text-amber-300" />
+              <span className="px-2.5 py-0.5 bg-[#0a0a0a] text-white text-3xs font-black uppercase tracking-wider flex items-center space-x-1 border border-black">
+                <Sparkles size={10} className="text-white" />
                 <span>PRO ACTIVE</span>
               </span>
             )}
@@ -246,7 +246,7 @@ export default function ActiveJobCalculator({
                 : 'bg-[#e8e6e1] border-[#d4d1ca] text-[#6b6863] hover:border-black'
             }`}
           >
-            {isPro ? <Printer size={16} /> : <Lock size={14} className="text-amber-600" />}
+            {isPro ? <Printer size={16} /> : <Lock size={14} className="text-[#6b6863]" />}
             <span>PRINT INVOICE</span>
           </button>
 
@@ -258,7 +258,7 @@ export default function ActiveJobCalculator({
                 : 'bg-neutral-800 text-neutral-300 hover:bg-[#0a0a0a]'
             }`}
           >
-            {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-amber-300" />}
+            {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-neutral-400" />}
             <span>WHATSAPP INVOICE</span>
           </button>
         </div>
@@ -267,12 +267,12 @@ export default function ActiveJobCalculator({
       {!isPro && (
         <div className="p-5 bg-[#0a0a0a] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-black">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-amber-400 text-[#0a0a0a] font-black">
+            <div className="p-2 bg-[#e8e6e1] text-[#0a0a0a] font-black border border-white">
               <Lock size={18} />
             </div>
             <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">FREE TIER FEATURE RESTRICTIONS</h4>
-              <p className="text-3xs font-semibold tracking-wider text-neutral-300 uppercase">
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white">FREE TIER FEATURE RESTRICTIONS</h4>
+              <p className="text-3xs font-semibold tracking-wider text-neutral-300 uppercase mt-0.5">
                 Printing, PDF Export, WhatsApp Sharing, and Paper Note Scanning require a <strong className="text-white">TIVERA PRO</strong> subscription.
               </p>
             </div>
@@ -293,14 +293,14 @@ export default function ActiveJobCalculator({
         </div>
       )}
 
-      {/* Customer Info Form */}
+      {/* Customer Info Form (Equal Grid Alignments) */}
       <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-6 space-y-4">
         <h2 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
           CUSTOMER & SITE INFORMATION
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Customer Name *</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Customer Name *</label>
             <input
               type="text"
               value={targetJob.customerName}
@@ -310,7 +310,7 @@ export default function ActiveJobCalculator({
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Phone Number</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Phone Number</label>
             <input
               type="text"
               value={targetJob.phoneNumber}
@@ -320,7 +320,7 @@ export default function ActiveJobCalculator({
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Site Address</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Site Address</label>
             <input
               type="text"
               value={targetJob.siteAddress}
@@ -340,7 +340,7 @@ export default function ActiveJobCalculator({
           </h2>
           <button
             onClick={addTile}
-            className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white border border-black hover:bg-neutral-800 text-xs font-black transition-all cursor-pointer uppercase tracking-[0.2em]"
+            className="flex items-center space-x-1.5 px-4 py-2.5 bg-[#0a0a0a] text-white border border-black hover:bg-neutral-800 text-xs font-black transition-all cursor-pointer uppercase tracking-[0.2em]"
           >
             <Plus size={14} />
             <span>ADD CATEGORY GROUP</span>
@@ -507,7 +507,7 @@ export default function ActiveJobCalculator({
                           : 'bg-[#e8e6e1] text-[#6b6863] border-[#d4d1ca] hover:border-black'
                       }`}
                     >
-                      {isPro ? <Camera size={12} className="text-white" /> : <Lock size={12} className="text-amber-600" />}
+                      {isPro ? <Camera size={12} className="text-white" /> : <Lock size={12} className="text-[#6b6863]" />}
                       <span>SCAN PAPER SHEET</span>
                     </button>
                   </div>
