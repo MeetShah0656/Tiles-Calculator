@@ -30,11 +30,7 @@ export default function AuthScreen({ onLoginSuccess }) {
           const { data, error: googleErr } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: targetRedirect,
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent',
-              }
+              redirectTo: targetRedirect
             }
           });
 
