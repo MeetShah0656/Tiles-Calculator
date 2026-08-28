@@ -429,20 +429,11 @@ export const useJobStore = create(
         const hash2 = Math.floor(1000 + Math.random() * 9000).toString(16).toUpperCase().padStart(4, '9');
         const newKey = `TIVERA-7D-${hash1}-${hash2}`;
 
-        const keyRecord = {
+        return {
           key: newKey,
           isUsed: false,
           usedAt: null
         };
-
-        set((prev) => ({
-          userActivationKeys: {
-            ...(prev.userActivationKeys || {}),
-            [userEmail]: keyRecord
-          }
-        }));
-
-        return keyRecord;
       },
 
       redeemActivationKey: (inputKey, userEmail) => {
