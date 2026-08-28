@@ -1,4 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti.woff2') format('woff2'),
+       url('/fonts/Vilonti.woff') format('woff'),
+       url('/fonts/Vilonti.ttf') format('truetype'),
+       url('/fonts/Vilonti.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   --color-border: hsl(var(--border));
@@ -7,7 +19,7 @@
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   
-  --color-primary: var(--primary-accent, #6e2020);
+  --color-primary: var(--primary-accent, #09090b);
   --color-primary-foreground: #ffffff;
   
   --color-secondary: hsl(var(--secondary));
@@ -22,6 +34,9 @@
   --color-popover-foreground: hsl(var(--popover-foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+
+  --font-sans: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
+  --font-serif: 'Vilonti', 'Cinzel', Georgia, serif !important;
 
   /* Custom theme values */
   --color-charcoal-50: #f9f9fb;
@@ -47,18 +62,6 @@
   --color-slate-800: #1e293b;
   --color-slate-900: #0f172a;
   --color-slate-950: #020617;
-
-  --color-crimson-50: #fdf4f4;
-  --color-crimson-100: #fbe8e8;
-  --color-crimson-200: #f7d6d6;
-  --color-crimson-300: #f0b7b7;
-  --color-crimson-400: #e28a8a;
-  --color-crimson-500: #cf5e5e;
-  --color-crimson-600: #b54040;
-  --color-crimson-750: #6e2020;
-  --color-crimson-800: #8c2727;
-  --color-crimson-900: #752424;
-  --color-crimson-950: #3f1010;
 
   --radius-lg: 0.125rem;
   --radius-md: 0.0625rem;
@@ -102,19 +105,18 @@
   --radius: 0.125rem;
 }
 
-
-
-* {
-  @apply border-border;
+*, ::before, ::after, html, body, input, button, select, textarea, table, th, td, h1, h2, h3, h4, h5, h6, p, span, div {
+  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
 }
 
 body {
   @apply bg-background text-foreground antialiased;
+  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overscroll-behavior-x: none;
 }
 
-/* Custom Scrollbar for modern dashboard feel */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -131,9 +133,10 @@ body {
 
 /* Print Layout Styling for Quotation */
 @media print {
-  body {
+  body, table, th, td, h1, h2, h3, p, span, div {
     background: white !important;
     color: black !important;
+    font-family: 'Vilonti', 'Cinzel', Georgia, serif !important;
   }
   .no-print {
     display: none !important;

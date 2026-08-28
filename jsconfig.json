@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "target": "es2020",
+    "allowJs": true
+  },
+  "include": [
+    "**/*.js",
+    "**/*.jsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

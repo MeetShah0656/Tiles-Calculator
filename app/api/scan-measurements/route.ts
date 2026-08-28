@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { geminiScanner } from '@/lib/scanner/gemini';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { deleteFromCloud } from '@/lib/storage/storageManager';
 
-// Request schema
 const RequestSchema = z.object({
   fileId: z.string().optional(),
   url: z.string().optional(),
@@ -15,7 +13,6 @@ const RequestSchema = z.object({
   mimeType: z.string().optional()
 });
 
-// Response validation schemas
 const RoomSchema = z.object({
   name: z.string(),
   length: z.number(),
@@ -25,114 +22,177 @@ const RoomSchema = z.object({
   confidence: z.number()
 });
 
-const ScanResultSchema = z.object({
-  rooms: z.array(RoomSchema)
-});
-
 export async function POST(request: NextRequest) {
   let tempFilePath: string | null = null;
   let fileIdToDelete: string | null = null;
   let providerToDelete: 'supabase' | 'cloudinary' | 'local' | null = null;
 
   try {
-    // Check if request is JSON
-    const contentType = request.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      return NextResponse.json(
-        { error: "Invalid content type. Expected application/json." },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.json();
-    
-    // Validate request structure
-    const parsedRequest = RequestSchema.safeParse(body);
-    if (!parsedRequest.success) {
-      return NextResponse.json(
-        { error: "Invalid request payload. Provide fileId and url, or base64 image." },
-        { status: 400 }
-      );
-    }
-
-    const { fileId, url, provider, image, mimeType } = parsedRequest.data;
-    
     let imageBuffer: Buffer | null = null;
-    let detectedMimeType = mimeType || 'image/jpeg';
+    let detectedMimeType = 'image/jpeg';
 
-    if (fileId) {
-      fileIdToDelete = fileId;
-      providerToDelete = provider || null;
-      const tempDir = os.tmpdir();
-      tempFilePath = path.join(tempDir, fileId);
-    }
+    const contentType = request.headers.get('content-type') || '';
 
-    // --- Tiered Image Loading ---
-    
-    // Tier 1: Cloud URL Fetch
-    if (url) {
-      try {
-        console.log(`Tier 1: Fetching image from cloud URL: ${url}`);
-        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-        if (res.ok) {
-          const arrayBuffer = await res.arrayBuffer();
-          imageBuffer = Buffer.from(arrayBuffer);
-          console.log("Tier 1 loading successful!");
-        } else {
-          console.warn(`Tier 1 failed: HTTP ${res.status}`);
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+      const imageStr = formData.get('image') as string | null;
+
+      if (file) {
+        const arrayBuffer = await file.arrayBuffer();
+        imageBuffer = Buffer.from(arrayBuffer);
+        detectedMimeType = file.type || 'image/jpeg';
+      } else if (imageStr) {
+        let base64Data = imageStr;
+        if (imageStr.includes(';base64,')) {
+          const parts = imageStr.split(';base64,');
+          base64Data = parts[1];
+          const mimeParts = parts[0].split(':');
+          if (mimeParts.length > 1) detectedMimeType = mimeParts[1];
         }
-      } catch (err) {
-        console.warn("Tier 1 failed with error, falling back to local file:", err);
+        imageBuffer = Buffer.from(base64Data, 'base64');
       }
-    }
+    } else if (contentType.includes('application/json')) {
+      const body = await request.json();
+      const parsed = RequestSchema.safeParse(body);
+      if (parsed.success) {
+        const { fileId, url, provider, image, mimeType } = parsed.data;
+        if (mimeType) detectedMimeType = mimeType;
 
-    // Tier 2: Local Disk Fallback
-    if (!imageBuffer && tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        console.log(`Tier 2: Reading image from local disk: ${tempFilePath}`);
-        imageBuffer = fs.readFileSync(tempFilePath);
-        console.log("Tier 2 loading successful!");
-      } catch (err) {
-        console.warn("Tier 2 failed with error, falling back to legacy base64:", err);
-      }
-    }
+        if (fileId) {
+          fileIdToDelete = fileId;
+          providerToDelete = provider || null;
+          tempFilePath = path.join(os.tmpdir(), fileId);
+        }
 
-    // Tier 3: Legacy Base64 Fallback
-    if (!imageBuffer && image) {
-      console.log("Tier 3: Falling back to legacy base64 image data");
-      let base64Data = image;
-      if (image.includes(';base64,')) {
-        const parts = image.split(';base64,');
-        base64Data = parts[1];
-        const mimeParts = parts[0].split(':');
-        if (mimeParts.length > 1) {
-          detectedMimeType = mimeParts[1];
+        if (url) {
+          try {
+            const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+            if (res.ok) {
+              imageBuffer = Buffer.from(await res.arrayBuffer());
+            }
+          } catch (e) {
+            console.warn("Cloud URL fetch failed:", e);
+          }
+        }
+
+        if (!imageBuffer && tempFilePath && fs.existsSync(tempFilePath)) {
+          imageBuffer = fs.readFileSync(tempFilePath);
+        }
+
+        if (!imageBuffer && image) {
+          let base64Data = image;
+          if (image.includes(';base64,')) {
+            const parts = image.split(';base64,');
+            base64Data = parts[1];
+            const mimeParts = parts[0].split(':');
+            if (mimeParts.length > 1) detectedMimeType = mimeParts[1];
+          }
+          imageBuffer = Buffer.from(base64Data, 'base64');
         }
       }
-      imageBuffer = Buffer.from(base64Data, 'base64');
     }
 
     if (!imageBuffer) {
       return NextResponse.json(
-        { error: "Image data could not be retrieved from any storage tier." },
+        { error: "No image file provided for scanning." },
         { status: 400 }
       );
     }
 
-    // Call scanner
-    const result = await geminiScanner.scan(imageBuffer, detectedMimeType);
-    
-    // Validate output format with Zod schema to ensure legibility and accuracy
-    const parsedResult = ScanResultSchema.safeParse(result);
-    if (!parsedResult.success) {
-      console.error("Gemini output schema validation failure:", parsedResult.error);
-      return NextResponse.json(
-        { error: "The extraction model returned a malformed response structure. Please try again." },
-        { status: 500 }
-      );
+    // Try Python FastAPI backend first
+    try {
+      const pythonBackendUrl = process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL || 'http://localhost:8000';
+      const formData = new FormData();
+      const blob = new Blob([new Uint8Array(imageBuffer.buffer as ArrayBuffer, imageBuffer.byteOffset, imageBuffer.byteLength)], { type: detectedMimeType });
+      formData.append('file', blob, 'scanned_sheet.jpg');
+
+      const pythonRes = await fetch(`${pythonBackendUrl}/api/scan-measurements`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (pythonRes.ok) {
+        const pythonData = await pythonRes.json();
+        return NextResponse.json(pythonData);
+      }
+    } catch (pythonErr) {
+      console.warn("Python backend unavailable, falling back to direct Node Gemini REST API call:", pythonErr);
     }
 
-    return NextResponse.json(parsedResult.data);
+    // Direct Node Google Gemini REST API call using GEMINI_API_KEY
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({
+        error: "GEMINI_API_KEY environment variable is not configured."
+      }, { status: 500 });
+    }
+
+    const base64Data = imageBuffer.toString('base64');
+    const promptText = `You are an expert natural stone and marble measurement sheet OCR parser.
+Analyze this handwritten or printed measurement sheet image.
+Extract every line item measurement with absolute precision.
+
+Rules:
+1. Identify location / room / space name if present (e.g., "Living Room", "Passage", "Border", "Kitchen", "Pooja Room"). If missing, use "Item 1", "Item 2", etc.
+2. Extract Length and Width in INCHES (e.g. 72.5, 24, 18.5). If feet are written (like 6'), convert to inches (6 * 12 = 72).
+3. Extract Quantity (number of pieces). Default to 1 if not specified.
+4. Output ONLY valid JSON matching this schema:
+{
+  "rooms": [
+    {
+      "name": "Location Name",
+      "length": 72.0,
+      "width": 48.0,
+      "quantity": 1,
+      "confidence": 95.0
+    }
+  ]
+}`;
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const geminiRes = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: promptText },
+              {
+                inline_data: {
+                  mime_type: detectedMimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      console.error("Gemini REST API error:", errText);
+      return NextResponse.json({ error: `Gemini API Error: ${errText}` }, { status: 500 });
+    }
+
+    const geminiData = await geminiRes.json();
+    const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    let cleanText = candidateText.trim();
+    if (cleanText.startsWith("```")) {
+      const lines = cleanText.splitlines ? cleanText.splitlines() : cleanText.split('\n');
+      if (lines[0].startsWith("```")) lines.shift();
+      if (lines.length && lines[lines.length - 1].startsWith("```")) lines.pop();
+      cleanText = lines.join('\n').trim();
+    }
+
+    const parsedData = JSON.parse(cleanText);
+    const roomsList = Array.isArray(parsedData) ? parsedData : (parsedData.rooms || []);
+
+    return NextResponse.json({ rooms: roomsList });
+
   } catch (err: any) {
     console.error("Scan measurements API error:", err);
     return NextResponse.json(
@@ -140,27 +200,11 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    // --- Post-Processing Cleanup ---
-    
-    // 1. Delete local file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        fs.unlinkSync(tempFilePath);
-        console.log(`Successfully cleaned up local file: ${tempFilePath}`);
-      } catch (err) {
-        console.error("Failed to delete local temp file:", err);
-      }
+      try { fs.unlinkSync(tempFilePath); } catch (e) {}
     }
-
-    // 2. Delete cloud file
     if (fileIdToDelete && providerToDelete && providerToDelete !== 'local') {
-      try {
-        await deleteFromCloud(fileIdToDelete, providerToDelete);
-        console.log(`Successfully cleaned up cloud file from ${providerToDelete}: ${fileIdToDelete}`);
-      } catch (err) {
-        console.error("Failed to delete cloud storage file during cleanup:", err);
-      }
+      try { await deleteFromCloud(fileIdToDelete, providerToDelete); } catch (e) {}
     }
   }
 }
-
