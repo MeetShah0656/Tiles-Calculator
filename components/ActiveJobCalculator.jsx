@@ -61,6 +61,14 @@ export default function ActiveJobCalculator({
     store.duplicateRowInTile(tileId, rowId, jobType);
   };
 
+  const handleOpenScanner = (tileId) => {
+    if (!isPro) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+    setScanningTileId(tileId);
+  };
+
   const updateTileRow = (tileId, rowId, field, value) => store.updateTileRow(tileId, rowId, field, value, jobType);
   const deleteRowFromTile = (tileId, rowId) => store.deleteRowFromTile(tileId, rowId, jobType);
   const addScannedRowsToTile = (tileId, rooms) => store.addScannedRowsToTile(tileId, rooms, jobType);
@@ -74,7 +82,13 @@ export default function ActiveJobCalculator({
   const [shareError, setShareError] = useState('');
   const [scanningTileId, setScanningTileId] = useState(null);
 
-  const handlePrint = () => { window.print(); };
+  const handlePrint = () => {
+    if (!isPro) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+    window.print();
+  };
 
   const toggleTileCollapse = (tileId) => {
     setCollapsedTiles(prev => ({
@@ -113,6 +127,11 @@ export default function ActiveJobCalculator({
   };
 
   const handleWhatsAppShare = async () => {
+    if (!isPro) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+
     setIsShareModalOpen(true);
     setShareStatus('generating');
     setShareError('');
@@ -221,38 +240,46 @@ export default function ActiveJobCalculator({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-950 rounded-sm text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className={`flex items-center space-x-1.5 px-3.5 py-2 border rounded-sm text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+              isPro 
+                ? 'bg-white border-zinc-300 hover:bg-zinc-100 text-zinc-950'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:border-zinc-950'
+            }`}
           >
-            <Printer size={16} />
+            {isPro ? <Printer size={16} /> : <Lock size={14} className="text-amber-600" />}
             <span>Print Invoice</span>
           </button>
 
           <button
             onClick={handleWhatsAppShare}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-black text-white rounded-sm text-xs font-black transition-all cursor-pointer shadow-md border border-zinc-800 uppercase tracking-wider"
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-sm text-xs font-black transition-all cursor-pointer shadow-md border uppercase tracking-wider ${
+              isPro
+                ? 'bg-zinc-950 hover:bg-black text-white border-zinc-800'
+                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-900'
+            }`}
           >
-            <Share2 size={16} />
+            {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-amber-300" />}
             <span>WhatsApp Invoice</span>
           </button>
         </div>
       </div>
 
-      {!isPro && totalRowsCount >= 5 && (
-        <div className="p-4 bg-amber-50 border border-amber-300 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      {!isPro && (
+        <div className="p-4 bg-zinc-950 text-white rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-zinc-800">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-amber-100 text-amber-900 rounded-2xs">
+            <div className="p-2 bg-amber-400 text-zinc-950 rounded-2xs font-black">
               <Lock size={18} />
             </div>
             <div>
-              <h4 className="text-xs font-black text-amber-950 uppercase">Free Plan Item Limit Reached ({totalRowsCount}/5 items)</h4>
-              <p className="text-3xs font-semibold text-amber-800">
-                You have reached the maximum 5 measurement rows allowed on the Free tier. Upgrade to TIVERA Pro for unlimited items.
+              <h4 className="text-xs font-black uppercase text-amber-300">Free Tier Feature Restrictions</h4>
+              <p className="text-3xs font-medium text-zinc-300">
+                Printing, PDF Export, WhatsApp Sharing, and Paper Note Scanning require a <strong className="text-white">TIVERA Pro</strong> subscription.
               </p>
             </div>
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="px-4 py-2 bg-zinc-950 text-white rounded-sm text-xs font-black uppercase hover:bg-black transition-all cursor-pointer whitespace-nowrap border border-zinc-800 shadow-sm"
+            className="px-4 py-2 bg-white text-zinc-950 rounded-sm text-xs font-black uppercase hover:bg-zinc-200 transition-all cursor-pointer whitespace-nowrap shadow-sm border border-zinc-300"
           >
             Upgrade to Pro
           </button>
@@ -473,10 +500,14 @@ export default function ActiveJobCalculator({
                       <span>Add Measurement Row</span>
                     </button>
                     <button
-                      onClick={() => setScanningTileId(tile.id)}
-                      className="flex items-center space-x-1 px-2.5 py-1 bg-zinc-950 text-white border border-zinc-800 hover:bg-black rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider"
+                      onClick={() => handleOpenScanner(tile.id)}
+                      className={`flex items-center space-x-1 px-2.5 py-1 border rounded-2xs text-2xs font-bold transition-all cursor-pointer uppercase tracking-wider ${
+                        isPro 
+                          ? 'bg-zinc-950 text-white border-zinc-800 hover:bg-black' 
+                          : 'bg-zinc-100 text-zinc-600 border-zinc-300 hover:border-zinc-950'
+                      }`}
                     >
-                      <Camera size={12} className="text-white" />
+                      {isPro ? <Camera size={12} className="text-white" /> : <Lock size={12} className="text-amber-600" />}
                       <span>Scan Paper Sheet</span>
                     </button>
                   </div>
