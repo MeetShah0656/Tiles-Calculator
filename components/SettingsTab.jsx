@@ -15,7 +15,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
   const isOnline = useJobStore((state) => state.isOnline);
   const jobs = useJobStore((state) => state.jobs);
-  const subscription = useJobStore((state) => state.subscription);
+  const subscription = useJobStore((state) => state.subscription || { isPro: false, planName: 'Free' });
   const isPro = subscription?.isPro || false;
   const cancelProSubscription = useJobStore((state) => state.cancelProSubscription);
 
@@ -23,7 +23,20 @@ export default function SettingsTab({ user, onProfileUpdate }) {
   const redeemActivationKey = useJobStore((state) => state.redeemActivationKey);
 
   const userEmail = user?.email || 'meetshah0656@gmail.com';
-  const userKeyRecord = getOrGenerateUserKey(userEmail);
+  const [userKeyRecord, setUserKeyRecord] = useState({ key: 'TIVERA-7D-MEET-0656', isUsed: false, usedAt: null });
+
+  useEffect(() => {
+    if (getOrGenerateUserKey && userEmail) {
+      try {
+        const record = getOrGenerateUserKey(userEmail);
+        if (record) {
+          setUserKeyRecord(record);
+        }
+      } catch (err) {
+        console.error("Failed to generate key record:", err);
+      }
+    }
+  }, [userEmail, getOrGenerateUserKey]);
 
   const [inputKey, setInputKey] = useState('');
   const [keyRedeemMsg, setKeyRedeemMsg] = useState(null);
@@ -47,12 +60,17 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     setKeyRedeemMsg(null);
     setKeyRedeemError(null);
 
+    if (!redeemActivationKey) return;
+
     const res = redeemActivationKey(inputKey, userEmail);
-    if (res.success) {
+    if (res?.success) {
       setKeyRedeemMsg(res.message);
       setInputKey('');
+      if (getOrGenerateUserKey) {
+        setUserKeyRecord(getOrGenerateUserKey(userEmail));
+      }
     } else {
-      setKeyRedeemError(res.error);
+      setKeyRedeemError(res?.error || 'Failed to redeem key.');
     }
   };
 
@@ -218,7 +236,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                   YOUR UNIQUE 7-DAY PRO ACTIVATION KEY
                 </h3>
               </div>
-              {userKeyRecord.isUsed ? (
+              {userKeyRecord?.isUsed ? (
                 <span className="px-2.5 py-0.5 bg-neutral-800 text-neutral-300 text-[9px] font-black uppercase tracking-widest flex items-center space-x-1">
                   <Lock size={10} />
                   <span>REDEEMED & USED</span>
@@ -234,7 +252,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
               <div>
                 <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-widest block">Assigned Single-Use Code</span>
                 <span className="text-lg font-black text-[#0a0a0a] tracking-[0.25em] select-all">
-                  {userKeyRecord.key}
+                  {userKeyRecord?.key || 'TIVERA-7D-MEET-0656'}
                 </span>
               </div>
               <button

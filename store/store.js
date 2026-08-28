@@ -411,7 +411,8 @@ export const useJobStore = create(
       getOrGenerateUserKey: (userEmail) => {
         if (!userEmail) userEmail = 'default_user@tivera.app';
         const state = get();
-        const existing = state.userActivationKeys[userEmail];
+        const keysMap = state.userActivationKeys || {};
+        const existing = keysMap[userEmail];
         
         if (existing) {
           return existing;
@@ -431,7 +432,7 @@ export const useJobStore = create(
 
         set((prev) => ({
           userActivationKeys: {
-            ...prev.userActivationKeys,
+            ...(prev.userActivationKeys || {}),
             [userEmail]: keyRecord
           }
         }));
@@ -446,7 +447,8 @@ export const useJobStore = create(
 
         const state = get();
         const cleanInput = inputKey.trim().toUpperCase();
-        const keyRecord = state.userActivationKeys[userEmail] || state.getOrGenerateUserKey(userEmail);
+        const keysMap = state.userActivationKeys || {};
+        const keyRecord = keysMap[userEmail] || state.getOrGenerateUserKey(userEmail);
 
         // Check if key matches assigned user key or master activation pattern
         const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
@@ -458,7 +460,7 @@ export const useJobStore = create(
         if (keyRecord.isUsed) {
           return { 
             success: false, 
-            error: `This 7-Day Activation Key (${keyRecord.key}) has already been used on ${new Date(keyRecord.usedAt).toLocaleDateString()} and cannot be used again.` 
+            error: `This 7-Day Activation Key (${keyRecord.key}) has already been used on ${keyRecord.usedAt ? new Date(keyRecord.usedAt).toLocaleDateString() : 'earlier'} and cannot be used again.` 
           };
         }
 
@@ -479,7 +481,7 @@ export const useJobStore = create(
             activatedAt: new Date().toISOString()
           },
           userActivationKeys: {
-            ...prev.userActivationKeys,
+            ...(prev.userActivationKeys || {}),
             [userEmail]: updatedRecord
           }
         }));
@@ -492,11 +494,12 @@ export const useJobStore = create(
 
       resetKeyUsage: (userEmail) => {
         const state = get();
-        const existing = state.userActivationKeys[userEmail];
+        const keysMap = state.userActivationKeys || {};
+        const existing = keysMap[userEmail];
         if (existing) {
           set((prev) => ({
             userActivationKeys: {
-              ...prev.userActivationKeys,
+              ...(prev.userActivationKeys || {}),
               [userEmail]: {
                 ...existing,
                 isUsed: false,
@@ -582,8 +585,8 @@ export const useJobStore = create(
         activeJob: state.activeJob,
         quotaActiveJob: state.quotaActiveJob,
         jobs: state.jobs,
-        subscription: state.subscription,
-        userActivationKeys: state.userActivationKeys
+        subscription: state.subscription || { isPro: false, planName: 'Free' },
+        userActivationKeys: state.userActivationKeys || {}
       })
     }
   )
