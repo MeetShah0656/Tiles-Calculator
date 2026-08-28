@@ -9,9 +9,13 @@ import {
   RotateCcw, 
   AlertTriangle,
   Info,
-  Edit2
+  Edit2,
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { scanMeasurementsWithBackend } from '@/lib/scanner/gemini.js';
+import { useJobStore } from '@/store/store.js';
+import UpgradeProModal from '@/components/UpgradeProModal.jsx';
 
 const dataURLtoBlob = (dataurl) => {
   const arr = dataurl.split(',');
@@ -28,68 +32,37 @@ const dataURLtoBlob = (dataurl) => {
 export default function MeasurementScannerDialog({ 
   tileId, 
   onClose, 
-  onImport 
+  onImportMeasurements 
 }) {
-  const [step, setStep] = useState('select');
-  const [uploadStatus, setUploadStatus] = useState('idle');
+  const { subscription } = useJobStore();
+  const isPro = subscription?.isPro || false;
+
+  const [step, setStep] = useState('select'); // 'select' | 'analyzing' | 'verify'
   const [imagePreview, setImagePreview] = useState(null);
-  const [error, setError] = useState(null);
   const [scannedRooms, setScannedRooms] = useState([]);
+  const [error, setError] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [rawTotalScanned, setRawTotalScanned] = useState(0);
+
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  const processImageFile = (file) => {
-    setError(null);
-    if (!file.type.startsWith('image/')) {
-      setError("Invalid file type. Please upload a PNG, JPG, or WEBP image.");
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size exceeds 10MB limit.");
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const maxDim = 2000;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = (height * maxDim) / width;
-            width = maxDim;
-          } else {
-            width = (width * maxDim) / height;
-            height = maxDim;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL('image/jpeg', 0.85);
-          setImagePreview(compressed);
-        } else {
-          setImagePreview(e.target?.result);
-        }
-      };
-      img.onerror = () => {
-        setError("Failed to load image file. It may be corrupted.");
-      };
-      img.src = e.target?.result;
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result);
+      setError(null);
     };
     reader.readAsDataURL(file);
-  };
-
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      processImageFile(files[0]);
-    }
   };
 
   const handleDragOver = (e) => {
@@ -97,16 +70,29 @@ export default function MeasurementScannerDialog({
     setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e) => {
+    e.preventDefault();
     setIsDragOver(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processImageFile(e.dataTransfer.files[0]);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size exceeds 10MB limit.");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result);
+      setError(null);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAnalyze = async () => {
@@ -123,10 +109,18 @@ export default function MeasurementScannerDialog({
         throw new Error("No readable measurement lines detected in image.");
       }
 
-      setScannedRooms(rooms);
+      setRawTotalScanned(rooms.length);
+
+      // Apply 5-item cap for Free Tier users
+      if (!isPro && rooms.length > 5) {
+        setScannedRooms(rooms.slice(0, 5));
+      } else {
+        setScannedRooms(rooms);
+      }
+
       setStep('verify');
     } catch (err) {
-      console.error("AI Scanning error:", err);
+      console.error("Scanning error:", err);
       setError(err.message || "Failed to parse handwritten note. Please make sure the handwriting is clear.");
       setStep('select');
     }
@@ -140,216 +134,275 @@ export default function MeasurementScannerDialog({
     });
   };
 
-  const handleDeleteRoom = (index) => {
-    setScannedRooms((prev) => prev.filter((_, idx) => idx !== index));
-  };
+  const handleAddRow = () => {
+    if (!isPro && scannedRooms.length >= 5) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
 
-  const handleAddRoom = () => {
     setScannedRooms((prev) => [
       ...prev,
-      { name: 'Room Space', length: 120, width: 96, unit: 'in', quantity: 1, confidence: 100 }
+      {
+        name: `Item ${prev.length + 1}`,
+        length: 24,
+        width: 24,
+        quantity: 1,
+        confidence: 100
+      }
     ]);
   };
 
-  const handleImportSubmit = () => {
-    onImport(scannedRooms);
+  const handleDeleteRow = (index) => {
+    setScannedRooms((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleConfirmImport = () => {
+    onImportMeasurements(scannedRooms);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex justify-between items-center px-5 py-4 border-b border-zinc-200 bg-zinc-50/70">
-          <div>
-            <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">Measurement Sheet Scanner</span>
-            <h2 className="text-base font-black text-zinc-950">Scan Paper Notes</h2>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-zinc-800 rounded-sm cursor-pointer"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-5 flex-grow overflow-y-auto space-y-4">
-          {error && (
-            <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-semibold flex items-start space-x-2 border border-zinc-800">
-              <AlertTriangle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {step === 'select' && (
-            <div className="space-y-4">
-              {!imagePreview ? (
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-sm p-8 text-center cursor-pointer transition-all ${
-                    isDragOver 
-                      ? 'border-zinc-950 bg-zinc-100' 
-                      : 'border-zinc-300 hover:border-zinc-950 bg-zinc-50/50'
-                  }`}
-                >
-                  <Upload size={36} className="mx-auto stroke-1 text-zinc-600 mb-2" />
-                  <p className="text-xs font-bold text-zinc-950">
-                    Click to select or drag & drop handwritten measurement note
-                  </p>
-                  <p className="text-3xs text-zinc-500 mt-1">Supports PNG, JPG, WEBP formats up to 10MB</p>
-                  
-                  <input 
-                    ref={fileInputRef} 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={handleFileChange} 
-                  />
-                  <input 
-                    ref={cameraInputRef} 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment" 
-                    className="hidden" 
-                    onChange={handleFileChange} 
-                  />
-                </div>
-              ) : (
-                <div className="relative rounded-sm border border-zinc-200 overflow-hidden max-h-[260px] bg-zinc-950 flex justify-center items-center">
-                  <img src={imagePreview} alt="Scanned note preview" className="max-h-[260px] object-contain" />
-                  <button 
-                    onClick={() => setImagePreview(null)} 
-                    className="absolute top-2 right-2 p-1.5 bg-black/80 hover:bg-black text-white rounded-full transition-all cursor-pointer border border-zinc-700"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex items-center space-x-1.5 px-3 py-2 border border-zinc-300 hover:bg-zinc-100 rounded-sm text-xs font-bold text-zinc-950 cursor-pointer"
-                >
-                  <Camera size={14} className="text-zinc-950" />
-                  <span>Take Photo with Camera</span>
-                </button>
-
-                {imagePreview && (
-                  <button
-                    type="button"
-                    onClick={handleAnalyze}
-                    className="flex items-center space-x-1.5 px-5 py-2 bg-zinc-950 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md cursor-pointer border border-zinc-800 uppercase tracking-wider"
-                  >
-                    <span>Extract Measurements</span>
-                  </button>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+          {/* Header */}
+          <div className="flex justify-between items-center px-5 py-4 border-b border-zinc-200 bg-zinc-50/70">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">Measurement Sheet Scanner</span>
+                {!isPro && (
+                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-black rounded-2xs uppercase">
+                    Free Plan (5 items cap)
+                  </span>
                 )}
               </div>
+              <h2 className="text-base font-black text-zinc-950">Scan Paper Notes</h2>
             </div>
-          )}
+            <button 
+              onClick={onClose}
+              className="p-1 text-zinc-400 hover:text-zinc-800 rounded-sm cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-          {step === 'analyzing' && (
-            <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
-              <div className="w-10 h-10 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs font-black text-zinc-950 uppercase tracking-wider">Analyzing Note...</p>
-              <p className="text-3xs text-zinc-500">Reading handwritten dimensions, room labels, and quantities.</p>
-            </div>
-          )}
-
-          {step === 'verify' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-black text-zinc-950 uppercase tracking-wider border-l-2 border-zinc-950 pl-2">
-                  Verify Extracted Measurements ({scannedRooms.length})
-                </span>
-                <button
-                  type="button"
-                  onClick={handleAddRoom}
-                  className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-950 hover:underline cursor-pointer uppercase tracking-wider"
-                >
-                  <Plus size={12} />
-                  <span>Add Extra Item</span>
-                </button>
+          {/* Modal Body */}
+          <div className="p-5 flex-grow overflow-y-auto space-y-4">
+            {error && (
+              <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-semibold flex items-start space-x-2 border border-zinc-800">
+                <AlertTriangle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
               </div>
+            )}
 
-              <div className="max-h-[300px] overflow-y-auto divide-y divide-zinc-150 border border-zinc-200 rounded-sm">
-                {(Array.isArray(scannedRooms) ? scannedRooms : []).map((room, idx) => (
-                  <div key={idx} className="p-3 bg-white flex items-center justify-between gap-3">
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2">
-                      <div>
-                        <label className="block text-3xs font-extrabold text-zinc-450 uppercase mb-0.5">Location</label>
-                        <input
-                          type="text"
-                          value={room.name}
-                          onChange={(e) => handleRoomChange(idx, 'name', e.target.value)}
-                          className="w-full px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-3xs font-extrabold text-zinc-450 uppercase mb-0.5">Length (in)</label>
-                        <input
-                          type="number"
-                          value={room.length}
-                          onChange={(e) => handleRoomChange(idx, 'length', Number(e.target.value))}
-                          className="w-full px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-3xs font-extrabold text-zinc-450 uppercase mb-0.5">Width (in)</label>
-                        <input
-                          type="number"
-                          value={room.width}
-                          onChange={(e) => handleRoomChange(idx, 'width', Number(e.target.value))}
-                          className="w-full px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-3xs font-extrabold text-zinc-450 uppercase mb-0.5">Qty</label>
-                        <input
-                          type="number"
-                          value={room.quantity}
-                          onChange={(e) => handleRoomChange(idx, 'quantity', Number(e.target.value))}
-                          className="w-full px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-bold text-zinc-950 outline-none"
-                        />
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteRoom(idx)}
-                      className="p-1.5 text-zinc-400 hover:text-black rounded-2xs transition-colors cursor-pointer"
+            {step === 'select' && (
+              <div className="space-y-4">
+                {!imagePreview ? (
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-sm p-8 text-center cursor-pointer transition-all ${
+                      isDragOver 
+                        ? 'border-zinc-950 bg-zinc-100' 
+                        : 'border-zinc-300 hover:border-zinc-950 bg-zinc-50/50'
+                    }`}
+                  >
+                    <Upload size={36} className="mx-auto stroke-1 text-zinc-600 mb-2" />
+                    <p className="text-xs font-bold text-zinc-950">
+                      Click to select or drag & drop handwritten measurement note
+                    </p>
+                    <p className="text-3xs text-zinc-500 mt-1">Supports PNG, JPG, WEBP formats up to 10MB</p>
+                    
+                    <input 
+                      ref={fileInputRef} 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleFileChange} 
+                    />
+                    <input 
+                      ref={cameraInputRef} 
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment" 
+                      className="hidden" 
+                      onChange={handleFileChange} 
+                    />
+                  </div>
+                ) : (
+                  <div className="relative rounded-sm border border-zinc-200 overflow-hidden max-h-[260px] bg-zinc-950 flex justify-center items-center">
+                    <img src={imagePreview} alt="Scanned note preview" className="max-h-[260px] object-contain" />
+                    <button 
+                      onClick={() => setImagePreview(null)} 
+                      className="absolute top-2 right-2 p-1.5 bg-black/80 hover:bg-black text-white rounded-full transition-all cursor-pointer border border-zinc-700"
                     >
-                      <Trash2 size={14} />
+                      <X size={16} />
                     </button>
                   </div>
-                ))}
-              </div>
+                )}
 
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep('select')}
-                  className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-500 hover:text-zinc-950 cursor-pointer"
-                >
-                  <RotateCcw size={12} />
-                  <span>Rescan Different Sheet</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleImportSubmit}
-                  className="flex items-center space-x-1.5 px-5 py-2 bg-zinc-950 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md cursor-pointer border border-zinc-800 uppercase tracking-wider"
-                >
-                  <Check size={14} />
-                  <span>Import into Calculator</span>
-                </button>
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex items-center space-x-1.5 px-3 py-2 border border-zinc-300 hover:bg-zinc-100 rounded-sm text-xs font-bold text-zinc-950 cursor-pointer"
+                  >
+                    <Camera size={14} className="text-zinc-950" />
+                    <span>Take Photo with Camera</span>
+                  </button>
+
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={handleAnalyze}
+                      className="flex items-center space-x-1.5 px-5 py-2 bg-zinc-950 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md cursor-pointer border border-zinc-800 uppercase tracking-wider"
+                    >
+                      <span>Extract Measurements</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {step === 'analyzing' && (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                <div className="w-10 h-10 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs font-black text-zinc-950 uppercase tracking-wider">Analyzing Note...</p>
+                <p className="text-3xs text-zinc-500">Reading handwritten dimensions, room labels, and quantities.</p>
+              </div>
+            )}
+
+            {step === 'verify' && (
+              <div className="space-y-4">
+                {!isPro && rawTotalScanned > 5 && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-sm flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-xs font-bold text-amber-900">
+                      <Lock size={16} className="text-amber-700" />
+                      <span>Free Plan: Extracted 5 of {rawTotalScanned} items.</span>
+                    </div>
+                    <button
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                      className="px-3 py-1 bg-zinc-950 text-white rounded-2xs text-3xs font-extrabold uppercase hover:bg-black cursor-pointer"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-black text-zinc-950 uppercase">Extracted Measurements</span>
+                    <span className="px-2 py-0.5 bg-zinc-100 text-zinc-800 text-3xs font-black rounded-full">
+                      {scannedRooms.length} items
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setStep('select')}
+                    className="flex items-center space-x-1 text-xs font-bold text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                  >
+                    <RotateCcw size={14} />
+                    <span>Rescan Sheet</span>
+                  </button>
+                </div>
+
+                {/* Table of Scanned Items */}
+                <div className="overflow-x-auto border border-zinc-200 rounded-sm">
+                  <table className="w-full text-left text-xs divide-y divide-zinc-200">
+                    <thead className="bg-zinc-50 font-black text-zinc-500 uppercase text-[10px]">
+                      <tr>
+                        <th className="p-2.5">Location Name</th>
+                        <th className="p-2.5 text-center">Length (in)</th>
+                        <th className="p-2.5 text-center">Width (in)</th>
+                        <th className="p-2.5 text-center">Qty</th>
+                        <th className="p-2.5 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-150 font-semibold text-zinc-800">
+                      {scannedRooms.map((room, idx) => (
+                        <tr key={idx} className="hover:bg-zinc-50">
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={room.name}
+                              onChange={(e) => handleRoomChange(idx, 'name', e.target.value)}
+                              className="w-full px-2 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            <input
+                              type="text"
+                              value={room.length}
+                              onChange={(e) => handleRoomChange(idx, 'length', e.target.value)}
+                              className="w-16 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            <input
+                              type="text"
+                              value={room.width}
+                              onChange={(e) => handleRoomChange(idx, 'width', e.target.value)}
+                              className="w-16 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            <input
+                              type="number"
+                              value={room.quantity}
+                              onChange={(e) => handleRoomChange(idx, 'quantity', e.target.value)}
+                              className="w-14 text-center px-1 py-1 border border-zinc-200 rounded-2xs font-bold text-xs"
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            <button
+                              onClick={() => handleDeleteRow(idx)}
+                              className="p-1 text-zinc-400 hover:text-rose-600 rounded-2xs cursor-pointer"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-zinc-200">
+                  <button
+                    onClick={handleAddRow}
+                    className="flex items-center space-x-1 text-xs font-bold text-zinc-950 hover:underline cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>Add Manual Line</span>
+                  </button>
+
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 border border-zinc-300 rounded-sm text-xs font-bold text-zinc-700 hover:bg-zinc-100 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmImport}
+                      className="flex items-center space-x-1 px-5 py-2 bg-zinc-950 text-white rounded-sm text-xs font-extrabold uppercase hover:bg-black cursor-pointer shadow-md"
+                    >
+                      <Check size={14} />
+                      <span>Import Scanned Data</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <UpgradeProModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
+    </>
   );
 }

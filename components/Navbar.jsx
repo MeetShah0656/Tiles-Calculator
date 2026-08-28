@@ -11,12 +11,16 @@ import {
   WifiOff, 
   LogOut,
   Menu,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
+import UpgradeProModal from './UpgradeProModal.jsx';
 
 export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
-  const { isOnline } = useJobStore();
+  const { isOnline, subscription } = useJobStore();
+  const isPro = subscription?.isPro || false;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const isDrawerOpenRef = useRef(isDrawerOpen);
   useEffect(() => {
@@ -87,9 +91,20 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
             <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-zinc-950 text-white font-black text-lg shadow-sm border border-zinc-800">
               T
             </div>
-            <span className="text-xl font-black tracking-tight text-zinc-900 uppercase">
-              TIVERA
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-xl font-black tracking-tight text-zinc-900 uppercase">
+                TIVERA
+              </span>
+              {isPro ? (
+                <span className="px-1.5 py-0.5 bg-zinc-950 text-white text-[9px] font-black rounded-2xs uppercase border border-zinc-800">
+                  PRO
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-600 text-[9px] font-bold rounded-2xs uppercase border border-zinc-200">
+                  FREE
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Navigation Items (4 Main Tabs) */}
@@ -114,8 +129,23 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
             })}
           </nav>
 
-          {/* Connection Status & Logout */}
+          {/* Pro Badge & Connection Status & Logout */}
           <div className="flex items-center space-x-3">
+            {!isPro ? (
+              <button
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="flex items-center space-x-1 px-3 py-1.5 bg-zinc-950 text-white hover:bg-black rounded-sm text-2xs font-extrabold transition-all cursor-pointer shadow-xs border border-zinc-800 uppercase tracking-wider"
+              >
+                <Sparkles size={12} className="text-amber-300" />
+                <span>Tivera Pro</span>
+              </button>
+            ) : (
+              <span className="px-2.5 py-1 bg-zinc-950 text-white text-3xs font-black rounded-sm uppercase border border-zinc-800 flex items-center space-x-1">
+                <Sparkles size={12} className="text-amber-300" />
+                <span>Pro Active</span>
+              </span>
+            )}
+
             <div 
               title={isOnline ? 'Online - Synced' : 'Offline - Local Mode'} 
               className="flex items-center text-xs font-semibold"
@@ -160,6 +190,14 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
         </span>
         
         <div className="flex items-center space-x-2 text-xs font-bold">
+          {!isPro && (
+            <button
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="px-2 py-1 bg-zinc-950 text-white rounded-2xs text-[10px] font-black uppercase"
+            >
+              PRO
+            </button>
+          )}
           {isOnline ? (
             <span className="flex items-center text-zinc-900" title="Online - Synced">
               <Wifi size={16} />
@@ -234,7 +272,20 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
             </nav>
           </div>
 
-          <div className="p-4 border-t border-zinc-200 bg-zinc-50/50">
+          <div className="p-4 border-t border-zinc-200 bg-zinc-50/50 space-y-2">
+            {!isPro && (
+              <button
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  setIsUpgradeModalOpen(true);
+                }}
+                className="flex items-center justify-center space-x-1.5 w-full py-2.5 bg-zinc-950 text-white rounded-sm text-xs font-black uppercase shadow-sm cursor-pointer"
+              >
+                <Sparkles size={14} className="text-amber-300" />
+                <span>Upgrade to Tivera Pro</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 setIsDrawerOpen(false);
@@ -248,6 +299,11 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           </div>
         </div>
       </div>
+
+      <UpgradeProModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
     </>
   );
 }

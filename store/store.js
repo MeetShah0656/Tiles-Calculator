@@ -424,6 +424,36 @@ export const useJobStore = create(
         }
       },
 
+      subscription: {
+        isPro: false,
+        planName: 'Free',
+        expiresAt: null,
+        paymentId: null
+      },
+
+      activateProSubscription: (details = {}) => {
+        set({
+          subscription: {
+            isPro: true,
+            planName: 'Tivera Pro',
+            expiresAt: details.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            paymentId: details.paymentId || 'pay_razorpay_success',
+            activatedAt: new Date().toISOString()
+          }
+        });
+      },
+
+      cancelProSubscription: () => {
+        set({
+          subscription: {
+            isPro: false,
+            planName: 'Free',
+            expiresAt: null,
+            paymentId: null
+          }
+        });
+      },
+
       syncPendingJobs: async () => {
         const state = get();
         const pending = state.jobs.filter((j) => j.syncStatus === 'pending_sync');
@@ -475,7 +505,8 @@ export const useJobStore = create(
       partialize: (state) => ({
         activeJob: state.activeJob,
         quotaActiveJob: state.quotaActiveJob,
-        jobs: state.jobs
+        jobs: state.jobs,
+        subscription: state.subscription
       })
     }
   )

@@ -11,10 +11,13 @@ import {
   ChevronUp, 
   CheckCircle, 
   X, 
-  Camera 
+  Camera,
+  Lock,
+  Sparkles
 } from 'lucide-react';
 import { useState } from 'react';
 import MeasurementScannerDialog from './MeasurementScannerDialog.jsx';
+import UpgradeProModal from './UpgradeProModal.jsx';
 
 export default function ActiveJobCalculator({
   jobType = 'activeJob',
@@ -23,6 +26,12 @@ export default function ActiveJobCalculator({
 }) {
   const store = useJobStore();
   const targetJob = store[jobType] || store.activeJob;
+  const subscription = store.subscription || { isPro: false };
+  const isPro = subscription.isPro;
+
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  const totalRowsCount = (targetJob.tiles || []).reduce((acc, t) => acc + (t.rows ? t.rows.length : 0), 0);
 
   const updateActiveJobDetails = (fields) => {
     if (jobType === 'quotaActiveJob') {
@@ -35,9 +44,24 @@ export default function ActiveJobCalculator({
   const addTile = () => store.addTile(jobType);
   const updateTile = (tileId, fields) => store.updateTile(tileId, fields, jobType);
   const deleteTile = (tileId) => store.deleteTile(tileId, jobType);
-  const addRowToTile = (tileId) => store.addRowToTile(tileId, jobType);
+
+  const handleAddRowToTile = (tileId) => {
+    if (!isPro && totalRowsCount >= 5) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+    store.addRowToTile(tileId, jobType);
+  };
+
+  const handleDuplicateRowInTile = (tileId, rowId) => {
+    if (!isPro && totalRowsCount >= 5) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+    store.duplicateRowInTile(tileId, rowId, jobType);
+  };
+
   const updateTileRow = (tileId, rowId, field, value) => store.updateTileRow(tileId, rowId, field, value, jobType);
-  const duplicateRowInTile = (tileId, rowId) => store.duplicateRowInTile(tileId, rowId, jobType);
   const deleteRowFromTile = (tileId, rowId) => store.deleteRowFromTile(tileId, rowId, jobType);
   const addScannedRowsToTile = (tileId, rooms) => store.addScannedRowsToTile(tileId, rooms, jobType);
 
@@ -138,24 +162,19 @@ export default function ActiveJobCalculator({
         });
       } catch (e) {
         if (e.name !== 'AbortError') {
-          console.error("Web Share failed:", e);
+          window.open(`https://wa.me/?text=${text}`, '_blank');
         }
       }
     } else {
-      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      window.open(`https://wa.me/?text=${text}`, '_blank');
     }
   };
 
-  const executeDownloadPdf = () => {
-    if (!sharePdfBlob) return;
-    const url = URL.createObjectURL(sharePdfBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = sharePdfFilename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleCopyText = () => {
+    const text = decodeURIComponent(getWhatsAppText());
+    navigator.clipboard.writeText(text);
+    setNotification('Summary copied to clipboard!');
+    setTimeout(() => setNotification(''), 3000);
   };
 
   const formatCurrency = (val) => {
@@ -163,38 +182,82 @@ export default function ActiveJobCalculator({
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(val);
+    }).format(val || 0);
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-fadeIn">
-      {/* Top Bar with Actions */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 md:p-6 rounded-sm border border-zinc-200 shadow-2xs">
+    <div className="space-y-6 pb-20">
+      {/* Header Title & Actions */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-zinc-200 p-4 md:p-6 rounded-sm shadow-2xs">
         <div>
-          <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">{categoryTitle} Estimator</span>
-          <h1 className="text-2xl font-black text-zinc-950 mt-0.5">{categoryTitle} Operations</h1>
-          <p className="text-xs font-semibold text-zinc-500 mt-0.5">
-            Enter lengths & widths in inches. Area calculations and standard wastage rounding are handled automatically.
+          <div className="flex items-center space-x-2">
+            <span className="text-3xs font-extrabold text-zinc-400 uppercase tracking-widest block">
+              {categoryTitle} ESTIMATOR
+            </span>
+            {!isPro && (
+              <button
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="px-2 py-0.5 bg-amber-100 text-amber-950 hover:bg-amber-200 border border-amber-300 text-3xs font-black rounded-2xs uppercase transition-all cursor-pointer flex items-center space-x-1"
+              >
+                <Sparkles size={10} className="text-amber-600" />
+                <span>Upgrade to TIVERA Pro</span>
+              </button>
+            )}
+            {isPro && (
+              <span className="px-2 py-0.5 bg-zinc-950 text-white text-3xs font-black rounded-2xs uppercase border border-zinc-800 flex items-center space-x-1">
+                <Sparkles size={10} className="text-amber-300" />
+                <span>TIVERA Pro Active</span>
+              </span>
+            )}
+          </div>
+          <h1 className="text-2xl font-black text-zinc-950 tracking-tight uppercase">
+            {categoryTitle} Operations
+          </h1>
+          <p className="text-xs font-bold text-zinc-500 mt-0.5">
+            Enter length & width in inches. Step calculations ({roundingStep} ft rounding) are handled automatically.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handlePrint}
-            className="flex-1 md:flex-initial flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-zinc-950 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md transition-all cursor-pointer border border-zinc-800 uppercase tracking-wider"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-950 rounded-sm text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <Printer size={16} />
             <span>Print Invoice</span>
           </button>
+
           <button
             onClick={handleWhatsAppShare}
-            className="flex-1 md:flex-initial flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-zinc-900 hover:bg-black text-white font-bold rounded-sm text-xs shadow-md transition-all cursor-pointer uppercase tracking-wider border border-zinc-700"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-black text-white rounded-sm text-xs font-black transition-all cursor-pointer shadow-md border border-zinc-800 uppercase tracking-wider"
           >
             <Share2 size={16} />
-            <span>WhatsApp PDF</span>
+            <span>WhatsApp Invoice</span>
           </button>
         </div>
       </div>
+
+      {!isPro && totalRowsCount >= 5 && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-amber-100 text-amber-900 rounded-2xs">
+              <Lock size={18} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-amber-950 uppercase">Free Plan Item Limit Reached ({totalRowsCount}/5 items)</h4>
+              <p className="text-3xs font-semibold text-amber-800">
+                You have reached the maximum 5 measurement rows allowed on the Free tier. Upgrade to TIVERA Pro for unlimited items.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsUpgradeModalOpen(true)}
+            className="px-4 py-2 bg-zinc-950 text-white rounded-sm text-xs font-black uppercase hover:bg-black transition-all cursor-pointer whitespace-nowrap border border-zinc-800 shadow-sm"
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      )}
 
       {notification && (
         <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-bold flex items-center space-x-2 animate-fadeIn border border-zinc-800">
@@ -259,50 +322,53 @@ export default function ActiveJobCalculator({
 
         {targetJob.tiles.map((tile, tileIdx) => {
           const isCollapsed = collapsedTiles[tile.id];
+
           return (
-            <div key={tile.id} className="bg-white border border-zinc-200 rounded-sm shadow-2xs overflow-hidden">
-              {/* Tile Group Header */}
-              <div className="p-4 bg-zinc-50 border-b border-zinc-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div 
+              key={tile.id} 
+              className="bg-white border border-zinc-200 rounded-sm shadow-2xs overflow-hidden transition-all"
+            >
+              {/* Card Header */}
+              <div className="bg-zinc-50/80 p-4 border-b border-zinc-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div className="flex items-center space-x-3 w-full sm:w-auto">
                   <button
                     onClick={() => toggleTileCollapse(tile.id)}
-                    className="p-1 hover:bg-zinc-200 rounded-2xs text-zinc-600 cursor-pointer"
+                    className="p-1 hover:bg-zinc-200 rounded-2xs text-zinc-600 transition-colors cursor-pointer"
                   >
-                    {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                    {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                   </button>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-950 text-white font-black text-2xs border border-zinc-800">
-                    {tileIdx + 1}
-                  </span>
-                  <input
-                    type="text"
-                    value={tile.tileName}
-                    onChange={(e) => updateTile(tile.id, { tileName: e.target.value })}
-                    placeholder="Category Name (e.g. Flooring / Passage / Border)"
-                    className="flex-grow sm:w-72 px-3 py-1.5 border border-zinc-200 rounded-sm text-xs font-bold text-zinc-950 bg-white focus:border-zinc-950 outline-none"
-                  />
+                  <div className="flex-1 sm:flex-none">
+                    <input
+                      type="text"
+                      value={tile.tileName}
+                      onChange={(e) => updateTile(tile.id, { tileName: e.target.value })}
+                      placeholder={`Category ${tileIdx + 1}`}
+                      className="text-sm font-black text-zinc-950 bg-transparent border-b border-dashed border-zinc-300 focus:border-zinc-950 focus:outline-none px-1 py-0.5 w-full sm:w-64 uppercase"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-3xs font-extrabold text-zinc-450 uppercase">Rate ₹/sq ft:</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-3xs font-extrabold text-zinc-400 uppercase">Rate/sqft (₹):</span>
                     <input
                       type="number"
-                      value={tile.ratePerSqft || ''}
-                      onChange={(e) => updateTile(tile.id, { ratePerSqft: Number(e.target.value) })}
+                      value={tile.ratePerSqft}
+                      onChange={(e) => updateTile(tile.id, { ratePerSqft: Number(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-20 px-2 py-1 border border-zinc-200 rounded-sm text-xs font-extrabold text-zinc-950 text-right focus:border-zinc-950 outline-none"
+                      className="w-20 px-2 py-1 border border-zinc-200 rounded-2xs text-xs font-black text-zinc-950 text-right focus:border-zinc-950 outline-none"
                     />
                   </div>
 
                   <div className="text-right">
-                    <span className="text-3xs font-extrabold text-zinc-450 uppercase block">Subtotal</span>
-                    <span className="text-xs font-black text-zinc-950">{formatCurrency(tile.subtotal)}</span>
+                    <span className="text-3xs font-extrabold text-zinc-400 uppercase block">Subtotal</span>
+                    <span className="text-sm font-black text-zinc-950">{formatCurrency(tile.subtotal)}</span>
                   </div>
 
                   <button
                     onClick={() => deleteTile(tile.id)}
-                    className="p-1.5 text-zinc-400 hover:text-black rounded-2xs transition-colors cursor-pointer"
-                    title="Delete Group"
+                    className="p-1.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-2xs transition-colors cursor-pointer"
+                    title="Delete Category"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -377,7 +443,7 @@ export default function ActiveJobCalculator({
                             </td>
                             <td className="py-2 text-center space-x-1">
                               <button
-                                onClick={() => duplicateRowInTile(tile.id, row.id)}
+                                onClick={() => handleDuplicateRowInTile(tile.id, row.id)}
                                 className="p-1 text-zinc-400 hover:text-zinc-950 rounded-2xs transition-colors cursor-pointer"
                                 title="Duplicate Row"
                               >
@@ -397,10 +463,10 @@ export default function ActiveJobCalculator({
                     </table>
                   </div>
 
-                  {/* Action Bar for scanning AI & adding rows at bottom of table */}
+                  {/* Action Bar for scanning paper notes & adding rows at bottom of table */}
                   <div className="flex justify-between items-center pt-3 border-t border-zinc-150">
                     <button
-                      onClick={() => addRowToTile(tile.id)}
+                      onClick={() => handleAddRowToTile(tile.id)}
                       className="flex items-center space-x-1 text-2xs font-extrabold text-zinc-950 hover:underline cursor-pointer uppercase tracking-wider"
                     >
                       <Plus size={14} />
@@ -445,54 +511,67 @@ export default function ActiveJobCalculator({
         <MeasurementScannerDialog
           tileId={scanningTileId}
           onClose={() => setScanningTileId(null)}
-          onImport={(rooms) => addScannedRowsToTile(scanningTileId, rooms)}
+          onImportMeasurements={(rooms) => {
+            addScannedRowsToTile(scanningTileId, rooms);
+            setScanningTileId(null);
+          }}
         />
       )}
 
-      {/* WhatsApp Share PDF Modal */}
+      {/* Upgrade Pro Modal */}
+      <UpgradeProModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
+
+      {/* WhatsApp Share Modal */}
       {isShareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-md p-6 space-y-4">
+          <div className="bg-white rounded-sm border border-zinc-200 shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-zinc-200 pb-3">
-              <h3 className="text-base font-black text-zinc-950">Share Estimate</h3>
-              <button 
-                onClick={() => setIsShareModalOpen(false)}
-                className="p-1 text-zinc-400 hover:text-zinc-800 rounded-sm cursor-pointer"
-              >
+              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider">Share Estimate Invoice</h3>
+              <button onClick={() => setIsShareModalOpen(false)} className="text-zinc-400 hover:text-zinc-800 cursor-pointer">
                 <X size={18} />
               </button>
             </div>
 
             {shareStatus === 'generating' && (
               <div className="py-8 text-center space-y-3">
-                <div className="w-8 h-8 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="text-xs font-bold text-zinc-700">Generating PDF Invoice...</p>
+                <div className="w-8 h-8 border-3 border-zinc-950 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="text-xs font-bold text-zinc-600">Generating PDF Invoice document...</p>
               </div>
             )}
 
             {shareStatus === 'ready' && (
-              <div className="space-y-4 text-center">
-                <div className="p-3 bg-zinc-950 text-white rounded-sm text-xs font-bold flex items-center justify-center space-x-2 shadow-xs border border-zinc-800">
-                  <CheckCircle size={18} className="text-emerald-400" />
-                  <span>PDF Invoice Ready ({sharePdfFilename})</span>
-                </div>
+              <div className="space-y-4">
+                <p className="text-xs font-semibold text-zinc-600">
+                  Ready! Click below to send PDF invoice & text summary on WhatsApp.
+                </p>
+                <button
+                  onClick={executeWebShare}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-sm shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2 uppercase tracking-wider"
+                >
+                  <Share2 size={16} />
+                  <span>Send PDF Invoice on WhatsApp</span>
+                </button>
+                <button
+                  onClick={handleCopyText}
+                  className="w-full py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs rounded-sm transition-all cursor-pointer"
+                >
+                  Copy Text Summary Only
+                </button>
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={executeWebShare}
-                    className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-zinc-950 hover:bg-black text-white font-bold text-xs rounded-sm shadow-sm cursor-pointer border border-zinc-800 uppercase tracking-wider"
-                  >
-                    <Share2 size={16} />
-                    <span>Share PDF via App</span>
-                  </button>
-                  <button
-                    onClick={executeDownloadPdf}
-                    className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-900 text-white font-bold text-xs rounded-sm shadow-sm cursor-pointer uppercase tracking-wider"
-                  >
-                    <Printer size={16} />
-                    <span>Download PDF</span>
-                  </button>
-                </div>
+            {shareStatus === 'error' && (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-rose-700">{shareError}</p>
+                <button
+                  onClick={handleCopyText}
+                  className="w-full py-2 bg-zinc-950 text-white font-bold text-xs rounded-sm cursor-pointer"
+                >
+                  Copy Summary Text
+                </button>
               </div>
             )}
           </div>

@@ -19,6 +19,7 @@
     "lucide-react": "^1.18.0",
     "next": "latest",
     "postcss": "^8.5.15",
+    "razorpay": "^2.9.8",
     "react": "latest",
     "react-dom": "latest",
     "tailwindcss": "^4.3.0",

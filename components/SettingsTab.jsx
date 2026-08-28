@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Briefcase, Check, AlertTriangle, RefreshCw, Cloud, ShieldCheck } from 'lucide-react';
+import { User, Phone, Briefcase, Check, AlertTriangle, RefreshCw, Cloud, ShieldCheck, Sparkles, CreditCard } from 'lucide-react';
 import { useJobStore } from '@/store/store.js';
+import UpgradeProModal from '@/components/UpgradeProModal.jsx';
 
 export default function SettingsTab({ user, onProfileUpdate }) {
   const [businessName, setBusinessName] = useState(user?.user_metadata?.business_name || '');
@@ -14,9 +15,14 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
   const isOnline = useJobStore((state) => state.isOnline);
   const jobs = useJobStore((state) => state.jobs);
+  const subscription = useJobStore((state) => state.subscription);
+  const isPro = subscription?.isPro || false;
+  const cancelProSubscription = useJobStore((state) => state.cancelProSubscription);
+
   const syncPendingJobs = useJobStore((state) => state.syncPendingJobs);
   const fetchJobsFromCloud = useJobStore((state) => state.fetchJobsFromCloud);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
     if (user?.user_metadata) {
@@ -98,9 +104,9 @@ export default function SettingsTab({ user, onProfileUpdate }) {
       <div className="bg-white border border-zinc-200 rounded-sm shadow-xs p-6">
         <div className="border-b border-zinc-200 pb-4 mb-6">
           <span className="text-[10px] uppercase font-black text-zinc-950 tracking-widest">TIVERA Preferences</span>
-          <h1 className="text-2xl font-black text-zinc-950 mt-0.5">Settings</h1>
+          <h1 className="text-2xl font-black text-zinc-950 mt-0.5">Settings & Subscription</h1>
           <p className="text-xs font-semibold text-zinc-500 mt-0.5">
-            Manage your business profile info and cloud database synchronization.
+            Manage your business profile info, Razorpay subscription, and cloud database synchronization.
           </p>
         </div>
 
@@ -122,6 +128,55 @@ export default function SettingsTab({ user, onProfileUpdate }) {
         )}
 
         <form onSubmit={handleSave} className="space-y-6">
+          {/* Subscription & Membership Box */}
+          <div className="p-4 bg-zinc-950 text-white rounded-sm border border-zinc-800 space-y-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <Sparkles size={16} className="text-amber-300" />
+                <span className="text-xs font-black uppercase tracking-wider">Subscription & Membership</span>
+              </div>
+              {isPro ? (
+                <span className="px-2 py-0.5 bg-emerald-500 text-white text-3xs font-black rounded-2xs uppercase">
+                  Active Pro Member
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-3xs font-extrabold rounded-2xs uppercase">
+                  Free Tier (5 items limit)
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div>
+                <h3 className="text-lg font-black">{isPro ? 'TIVERA Pro Plan' : 'Free Tier'}</h3>
+                <p className="text-3xs text-zinc-400 font-semibold">
+                  {isPro 
+                    ? 'Unlimited sheet scans, unlimited manual measurement rows, and custom invoice branding.' 
+                    : 'Limited to 5 scanned values and 5 manual measurement rows per job.'}
+                </p>
+              </div>
+
+              {!isPro ? (
+                <button
+                  type="button"
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="px-4 py-2 bg-white text-zinc-950 hover:bg-zinc-100 rounded-2xs text-xs font-black uppercase transition-all cursor-pointer shadow-md flex items-center space-x-1.5 whitespace-nowrap"
+                >
+                  <CreditCard size={14} />
+                  <span>Upgrade to Pro</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={cancelProSubscription}
+                  className="px-3 py-1.5 border border-zinc-700 text-zinc-400 hover:text-white rounded-2xs text-3xs font-bold transition-all cursor-pointer"
+                >
+                  Manage / Downgrade
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-sm flex items-center justify-between">
             <div className="flex items-center space-x-3.5">
               <div className="w-10 h-10 rounded-full bg-zinc-950 text-white flex items-center justify-center font-black uppercase text-sm border border-zinc-800">
@@ -234,6 +289,11 @@ export default function SettingsTab({ user, onProfileUpdate }) {
           </div>
         </form>
       </div>
+
+      <UpgradeProModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
     </div>
   );
 }
