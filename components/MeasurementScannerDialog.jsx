@@ -281,12 +281,6 @@ export default function MeasurementScannerDialog({
                       <Lock size={16} className="text-white flex-shrink-0" />
                       <span className="uppercase tracking-wider">Free Plan: Extracted 5 of {rawTotalScanned} items.</span>
                     </div>
-                    <button
-                      onClick={() => setIsUpgradeModalOpen(true)}
-                      className="w-full sm:w-auto px-4 py-1.5 bg-white text-[#0a0a0a] text-[10px] font-black uppercase hover:bg-neutral-200 cursor-pointer tracking-widest text-center"
-                    >
-                      Upgrade to Pro
-                    </button>
                   </div>
                 )}
 

@@ -1,9 +1,6 @@
 'use client';
 
-import { useState } from 'react';
 import { 
-  Sparkles,
-  CreditCard,
   Check,
   ShieldCheck,
   Award,
@@ -11,12 +8,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useJobStore } from '@/store/store.js';
-import UpgradeProModal from '@/components/UpgradeProModal.jsx';
 
 export default function Dashboard({ setCurrentTab, user }) {
   const subscription = useJobStore((state) => state.subscription);
   const isPro = subscription?.isPro || false;
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   return (
     <div className="space-y-8 sm:space-y-10 pb-20 md:pb-16 animate-fadeIn">
@@ -65,31 +60,6 @@ export default function Dashboard({ setCurrentTab, user }) {
           TIVERA
         </div>
       </div>
-
-      {/* PRO MEMBERSHIP BANNER (GAZU DARK SECTION LOOK) */}
-      {!isPro && (
-        <div className="bg-[#0a0a0a] text-white p-6 sm:p-8 md:p-12 border border-black shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sm:gap-8">
-          <div className="space-y-2.5 sm:space-y-3 max-w-2xl">
-            <span className="text-[9px] sm:text-[10px] font-black tracking-[0.25em] sm:tracking-[0.3em] uppercase text-neutral-300 block">
-              NEW COLLECTION 2024 • TIVERA PRO PLAN
-            </span>
-            <h2 className="text-xl sm:text-2xl md:text-4xl font-black tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white leading-tight">
-              UNLOCK UNLIMITED ESTIMATES & PAPER NOTE SCANNING
-            </h2>
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Free plan is limited to 5 items. Upgrade to Tivera Pro for unlimited commercial jobs, WhatsApp billing & instant PDF export.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className="w-full md:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white hover:bg-neutral-200 text-[#0a0a0a] font-black text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase transition-all cursor-pointer whitespace-nowrap shadow-lg flex items-center justify-center space-x-2 border border-white active:scale-98"
-          >
-            <CreditCard size={16} />
-            <span>SUBSCRIBE FOR ₹499/MO</span>
-          </button>
-        </div>
-      )}
 
       {/* CATEGORY WORKSPACES GRID (GAZU MEN / WOMEN / KIDS LOOK) */}
       <div className="space-y-4">
@@ -195,11 +165,6 @@ export default function Dashboard({ setCurrentTab, user }) {
           <p className="text-[9px] sm:text-[10px] font-bold text-[#6b6863] tracking-wider uppercase">Direct customer invoices</p>
         </div>
       </div>
-
-      <UpgradeProModal
-        isOpen={isUpgradeModalOpen}
-        onClose={() => setIsUpgradeModalOpen(false)}
-      />
     </div>
   );
 }

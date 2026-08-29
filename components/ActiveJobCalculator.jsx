@@ -213,15 +213,7 @@ export default function ActiveJobCalculator({
             <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-[0.25em] block">
               {categoryTitle} ESTIMATOR
             </span>
-            {!isPro && (
-              <button
-                onClick={() => setIsUpgradeModalOpen(true)}
-                className="px-2.5 py-0.5 bg-[#e8e6e1] text-[#0a0a0a] hover:bg-[#d4d1ca] border border-[#d4d1ca] text-3xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center space-x-1"
-              >
-                <Sparkles size={10} className="text-[#0a0a0a]" />
-                <span>UPGRADE TO PRO</span>
-              </button>
-            )}
+            {/* Category Header */}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">
             {categoryTitle} OPERATIONS
@@ -258,27 +250,7 @@ export default function ActiveJobCalculator({
         </div>
       </div>
 
-      {!isPro && (
-        <div className="p-4 sm:p-5 bg-[#0a0a0a] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-black">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#e8e6e1] text-[#0a0a0a] font-black border border-white flex-shrink-0">
-              <Lock size={18} />
-            </div>
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white">FREE TIER FEATURE RESTRICTIONS</h4>
-              <p className="text-3xs font-semibold tracking-wider text-neutral-300 uppercase mt-0.5">
-                Printing, PDF Export, WhatsApp Sharing, and Paper Note Scanning require a <strong className="text-white">TIVERA PRO</strong> subscription.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-white text-[#0a0a0a] text-xs font-black tracking-[0.2em] uppercase hover:bg-neutral-200 transition-all cursor-pointer whitespace-nowrap border border-white text-center"
-          >
-            UPGRADE TO PRO
-          </button>
-        </div>
-      )}
+
 
       {notification && (
         <div className="p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 animate-fadeIn border border-black">

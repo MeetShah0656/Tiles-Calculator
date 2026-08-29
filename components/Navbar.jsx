@@ -11,17 +11,14 @@ import {
   WifiOff, 
   LogOut,
   Menu,
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
-import UpgradeProModal from './UpgradeProModal.jsx';
 
 export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
   const isOnline = useJobStore((state) => state.isOnline);
   const subscription = useJobStore((state) => state.subscription);
   const isPro = subscription?.isPro || false;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const isDrawerOpenRef = useRef(isDrawerOpen);
   useEffect(() => {
@@ -87,18 +84,8 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
             })}
           </nav>
 
-          {/* Pro Badge & Connection Status & Logout */}
+          {/* Connection Status & Logout */}
           <div className="flex items-center space-x-4">
-            {!isPro && (
-              <button
-                onClick={() => setIsUpgradeModalOpen(true)}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white hover:bg-neutral-800 text-xs font-black tracking-widest uppercase transition-all cursor-pointer border border-black shadow-xs"
-              >
-                <Sparkles size={12} className="text-neutral-300" />
-                <span>UPGRADE TO PRO</span>
-              </button>
-            )}
-
             <div 
               title={isOnline ? 'Online - Synced' : 'Offline - Local Mode'} 
               className="flex items-center text-xs font-semibold"
@@ -150,16 +137,6 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
         </div>
 
         <div className="flex items-center space-x-2">
-          {!isPro && (
-            <button
-              onClick={() => setIsUpgradeModalOpen(true)}
-              className="px-2.5 py-1 bg-[#0a0a0a] text-white text-[9px] font-black tracking-wider uppercase active:scale-95 transition-transform flex items-center space-x-1 border border-black"
-            >
-              <Sparkles size={9} className="text-white" />
-              <span>PRO</span>
-            </button>
-          )}
-
           <div 
             title={isOnline ? 'Online - Synced' : 'Offline - Local Mode'}
             className="p-1"
@@ -242,19 +219,6 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           </div>
 
           <div className="p-4 border-t border-[#d4d1ca] bg-[#e8e6e1] space-y-2.5">
-            {!isPro && (
-              <button
-                onClick={() => {
-                  setIsDrawerOpen(false);
-                  setIsUpgradeModalOpen(true);
-                }}
-                className="flex items-center justify-center space-x-2 w-full py-3 bg-[#0a0a0a] text-white text-xs font-black tracking-widest uppercase cursor-pointer border border-black shadow-xs active:bg-neutral-800"
-              >
-                <Sparkles size={14} className="text-neutral-300" />
-                <span>UPGRADE TO PRO</span>
-              </button>
-            )}
-
             <button
               onClick={() => {
                 setIsDrawerOpen(false);
@@ -294,11 +258,6 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           );
         })}
       </div>
-
-      <UpgradeProModal
-        isOpen={isUpgradeModalOpen}
-        onClose={() => setIsUpgradeModalOpen(false)}
-      />
     </>
   );
 }
