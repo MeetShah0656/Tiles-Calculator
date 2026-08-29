@@ -280,46 +280,53 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                   <span>{copiedKey ? 'COPIED' : 'COPY'}</span>
                 </button>
               </div>
-
-              {/* Redeem Key Input Form */}
-              <div className="pt-2">
-                <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">
-                  Redeem 7-Day Pro Access Key
-                </label>
-                
-                {keyRedeemMsg && (
-                  <div className="mb-3 p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 border border-black">
-                    <Check size={16} className="text-emerald-400" />
-                    <span>{keyRedeemMsg}</span>
-                  </div>
-                )}
-
-                {keyRedeemError && (
-                  <div className="mb-3 p-3 bg-rose-100 border border-rose-300 text-rose-900 text-xs font-bold uppercase tracking-wider flex items-start space-x-2">
-                    <AlertTriangle size={16} className="text-rose-700 mt-0.5 flex-shrink-0" />
-                    <span>{keyRedeemError}</span>
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={inputKey}
-                    onChange={(e) => setInputKey(e.target.value)}
-                    placeholder="Enter TIVERA-7D-XXXX-YYYY"
-                    className="flex-1 px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none uppercase tracking-widest"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRedeemKey}
-                    className="w-full sm:w-auto px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap text-center active:scale-98"
-                  >
-                    REDEEM 7-DAY TRIAL
-                  </button>
-                </div>
-              </div>
             </div>
           )}
+
+          {/* REDEEM CODE INPUT FORM - ALWAYS VISIBLE FOR PROMO & ACTIVATION KEYS */}
+          <div className="p-4 sm:p-6 bg-[#e8e6e1] border border-[#d4d1ca] space-y-3">
+            <div className="flex items-center space-x-2">
+              <Key size={16} className="text-[#0a0a0a] flex-shrink-0" />
+              <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.15em] sm:tracking-[0.2em]">
+                REDEEM PROMO OR ACTIVATION CODE
+              </h3>
+            </div>
+
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest">
+              Enter your trial key or special promo code below:
+            </label>
+
+            {keyRedeemMsg && (
+              <div className="p-3 bg-[#0a0a0a] text-white text-xs font-black uppercase tracking-wider flex items-center space-x-2 border border-black">
+                <Check size={16} className="text-emerald-400" />
+                <span>{keyRedeemMsg}</span>
+              </div>
+            )}
+
+            {keyRedeemError && (
+              <div className="p-3 bg-rose-100 border border-rose-300 text-rose-900 text-xs font-bold uppercase tracking-wider flex items-start space-x-2">
+                <AlertTriangle size={16} className="text-rose-700 mt-0.5 flex-shrink-0" />
+                <span>{keyRedeemError}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <input
+                type="text"
+                value={inputKey}
+                onChange={(e) => setInputKey(e.target.value)}
+                placeholder="ENTER CODE (E.G. TIVERA-7D-XXXX-YYYY)"
+                className="flex-1 px-3 py-2.5 border border-[#d4d1ca] focus:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] bg-white outline-none uppercase tracking-widest"
+              />
+              <button
+                type="button"
+                onClick={handleRedeemKey}
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap text-center active:scale-98"
+              >
+                REDEEM CODE
+              </button>
+            </div>
+          </div>
 
           <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-3">

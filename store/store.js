@@ -479,10 +479,19 @@ export const useJobStore = create(
         const keysMap = state.userActivationKeys || {};
         const keyRecord = keysMap[effectiveEmail] || state.getOrGenerateUserKey(effectiveEmail);
 
+        const usedKeys = keyRecord.usedKeys || [];
         const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
 
         if (!isMatch) {
           return { success: false, error: 'Invalid activation key. Please check your key format.' };
+        }
+
+        // Check local state if key was already redeemed
+        if (keyRecord.isUsed || usedKeys.includes(cleanInput)) {
+          return { 
+            success: false, 
+            error: 'This code can only be used once per account.' 
+          };
         }
 
         // Check Supabase Cloud Database 'subscriptions' table first for authoritative key status
@@ -494,16 +503,21 @@ export const useJobStore = create(
               .eq('user_id', activeUserId)
               .maybeSingle();
 
-            if (dbSub && dbSub.payment_provider === 'activation_key' && dbSub.activation_key === keyRecord.key) {
+            if (dbSub && (dbSub.payment_provider === 'activation_key' || dbSub.activation_key === keyRecord.key || dbSub.payment_id?.startsWith('key_redeem_'))) {
               set((prev) => ({
                 userActivationKeys: {
                   ...(prev.userActivationKeys || {}),
-                  [effectiveEmail]: { ...keyRecord, isUsed: true, usedAt: dbSub.activated_at }
+                  [effectiveEmail]: {
+                    ...keyRecord,
+                    isUsed: true,
+                    usedAt: dbSub.activated_at || keyRecord.usedAt || new Date().toISOString(),
+                    usedKeys: Array.from(new Set([...usedKeys, cleanInput, keyRecord.key.toUpperCase()]))
+                  }
                 }
               }));
               return {
                 success: false,
-                error: `This 7-Day Activation Key (${keyRecord.key}) has already been used.`
+                error: 'This code can only be used once per account.'
               };
             }
           } catch (e) {
@@ -511,19 +525,13 @@ export const useJobStore = create(
           }
         }
 
-        if (keyRecord.isUsed) {
-          return { 
-            success: false, 
-            error: `This 7-Day Activation Key (${keyRecord.key}) has already been used and cannot be used again.` 
-          };
-        }
-
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         const usedAt = new Date().toISOString();
         const updatedRecord = {
           ...keyRecord,
           isUsed: true,
-          usedAt
+          usedAt,
+          usedKeys: Array.from(new Set([...(keyRecord.usedKeys || []), cleanInput, keyRecord.key.toUpperCase()]))
         };
 
         set((prev) => ({
@@ -645,23 +653,12 @@ export const useJobStore = create(
       },
 
       cancelProSubscription: async (userIdParam = null, userEmailParam = null, skipCloudSync = false) => {
-        const state = get();
-        const effectiveEmail = typeof userEmailParam === 'string' ? userEmailParam : 'meetshah0656@gmail.com';
-
         set((prev) => ({
           subscription: {
             isPro: false,
             planName: 'Free Tier',
             expiresAt: null,
             paymentId: null
-          },
-          userActivationKeys: {
-            ...(prev.userActivationKeys || {}),
-            [effectiveEmail]: {
-              ...(prev.userActivationKeys?.[effectiveEmail] || state.getOrGenerateUserKey(effectiveEmail)),
-              isUsed: false,
-              usedAt: null
-            }
           }
         }));
 
