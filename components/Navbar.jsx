@@ -59,11 +59,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
               <span className="text-2xl font-black tracking-[0.3em] text-[#0a0a0a] uppercase group-hover:opacity-80 transition-opacity">
                 TIVERA
               </span>
-              {isPro ? (
-                <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-widest uppercase">
-                  PRO
-                </span>
-              ) : (
+              {!isPro && (
                 <span className="px-2 py-0.5 bg-[#e8e6e1] text-[#6b6863] text-[9px] font-extrabold tracking-widest uppercase border border-[#d4d1ca]">
                   FREE
                 </span>
@@ -93,7 +89,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
 
           {/* Pro Badge & Connection Status & Logout */}
           <div className="flex items-center space-x-4">
-            {!isPro ? (
+            {!isPro && (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
                 className="flex items-center space-x-1.5 px-4 py-2 bg-[#0a0a0a] text-white hover:bg-neutral-800 text-xs font-black tracking-widest uppercase transition-all cursor-pointer border border-black shadow-xs"
@@ -101,11 +97,6 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                 <Sparkles size={12} className="text-neutral-300" />
                 <span>UPGRADE TO PRO</span>
               </button>
-            ) : (
-              <span className="px-3 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase flex items-center space-x-1 border border-black">
-                <Sparkles size={12} className="text-neutral-300" />
-                <span>PRO ACTIVE</span>
-              </span>
             )}
 
             <div 
@@ -159,7 +150,7 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
         </div>
 
         <div className="flex items-center space-x-2">
-          {!isPro ? (
+          {!isPro && (
             <button
               onClick={() => setIsUpgradeModalOpen(true)}
               className="px-2.5 py-1 bg-[#0a0a0a] text-white text-[9px] font-black tracking-wider uppercase active:scale-95 transition-transform flex items-center space-x-1 border border-black"
@@ -167,10 +158,6 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
               <Sparkles size={9} className="text-white" />
               <span>PRO</span>
             </button>
-          ) : (
-            <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-wider uppercase border border-black">
-              PRO
-            </span>
           )}
 
           <div 

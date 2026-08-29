@@ -27,12 +27,7 @@ export default function Dashboard({ setCurrentTab, user }) {
             <span className="text-[9px] sm:text-3xs font-black tracking-[0.25em] sm:tracking-[0.3em] uppercase text-[#6b6863] block">
               NATURAL STONE & TILES ESTIMATOR
             </span>
-            {isPro ? (
-              <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-widest uppercase flex items-center space-x-1 border border-black">
-                <Sparkles size={10} className="text-white" />
-                <span>PRO SUITE</span>
-              </span>
-            ) : (
+            {!isPro && (
               <span className="px-2 py-0.5 bg-[#e8e6e1] text-[#6b6863] text-[9px] font-extrabold tracking-widest uppercase border border-[#d4d1ca]">
                 FREE PLAN
               </span>

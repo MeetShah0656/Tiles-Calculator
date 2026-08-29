@@ -222,12 +222,6 @@ export default function ActiveJobCalculator({
                 <span>UPGRADE TO PRO</span>
               </button>
             )}
-            {isPro && (
-              <span className="px-2.5 py-0.5 bg-[#0a0a0a] text-white text-3xs font-black uppercase tracking-wider flex items-center space-x-1 border border-black">
-                <Sparkles size={10} className="text-white" />
-                <span>PRO ACTIVE</span>
-              </span>
-            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">
             {categoryTitle} OPERATIONS
