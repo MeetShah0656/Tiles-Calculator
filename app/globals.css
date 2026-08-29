@@ -1,5 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti.woff2') format('woff2'),
+       url('/fonts/Vilonti.woff') format('woff'),
+       url('/fonts/Vilonti.ttf') format('truetype'),
+       url('/fonts/Vilonti.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Bold.woff2') format('woff2'),
+       url('/fonts/Vilonti-Bold.woff') format('woff'),
+       url('/fonts/Vilonti-Bold.ttf') format('truetype'),
+       url('/fonts/Vilonti-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   --color-border: #d4d1ca;
@@ -24,8 +46,8 @@
   --color-card: #f4f2ee;
   --color-card-foreground: #0a0a0a;
 
-  --font-sans: 'Plus Jakarta Sans', 'Outfit', 'Cinzel', system-ui, -apple-system, sans-serif !important;
-  --font-serif: 'Cinzel', 'Plus Jakarta Sans', Georgia, serif !important;
+  --font-sans: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
+  --font-serif: 'Vilonti', 'Cinzel', Georgia, serif !important;
 
   /* Custom theme values based on GAZU luxury editorial reference */
   --color-gazu-cream: #e8e6e1;
@@ -50,13 +72,13 @@
 }
 
 *, ::before, ::after, html, body, input, button, select, textarea, table, th, td, h1, h2, h3, h4, h5, h6, p, span, div {
-  font-family: 'Plus Jakarta Sans', 'Outfit', 'Cinzel', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
 }
 
 body {
   background-color: #e8e6e1 !important;
   color: #0a0a0a !important;
-  font-family: 'Plus Jakarta Sans', 'Outfit', 'Cinzel', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
   overscroll-behavior-x: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -82,7 +104,7 @@ body {
   body, table, th, td, h1, h2, h3, p, span, div {
     background: white !important;
     color: black !important;
-    font-family: 'Plus Jakarta Sans', 'Cinzel', Georgia, serif !important;
+    font-family: 'Vilonti', 'Cinzel', Georgia, serif !important;
   }
   .no-print {
     display: none !important;
