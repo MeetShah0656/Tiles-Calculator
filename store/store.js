@@ -617,7 +617,7 @@ export const useJobStore = create(
             }
 
             if (activeUserId) {
-              await supabase.from('subscriptions').upsert({
+              const { error } = await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
                 user_email: activeUserEmail || '',
                 plan_name: planName,
@@ -629,14 +629,20 @@ export const useJobStore = create(
                 expires_at: expiresAt,
                 updated_at: new Date().toISOString()
               }, { onConflict: 'user_id' });
+
+              if (error) {
+                console.error("Failed to sync subscription to cloud:", error);
+                throw error;
+              }
             }
           } catch (err) {
             console.error("Failed to sync subscription to cloud:", err);
+            throw err;
           }
         }
       },
 
-      cancelProSubscription: async (userIdParam = null) => {
+      cancelProSubscription: async (userIdParam = null, userEmailParam = null) => {
         set({
           subscription: {
             isPro: false,
@@ -654,23 +660,36 @@ export const useJobStore = create(
             const supabase = createClient(supabaseUrl, supabaseKey);
 
             let activeUserId = typeof userIdParam === 'string' ? userIdParam : null;
-            if (!activeUserId) {
+            let activeUserEmail = typeof userEmailParam === 'string' ? userEmailParam : null;
+
+            if (!activeUserId || !activeUserEmail) {
               const { data: authData } = await supabase.auth.getUser();
               if (authData?.user) {
-                activeUserId = authData.user.id;
+                if (!activeUserId) activeUserId = authData.user.id;
+                if (!activeUserEmail) activeUserEmail = authData.user.email;
               }
             }
 
             if (activeUserId) {
-              await supabase.from('subscriptions').upsert({
+              const nowIso = new Date().toISOString();
+              const { error } = await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
+                user_email: activeUserEmail || '',
                 plan_name: 'Free',
                 status: 'canceled',
-                updated_at: new Date().toISOString()
+                expires_at: nowIso,
+                payment_id: null,
+                updated_at: nowIso
               }, { onConflict: 'user_id' });
+
+              if (error) {
+                console.error("Supabase error while downgrading subscription:", error);
+                throw error;
+              }
             }
           } catch (err) {
             console.error("Failed to update canceled subscription in cloud:", err);
+            throw err;
           }
         }
       },

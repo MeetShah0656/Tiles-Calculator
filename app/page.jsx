@@ -138,7 +138,7 @@ function MainApp() {
                   activatedAt: subRecord.activated_at
                 });
               } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
-                useJobStore.getState().cancelProSubscription();
+                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email);
               }
 
               // Update activation key status from subscriptions table if applicable

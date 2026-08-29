@@ -92,12 +92,12 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await cancelProSubscription(user?.id);
+      await cancelProSubscription(user?.id, user?.email);
       setSuccessMsg("Subscription downgraded to Free Tier.");
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err) {
       console.error("Downgrade failed:", err);
-      setErrorMsg("Failed to downgrade subscription.");
+      setErrorMsg("Failed to downgrade subscription in Supabase. Please try again.");
     } finally {
       setIsDowngrading(false);
     }
