@@ -653,6 +653,10 @@ export const useJobStore = create(
       },
 
       cancelProSubscription: async (userIdParam = null, userEmailParam = null, skipCloudSync = false) => {
+        const effectiveEmail = typeof userEmailParam === 'string' && userEmailParam.trim() 
+          ? userEmailParam.trim() 
+          : (typeof userIdParam === 'string' && userIdParam.includes('@') ? userIdParam : 'meetshah0656@gmail.com');
+
         set((prev) => ({
           subscription: {
             isPro: false,
