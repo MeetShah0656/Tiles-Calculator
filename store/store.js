@@ -582,7 +582,7 @@ export const useJobStore = create(
         }
       },
 
-      activateProSubscription: async (details = {}) => {
+      activateProSubscription: async (details = {}, skipCloudSync = false) => {
         const expiresAt = details.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         const activatedAt = details.activatedAt || new Date().toISOString();
         const planName = details.planName || 'Tivera Pro';
@@ -596,6 +596,8 @@ export const useJobStore = create(
             activatedAt
           }
         });
+
+        if (skipCloudSync) return;
 
         // Persist to Supabase subscriptions table
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -642,15 +644,28 @@ export const useJobStore = create(
         }
       },
 
-      cancelProSubscription: async (userIdParam = null, userEmailParam = null) => {
-        set({
+      cancelProSubscription: async (userIdParam = null, userEmailParam = null, skipCloudSync = false) => {
+        const state = get();
+        const effectiveEmail = typeof userEmailParam === 'string' ? userEmailParam : 'meetshah0656@gmail.com';
+
+        set((prev) => ({
           subscription: {
             isPro: false,
-            planName: 'Free',
+            planName: 'Free Tier',
             expiresAt: null,
             paymentId: null
+          },
+          userActivationKeys: {
+            ...(prev.userActivationKeys || {}),
+            [effectiveEmail]: {
+              ...(prev.userActivationKeys?.[effectiveEmail] || state.getOrGenerateUserKey(effectiveEmail)),
+              isUsed: false,
+              usedAt: null
+            }
           }
-        });
+        }));
+
+        if (skipCloudSync) return;
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -660,13 +675,13 @@ export const useJobStore = create(
             const supabase = createClient(supabaseUrl, supabaseKey);
 
             let activeUserId = typeof userIdParam === 'string' ? userIdParam : null;
-            let activeUserEmail = typeof userEmailParam === 'string' ? userEmailParam : null;
+            let activeUserEmail = effectiveEmail;
 
-            if (!activeUserId || !activeUserEmail) {
+            if (!activeUserId) {
               const { data: authData } = await supabase.auth.getUser();
               if (authData?.user) {
-                if (!activeUserId) activeUserId = authData.user.id;
-                if (!activeUserEmail) activeUserEmail = authData.user.email;
+                activeUserId = authData.user.id;
+                activeUserEmail = authData.user.email || effectiveEmail;
               }
             }
 
@@ -674,8 +689,8 @@ export const useJobStore = create(
               const nowIso = new Date().toISOString();
               const { error } = await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
-                user_email: activeUserEmail || '',
-                plan_name: 'Free',
+                user_email: activeUserEmail,
+                plan_name: 'Free Tier',
                 status: 'canceled',
                 expires_at: nowIso,
                 payment_id: null,
@@ -683,13 +698,11 @@ export const useJobStore = create(
               }, { onConflict: 'user_id' });
 
               if (error) {
-                console.error("Supabase error while downgrading subscription:", error);
-                throw error;
+                console.warn("Supabase downgrade upsert warning:", error);
               }
             }
           } catch (err) {
-            console.error("Failed to update canceled subscription in cloud:", err);
-            throw err;
+            console.warn("Failed to update canceled subscription in cloud:", err);
           }
         }
       },

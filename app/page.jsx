@@ -136,9 +136,9 @@ function MainApp() {
                   expiresAt: subRecord.expires_at,
                   paymentId: subRecord.payment_id,
                   activatedAt: subRecord.activated_at
-                });
+                }, true);
               } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
-                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email);
+                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
               }
 
               // Update activation key status from subscriptions table if applicable
@@ -155,6 +155,12 @@ function MainApp() {
                 }));
               }
             }
+
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', authUser.id)
+              .maybeSingle();
 
             if (prof) {
               return {
