@@ -636,7 +636,7 @@ export const useJobStore = create(
         }
       },
 
-      cancelProSubscription: async (userId = null) => {
+      cancelProSubscription: async (userIdParam = null) => {
         set({
           subscription: {
             isPro: false,
@@ -653,7 +653,7 @@ export const useJobStore = create(
             const { createClient } = await import('@supabase/supabase-js');
             const supabase = createClient(supabaseUrl, supabaseKey);
 
-            let activeUserId = userId;
+            let activeUserId = typeof userIdParam === 'string' ? userIdParam : null;
             if (!activeUserId) {
               const { data: authData } = await supabase.auth.getUser();
               if (authData?.user) {

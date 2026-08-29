@@ -82,6 +82,27 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     }
   };
 
+  const [isDowngrading, setIsDowngrading] = useState(false);
+
+  const handleDowngrade = async () => {
+    if (!window.confirm("Are you sure you want to downgrade your membership to the Free Tier?")) {
+      return;
+    }
+    setIsDowngrading(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    try {
+      await cancelProSubscription(user?.id);
+      setSuccessMsg("Subscription downgraded to Free Tier.");
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error("Downgrade failed:", err);
+      setErrorMsg("Failed to downgrade subscription.");
+    } finally {
+      setIsDowngrading(false);
+    }
+  };
+
   const handleManualSync = async () => {
     setIsSyncing(true);
     try {
@@ -218,10 +239,11 @@ export default function SettingsTab({ user, onProfileUpdate }) {
               ) : (
                 <button
                   type="button"
-                  onClick={cancelProSubscription}
-                  className="w-full sm:w-auto px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center"
+                  onClick={handleDowngrade}
+                  disabled={isDowngrading}
+                  className="w-full sm:w-auto px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center disabled:opacity-50 active:scale-98"
                 >
-                  DOWNGRADE TO FREE
+                  {isDowngrading ? 'DOWNGRADING...' : 'DOWNGRADE TO FREE'}
                 </button>
               )}
             </div>
