@@ -78,31 +78,6 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const handleOnline = () => {
-        const storeState = useJobStore.getState();
-        if (storeState && typeof storeState.setIsOnline === 'function') {
-          storeState.setIsOnline(true);
-        }
-      };
-      const handleOffline = () => {
-        const storeState = useJobStore.getState();
-        if (storeState && typeof storeState.setIsOnline === 'function') {
-          storeState.setIsOnline(false);
-        }
-      };
-      
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
-
-      return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
     let authListenerObj = null;
 
     const checkSession = async () => {

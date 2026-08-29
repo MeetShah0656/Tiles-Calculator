@@ -2,11 +2,6 @@
 
 import { useState } from 'react';
 import { 
-  Calculator, 
-  Settings, 
-  PlusCircle, 
-  Layers, 
-  Box,
   Sparkles,
   CreditCard,
   Check,
