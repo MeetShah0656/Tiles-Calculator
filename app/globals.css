@@ -3,23 +3,49 @@
 
 @font-face {
   font-family: 'Vilonti';
-  src: url('/fonts/Vilonti.woff2') format('woff2'),
-       url('/fonts/Vilonti.woff') format('woff'),
-       url('/fonts/Vilonti.ttf') format('truetype'),
-       url('/fonts/Vilonti.otf') format('opentype');
-  font-weight: normal;
+  src: url('/fonts/Vilonti-Regular.ttf') format('truetype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Vilonti';
-  src: url('/fonts/Vilonti-Bold.woff2') format('woff2'),
-       url('/fonts/Vilonti-Bold.woff') format('woff'),
-       url('/fonts/Vilonti-Bold.ttf') format('truetype'),
-       url('/fonts/Vilonti-Bold.otf') format('opentype');
-  font-weight: bold;
+  src: url('/fonts/Vilonti-Medium.ttf') format('truetype');
+  font-weight: 500;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-ExtraBlack.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -46,7 +72,7 @@
   --color-card: #f4f2ee;
   --color-card-foreground: #0a0a0a;
 
-  --font-sans: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
+  --font-sans: 'Vilonti', 'Plus Jakarta Sans', 'Cinzel', system-ui, -apple-system, sans-serif !important;
   --font-serif: 'Vilonti', 'Cinzel', Georgia, serif !important;
 
   /* Custom theme values based on GAZU luxury editorial reference */
@@ -72,13 +98,13 @@
 }
 
 *, ::before, ::after, html, body, input, button, select, textarea, table, th, td, h1, h2, h3, h4, h5, h6, p, span, div {
-  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
+  font-family: 'Vilonti', 'Plus Jakarta Sans', 'Cinzel', system-ui, -apple-system, sans-serif !important;
 }
 
 body {
   background-color: #e8e6e1 !important;
   color: #0a0a0a !important;
-  font-family: 'Vilonti', 'Cinzel', 'Plus Jakarta Sans', Georgia, serif, sans-serif !important;
+  font-family: 'Vilonti', 'Plus Jakarta Sans', 'Cinzel', system-ui, -apple-system, sans-serif !important;
   overscroll-behavior-x: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
