@@ -16,19 +16,19 @@ export default function UpgradeProModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleRedeemTrialKey = (e) => {
+  const handleRedeemTrialKey = async (e) => {
     e.preventDefault();
     setError('');
     setKeySuccess('');
 
-    const res = redeemActivationKey(keyInput, 'meetshah0656@gmail.com');
-    if (res.success) {
+    const res = await redeemActivationKey(keyInput);
+    if (res?.success) {
       setKeySuccess(res.message);
       setTimeout(() => {
         onClose();
       }, 1500);
     } else {
-      setError(res.error);
+      setError(res?.error || 'Failed to redeem trial key.');
     }
   };
 

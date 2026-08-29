@@ -445,15 +445,37 @@ export const useJobStore = create(
         };
       },
 
-      redeemActivationKey: async (inputKey, userEmail, userId = null) => {
+      redeemActivationKey: async (inputKey, userEmail = null, userId = null) => {
         if (!inputKey) {
           return { success: false, error: 'Please enter an activation key.' };
         }
 
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        let supabaseClient = null;
+        let activeUserId = userId;
+        let activeUserEmail = userEmail;
+
+        if (supabaseUrl && supabaseKey) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+            const { data: authData } = await supabaseClient.auth.getUser();
+            if (authData?.user) {
+              if (!activeUserId) activeUserId = authData.user.id;
+              if (!activeUserEmail) activeUserEmail = authData.user.email;
+            }
+          } catch (e) {
+            console.warn("Supabase auth check warning:", e);
+          }
+        }
+
+        const effectiveEmail = activeUserEmail || 'meetshah0656@gmail.com';
         const state = get();
         const cleanInput = inputKey.trim().toUpperCase();
         const keysMap = state.userActivationKeys || {};
-        const keyRecord = keysMap[userEmail] || state.getOrGenerateUserKey(userEmail);
+        const keyRecord = keysMap[effectiveEmail] || state.getOrGenerateUserKey(effectiveEmail);
 
         const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
 
@@ -462,34 +484,25 @@ export const useJobStore = create(
         }
 
         // Check Supabase Cloud Database 'subscriptions' table first for authoritative key status
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        let supabaseClient = null;
-
-        if (supabaseUrl && supabaseKey) {
+        if (supabaseClient && activeUserId) {
           try {
-            const { createClient } = await import('@supabase/supabase-js');
-            supabaseClient = createClient(supabaseUrl, supabaseKey);
+            const { data: dbSub } = await supabaseClient
+              .from('subscriptions')
+              .select('*')
+              .eq('user_id', activeUserId)
+              .maybeSingle();
 
-            if (userId) {
-              const { data: dbSub } = await supabaseClient
-                .from('subscriptions')
-                .select('*')
-                .eq('user_id', userId)
-                .maybeSingle();
-
-              if (dbSub && dbSub.payment_provider === 'activation_key' && dbSub.activation_key === keyRecord.key) {
-                set((prev) => ({
-                  userActivationKeys: {
-                    ...(prev.userActivationKeys || {}),
-                    [userEmail]: { ...keyRecord, isUsed: true, usedAt: dbSub.activated_at }
-                  }
-                }));
-                return {
-                  success: false,
-                  error: `This 7-Day Activation Key (${keyRecord.key}) has already been used.`
-                };
-              }
+            if (dbSub && dbSub.payment_provider === 'activation_key' && dbSub.activation_key === keyRecord.key) {
+              set((prev) => ({
+                userActivationKeys: {
+                  ...(prev.userActivationKeys || {}),
+                  [effectiveEmail]: { ...keyRecord, isUsed: true, usedAt: dbSub.activated_at }
+                }
+              }));
+              return {
+                success: false,
+                error: `This 7-Day Activation Key (${keyRecord.key}) has already been used.`
+              };
             }
           } catch (e) {
             console.warn("Supabase subscription check warning:", e);
@@ -521,16 +534,16 @@ export const useJobStore = create(
           },
           userActivationKeys: {
             ...(prev.userActivationKeys || {}),
-            [userEmail]: updatedRecord
+            [effectiveEmail]: updatedRecord
           }
         }));
 
         // Persist key redemption status to Supabase Database 'subscriptions' table
-        if (supabaseClient && userId) {
+        if (supabaseClient && activeUserId) {
           try {
             await supabaseClient.from('subscriptions').upsert({
-              user_id: userId,
-              user_email: userEmail,
+              user_id: activeUserId,
+              user_email: effectiveEmail,
               plan_name: 'TIVERA PRO (7-Day Trial)',
               status: 'active',
               payment_provider: 'activation_key',
@@ -584,29 +597,41 @@ export const useJobStore = create(
           }
         });
 
-        // Persist to Supabase subscriptions table if user details provided
-        if (details.userId) {
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          if (supabaseUrl && supabaseKey) {
-            try {
-              const { createClient } = await import('@supabase/supabase-js');
-              const supabase = createClient(supabaseUrl, supabaseKey);
+        // Persist to Supabase subscriptions table
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (supabaseUrl && supabaseKey) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
+            let activeUserId = details.userId;
+            let activeUserEmail = details.userEmail;
+
+            if (!activeUserId) {
+              const { data: authData } = await supabase.auth.getUser();
+              if (authData?.user) {
+                activeUserId = authData.user.id;
+                activeUserEmail = activeUserEmail || authData.user.email;
+              }
+            }
+
+            if (activeUserId) {
               await supabase.from('subscriptions').upsert({
-                user_id: details.userId,
-                user_email: details.userEmail || '',
+                user_id: activeUserId,
+                user_email: activeUserEmail || '',
                 plan_name: planName,
                 status: 'active',
-                payment_provider: 'razorpay',
+                payment_provider: details.paymentId?.startsWith('key_') ? 'activation_key' : 'razorpay',
                 payment_id: details.paymentId || null,
                 order_id: details.orderId || null,
                 activated_at: activatedAt,
                 expires_at: expiresAt,
                 updated_at: new Date().toISOString()
               }, { onConflict: 'user_id' });
-            } catch (err) {
-              console.error("Failed to sync subscription to cloud:", err);
             }
+          } catch (err) {
+            console.error("Failed to sync subscription to cloud:", err);
           }
         }
       },
@@ -621,22 +646,31 @@ export const useJobStore = create(
           }
         });
 
-        if (userId) {
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          if (supabaseUrl && supabaseKey) {
-            try {
-              const { createClient } = await import('@supabase/supabase-js');
-              const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (supabaseUrl && supabaseKey) {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
+            let activeUserId = userId;
+            if (!activeUserId) {
+              const { data: authData } = await supabase.auth.getUser();
+              if (authData?.user) {
+                activeUserId = authData.user.id;
+              }
+            }
+
+            if (activeUserId) {
               await supabase.from('subscriptions').upsert({
-                user_id: userId,
+                user_id: activeUserId,
                 plan_name: 'Free',
                 status: 'canceled',
                 updated_at: new Date().toISOString()
               }, { onConflict: 'user_id' });
-            } catch (err) {
-              console.error("Failed to update canceled subscription in cloud:", err);
             }
+          } catch (err) {
+            console.error("Failed to update canceled subscription in cloud:", err);
           }
         }
       },
