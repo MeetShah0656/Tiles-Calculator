@@ -109,17 +109,54 @@ CREATE POLICY "Users can manage own rows" ON public.measurement_rows
     )
   );
 
--- Trigger to automatically create a user profile when a user signs up
+-- Trigger to automatically create a user profile and default subscription when a user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  clean_email TEXT;
+  hash1 TEXT;
+  hash2 TEXT;
+  generated_key TEXT;
 BEGIN
+  -- 1. Create Profile Record
   INSERT INTO public.profiles (id, business_name, phone_number, role)
   VALUES (
     new.id,
-    COALESCE(new.raw_user_meta_data->>'business_name', 'Yash Marble'),
+    COALESCE(new.raw_user_meta_data->>'business_name', 'TIVERA Natural Stone'),
     COALESCE(new.raw_user_meta_data->>'phone_number', ''),
     'supervisor'
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;
+
+  -- 2. Generate Deterministic Activation Key for Email
+  clean_email := UPPER(REGEXP_REPLACE(COALESCE(new.email, 'USER'), '[^a-zA-Z0-9]', '', 'g'));
+  hash1 := RPAD(SUBSTRING(clean_email FROM 1 FOR 4), 4, 'X');
+  hash2 := LPAD(TO_HEX(ABS(HASHTEXT(COALESCE(new.email, 'USER')) % 65535)), 4, '0');
+  generated_key := 'TIVERA-7D-' || hash1 || '-' || UPPER(hash2);
+
+  -- 3. Create Default Free Subscription with Assigned Activation Key
+  INSERT INTO public.subscriptions (
+    user_id,
+    user_email,
+    plan_name,
+    status,
+    payment_provider,
+    activation_key,
+    created_at,
+    updated_at
+  )
+  VALUES (
+    new.id,
+    new.email,
+    'Free Tier',
+    'active',
+    'manual',
+    generated_key,
+    NOW(),
+    NOW()
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -129,4 +166,5 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 
