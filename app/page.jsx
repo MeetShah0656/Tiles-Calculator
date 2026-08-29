@@ -117,12 +117,38 @@ function MainApp() {
         const mergeUserProfile = async (authUser) => {
           if (!authUser) return null;
           try {
+            const storeState = useJobStore.getState();
+            const userEmail = authUser.email;
+            const defaultKeyRec = storeState.getOrGenerateUserKey(userEmail);
+
             const { data: prof } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', authUser.id)
               .single();
+
             if (prof) {
+              const isUsedInDb = prof.key_is_used === true;
+              const dbKey = prof.activation_key || defaultKeyRec.key;
+
+              useJobStore.setState((prev) => ({
+                userActivationKeys: {
+                  ...(prev.userActivationKeys || {}),
+                  [userEmail]: {
+                    key: dbKey,
+                    isUsed: isUsedInDb,
+                    usedAt: prof.key_used_at || null
+                  }
+                }
+              }));
+
+              if (prof.pro_expires_at && new Date(prof.pro_expires_at) > new Date()) {
+                useJobStore.getState().activateProSubscription({
+                  planName: 'TIVERA PRO (7-Day Trial)',
+                  expiresAt: prof.pro_expires_at
+                });
+              }
+
               return {
                 ...authUser,
                 user_metadata: {
@@ -131,6 +157,15 @@ function MainApp() {
                   phone_number: prof.phone_number || authUser.user_metadata?.phone_number
                 }
               };
+            } else {
+              // Create profile record in Supabase with deterministic key and key_is_used = false
+              await supabase.from('profiles').upsert({
+                id: authUser.id,
+                business_name: authUser.user_metadata?.business_name || '',
+                phone_number: authUser.user_metadata?.phone_number || '',
+                activation_key: defaultKeyRec.key,
+                key_is_used: false
+              });
             }
           } catch (e) {
             console.error("Failed to merge profile:", e);
