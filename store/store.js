@@ -461,7 +461,7 @@ export const useJobStore = create(
           return { success: false, error: 'Invalid activation key. Please check your key format.' };
         }
 
-        // Check Supabase Cloud Database first for authoritative key status
+        // Check Supabase Cloud Database 'subscriptions' table first for authoritative key status
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
         let supabaseClient = null;
@@ -472,28 +472,27 @@ export const useJobStore = create(
             supabaseClient = createClient(supabaseUrl, supabaseKey);
 
             if (userId) {
-              const { data: dbProfile } = await supabaseClient
-                .from('profiles')
-                .select('key_is_used, key_used_at, pro_expires_at')
-                .eq('id', userId)
-                .single();
+              const { data: dbSub } = await supabaseClient
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', userId)
+                .maybeSingle();
 
-              if (dbProfile?.key_is_used) {
-                // Update local store to match database
+              if (dbSub && dbSub.payment_provider === 'activation_key' && dbSub.activation_key === keyRecord.key) {
                 set((prev) => ({
                   userActivationKeys: {
                     ...(prev.userActivationKeys || {}),
-                    [userEmail]: { ...keyRecord, isUsed: true, usedAt: dbProfile.key_used_at }
+                    [userEmail]: { ...keyRecord, isUsed: true, usedAt: dbSub.activated_at }
                   }
                 }));
                 return {
                   success: false,
-                  error: `This 7-Day Activation Key (${keyRecord.key}) has already been used and cannot be used again until re-enabled by admin.`
+                  error: `This 7-Day Activation Key (${keyRecord.key}) has already been used.`
                 };
               }
             }
           } catch (e) {
-            console.warn("Supabase key check warning:", e);
+            console.warn("Supabase subscription check warning:", e);
           }
         }
 
@@ -526,18 +525,23 @@ export const useJobStore = create(
           }
         }));
 
-        // Persist key redemption status to Supabase Database 'profiles' table
+        // Persist key redemption status to Supabase Database 'subscriptions' table
         if (supabaseClient && userId) {
           try {
-            await supabaseClient.from('profiles').upsert({
-              id: userId,
+            await supabaseClient.from('subscriptions').upsert({
+              user_id: userId,
+              user_email: userEmail,
+              plan_name: 'TIVERA PRO (7-Day Trial)',
+              status: 'active',
+              payment_provider: 'activation_key',
+              payment_id: `key_redeem_${cleanInput}`,
               activation_key: keyRecord.key,
-              key_is_used: true,
-              key_used_at: usedAt,
-              pro_expires_at: expiresAt
-            });
+              activated_at: usedAt,
+              expires_at: expiresAt,
+              updated_at: usedAt
+            }, { onConflict: 'user_id' });
           } catch (err) {
-            console.error("Failed to sync key usage to Supabase database:", err);
+            console.error("Failed to sync key usage to Supabase subscriptions table:", err);
           }
         }
 
@@ -565,19 +569,49 @@ export const useJobStore = create(
         }
       },
 
-      activateProSubscription: (details = {}) => {
+      activateProSubscription: async (details = {}) => {
+        const expiresAt = details.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const activatedAt = details.activatedAt || new Date().toISOString();
+        const planName = details.planName || 'Tivera Pro';
+
         set({
           subscription: {
             isPro: true,
-            planName: details.planName || 'Tivera Pro',
-            expiresAt: details.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            planName,
+            expiresAt,
             paymentId: details.paymentId || 'pay_razorpay_success',
-            activatedAt: new Date().toISOString()
+            activatedAt
           }
         });
+
+        // Persist to Supabase subscriptions table if user details provided
+        if (details.userId) {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          if (supabaseUrl && supabaseKey) {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              await supabase.from('subscriptions').upsert({
+                user_id: details.userId,
+                user_email: details.userEmail || '',
+                plan_name: planName,
+                status: 'active',
+                payment_provider: 'razorpay',
+                payment_id: details.paymentId || null,
+                order_id: details.orderId || null,
+                activated_at: activatedAt,
+                expires_at: expiresAt,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id' });
+            } catch (err) {
+              console.error("Failed to sync subscription to cloud:", err);
+            }
+          }
+        }
       },
 
-      cancelProSubscription: () => {
+      cancelProSubscription: async (userId = null) => {
         set({
           subscription: {
             isPro: false,
@@ -586,6 +620,25 @@ export const useJobStore = create(
             paymentId: null
           }
         });
+
+        if (userId) {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          if (supabaseUrl && supabaseKey) {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              await supabase.from('subscriptions').upsert({
+                user_id: userId,
+                plan_name: 'Free',
+                status: 'canceled',
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id' });
+            } catch (err) {
+              console.error("Failed to update canceled subscription in cloud:", err);
+            }
+          }
+        }
       },
 
       syncPendingJobs: async () => {

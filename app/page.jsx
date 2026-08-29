@@ -121,14 +121,29 @@ function MainApp() {
             const userEmail = authUser.email;
             const defaultKeyRec = storeState.getOrGenerateUserKey(userEmail);
 
-            const { data: prof } = await supabase
-              .from('profiles')
+            // Query dedicated 'subscriptions' table in Supabase
+            const { data: subRecord } = await supabase
+              .from('subscriptions')
               .select('*')
-              .eq('id', authUser.id)
-              .single();
+              .eq('user_id', authUser.id)
+              .maybeSingle();
+
+            if (subRecord) {
+              const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
+              if (isStillValid) {
+                useJobStore.getState().activateProSubscription({
+                  planName: subRecord.plan_name || 'TIVERAPRO',
+                  expiresAt: subRecord.expires_at,
+                  paymentId: subRecord.payment_id,
+                  activatedAt: subRecord.activated_at
+                });
+              } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
+                useJobStore.getState().cancelProSubscription();
+              }
+            }
 
             if (prof) {
-              const isUsedInDb = prof.key_is_used === true;
+              const isUsedInDb = prof.key_is_used === true || (subRecord && subRecord.payment_provider === 'activation_key');
               const dbKey = prof.activation_key || defaultKeyRec.key;
 
               useJobStore.setState((prev) => ({
@@ -137,17 +152,10 @@ function MainApp() {
                   [userEmail]: {
                     key: dbKey,
                     isUsed: isUsedInDb,
-                    usedAt: prof.key_used_at || null
+                    usedAt: prof.key_used_at || subRecord?.activated_at || null
                   }
                 }
               }));
-
-              if (prof.pro_expires_at && new Date(prof.pro_expires_at) > new Date()) {
-                useJobStore.getState().activateProSubscription({
-                  planName: 'TIVERA PRO (7-Day Trial)',
-                  expiresAt: prof.pro_expires_at
-                });
-              }
 
               return {
                 ...authUser,
@@ -158,7 +166,7 @@ function MainApp() {
                 }
               };
             } else {
-              // Create profile record in Supabase with deterministic key and key_is_used = false
+              // Create profile record in Supabase
               await supabase.from('profiles').upsert({
                 id: authUser.id,
                 business_name: authUser.user_metadata?.business_name || '',
@@ -168,7 +176,7 @@ function MainApp() {
               });
             }
           } catch (e) {
-            console.error("Failed to merge profile:", e);
+            console.error("Failed to merge profile or subscription:", e);
           }
           return authUser;
         };
