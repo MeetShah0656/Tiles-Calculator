@@ -404,8 +404,99 @@ export default function ActiveJobCalculator({
 
               {!isCollapsed && (
                 <div className="p-4 space-y-4">
-                  {/* Rows Table */}
-                  <div className="overflow-x-auto">
+                  {/* Mobile Row Card Stack */}
+                  <div className="space-y-3 md:hidden">
+                    {tile.rows.map((row, rIdx) => (
+                      <div key={row.id} className="bg-white border border-[#d4d1ca] p-3 space-y-2.5">
+                        <div className="flex justify-between items-center pb-1.5 border-b border-[#e8e6e1]">
+                          <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider">
+                            ITEM #{rIdx + 1}
+                          </span>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => handleDuplicateRowInTile(tile.id, row.id)}
+                              className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer flex items-center space-x-1 text-[10px] font-black"
+                              title="Duplicate"
+                            >
+                              <Copy size={13} />
+                              <span>COPY</span>
+                            </button>
+                            <button
+                              onClick={() => deleteRowFromTile(tile.id, row.id)}
+                              className="p-1 text-rose-700 hover:text-rose-900 cursor-pointer flex items-center space-x-1 text-[10px] font-black"
+                              title="Delete"
+                            >
+                              <Trash2 size={13} />
+                              <span>DEL</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                            Location / Space
+                          </label>
+                          <input
+                            type="text"
+                            value={row.location}
+                            onChange={(e) => updateTileRow(tile.id, row.id, 'location', e.target.value)}
+                            placeholder="e.g. Living Room Floor"
+                            className="w-full px-2.5 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] bg-[#f4f2ee] outline-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                              Length (in)
+                            </label>
+                            <input
+                              type="text"
+                              value={row.lengthInches}
+                              onChange={(e) => updateTileRow(tile.id, row.id, 'lengthInches', e.target.value)}
+                              placeholder="0"
+                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                              Width (in)
+                            </label>
+                            <input
+                              type="text"
+                              value={row.widthInches}
+                              onChange={(e) => updateTileRow(tile.id, row.id, 'widthInches', e.target.value)}
+                              placeholder="0"
+                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                              Qty
+                            </label>
+                            <input
+                              type="number"
+                              value={row.quantity}
+                              onChange={(e) => updateTileRow(tile.id, row.id, 'quantity', e.target.value)}
+                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2 text-xs border-t border-dashed border-[#d4d1ca]">
+                          <span className="text-[10px] text-[#6b6863] font-bold">
+                            Rounded: {row.roundedLengthFt > 0 || row.roundedWidthFt > 0 ? `${row.roundedLengthFt}' × ${row.roundedWidthFt}'` : '-'}
+                          </span>
+                          <span className="font-black text-[#0a0a0a]">
+                            {row.totalArea > 0 ? `${row.totalArea.toFixed(2)} sq ft` : '0.00 sq ft'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Rows Table */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
                         <tr className="border-b border-[#d4d1ca] text-[#6b6863] font-black uppercase text-[10px] tracking-wider">
