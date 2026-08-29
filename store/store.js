@@ -688,19 +688,21 @@ export const useJobStore = create(
             if (activeUserId && isValidUUID(activeUserId)) {
               const nowIso = new Date().toISOString();
               
-              // 1. Upsert canceled status row
-              await supabase.from('subscriptions').upsert({
+              // Upsert canceled status row in Supabase subscriptions table
+              const { error } = await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
                 user_email: activeUserEmail,
                 plan_name: 'Free Tier',
                 status: 'canceled',
-                expires_at: nowIso,
+                payment_provider: 'manual',
                 payment_id: null,
+                expires_at: nowIso,
                 updated_at: nowIso
-              }, { onConflict: 'user_id' }).catch(() => null);
+              }, { onConflict: 'user_id' });
 
-              // 2. Also remove active subscription row if exists
-              await supabase.from('subscriptions').delete().eq('user_id', activeUserId).catch(() => null);
+              if (error) {
+                console.warn("Supabase downgrade upsert warning:", error);
+              }
             }
           } catch (err) {
             console.warn("Cloud downgrade sync warning:", err);

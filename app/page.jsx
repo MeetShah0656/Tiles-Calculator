@@ -113,12 +113,12 @@ function MainApp() {
                     paymentId: subRecord.payment_id,
                     activatedAt: subRecord.activated_at
                   }, true);
-                } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
+                } else {
                   useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
                 }
 
-                // Update activation key status from subscriptions table if applicable
-                if (subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
+                // Update activation key status from subscriptions table if active
+                if (subRecord.status === 'active' && subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
                   useJobStore.setState((prev) => ({
                     userActivationKeys: {
                       ...(prev.userActivationKeys || {}),
@@ -130,6 +130,8 @@ function MainApp() {
                     }
                   }));
                 }
+              } else {
+                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
               }
 
               const { data: prof } = await supabase
