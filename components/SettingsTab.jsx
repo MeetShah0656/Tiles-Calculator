@@ -151,25 +151,25 @@ export default function SettingsTab({ user, onProfileUpdate }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12 animate-fadeIn">
-      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-8">
+    <div className="max-w-3xl mx-auto space-y-6 pb-20 md:pb-12 animate-fadeIn">
+      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-4 sm:p-6 md:p-8 shadow-xs">
         <div className="border-b border-[#d4d1ca] pb-4 mb-6">
-          <span className="text-[10px] uppercase font-black text-[#6b6863] tracking-[0.25em]">TIVERA PREFERENCES</span>
-          <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">SETTINGS & BILLING</h1>
+          <span className="text-[9px] sm:text-[10px] uppercase font-black text-[#6b6863] tracking-[0.2em] sm:tracking-[0.25em]">TIVERA PREFERENCES</span>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">SETTINGS & BILLING</h1>
           <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider mt-1">
             Manage your business profile info, activation key, Razorpay subscription, and cloud database synchronization.
           </p>
         </div>
 
         {successMsg && (
-          <div className="mb-5 p-4 bg-[#0a0a0a] text-white text-xs flex items-center space-x-2 font-black uppercase tracking-wider border border-black">
+          <div className="mb-5 p-3.5 bg-[#0a0a0a] text-white text-xs flex items-center space-x-2 font-black uppercase tracking-wider border border-black">
             <Check size={16} className="text-emerald-400 flex-shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {errorMsg && (
-          <div className="mb-5 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2 font-bold uppercase tracking-wider">
+          <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2 font-bold uppercase tracking-wider">
             <AlertTriangle size={16} className="text-rose-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <span>{errorMsg}</span>
@@ -179,26 +179,26 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* Subscription & Membership Box */}
-          <div className="p-6 bg-[#0a0a0a] text-white border border-black space-y-4">
-            <div className="flex justify-between items-center">
+          <div className="p-4 sm:p-6 bg-[#0a0a0a] text-white border border-black space-y-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="flex items-center space-x-2">
                 <Sparkles size={16} className="text-white" />
-                <span className="text-xs font-black uppercase tracking-[0.2em]">SUBSCRIPTION STATUS</span>
+                <span className="text-xs font-black uppercase tracking-[0.18em]">SUBSCRIPTION STATUS</span>
               </div>
               {isPro ? (
-                <span className="px-3 py-1 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest">
+                <span className="px-3 py-1 bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest">
                   ACTIVE PRO MEMBER
                 </span>
               ) : (
-                <span className="px-3 py-1 bg-neutral-800 text-neutral-300 text-[10px] font-black uppercase tracking-widest">
+                <span className="px-3 py-1 bg-neutral-800 text-neutral-300 text-[9px] font-black uppercase tracking-widest">
                   FREE TIER (RESTRICTED)
                 </span>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-neutral-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-neutral-800">
               <div>
-                <h3 className="text-xl font-black uppercase tracking-wider">{subscription.planName || 'Free Tier'}</h3>
+                <h3 className="text-lg sm:text-xl font-black uppercase tracking-wider">{subscription.planName || 'Free Tier'}</h3>
                 <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-1">
                   {isPro 
                     ? `Unlimited sheet scans & measurement rows. Expiration: ${subscription.expiresAt ? new Date(subscription.expiresAt).toLocaleDateString() : 'Active'}` 
@@ -210,7 +210,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 <button
                   type="button"
                   onClick={() => setIsUpgradeModalOpen(true)}
-                  className="px-6 py-3 bg-white text-[#0a0a0a] hover:bg-neutral-200 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer whitespace-nowrap border border-white flex items-center space-x-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-white text-[#0a0a0a] hover:bg-neutral-200 text-xs font-black tracking-[0.18em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer whitespace-nowrap border border-white flex items-center justify-center space-x-2 active:scale-98"
                 >
                   <CreditCard size={14} />
                   <span>UPGRADE TO PRO</span>
@@ -219,7 +219,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 <button
                   type="button"
                   onClick={cancelProSubscription}
-                  className="px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2 border border-neutral-700 text-neutral-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer text-center"
                 >
                   DOWNGRADE TO FREE
                 </button>
@@ -229,11 +229,11 @@ export default function SettingsTab({ user, onProfileUpdate }) {
 
           {/* UNIQUE 7-DAY ACTIVATION KEY CARD - ONLY VISIBLE IF UNUSED */}
           {!userKeyRecord?.isUsed && (
-            <div className="p-6 bg-[#e8e6e1] border border-[#d4d1ca] space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-6 bg-[#e8e6e1] border border-[#d4d1ca] space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center space-x-2">
-                  <Key size={18} className="text-[#0a0a0a]" />
-                  <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em]">
+                  <Key size={16} className="text-[#0a0a0a] flex-shrink-0" />
+                  <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.15em] sm:tracking-[0.2em]">
                     YOUR UNIQUE 7-DAY PRO ACTIVATION KEY
                   </h3>
                 </div>
@@ -242,17 +242,17 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 </span>
               </div>
 
-              <div className="bg-white border border-[#d4d1ca] p-4 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-widest block">Assigned Single-Use Code</span>
-                  <span className="text-lg font-black text-[#0a0a0a] tracking-[0.25em] select-all">
+              <div className="bg-white border border-[#d4d1ca] p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="w-full sm:w-auto">
+                  <span className="text-[9px] sm:text-[10px] font-black text-[#6b6863] uppercase tracking-widest block">Assigned Single-Use Code</span>
+                  <span className="text-sm sm:text-lg font-black text-[#0a0a0a] tracking-[0.15em] sm:tracking-[0.25em] select-all break-all block mt-0.5">
                     {userKeyRecord?.key || 'TIVERA-7D-MEET-0656'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyKey}
-                  className="px-3 py-1.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-wider flex items-center space-x-1 cursor-pointer"
+                  className="w-full sm:w-auto px-3.5 py-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1 cursor-pointer active:scale-95 border border-black"
                 >
                   {copiedKey ? <CheckCircle2 size={14} className="text-emerald-400" /> : <Copy size={14} />}
                   <span>{copiedKey ? 'COPIED' : 'COPY'}</span>
@@ -290,7 +290,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                   <button
                     type="button"
                     onClick={handleRedeemKey}
-                    className="px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] transition-all cursor-pointer border border-black whitespace-nowrap text-center active:scale-98"
                   >
                     REDEEM 7-DAY TRIAL
                   </button>
@@ -299,17 +299,17 @@ export default function SettingsTab({ user, onProfileUpdate }) {
             </div>
           )}
 
-          <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 bg-[#0a0a0a] text-white flex items-center justify-center font-black uppercase text-base border border-black">
+          <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#0a0a0a] text-white flex items-center justify-center font-black uppercase text-sm sm:text-base border border-black flex-shrink-0">
                 {user?.email?.slice(0, 2) || 'TV'}
               </div>
-              <div>
-                <span className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest">LOGGED IN ACCOUNT</span>
-                <span className="font-black text-[#0a0a0a] text-sm uppercase">{user?.email || 'TIVERA User'}</span>
+              <div className="overflow-hidden">
+                <span className="block text-[9px] sm:text-[10px] font-black text-[#6b6863] uppercase tracking-widest">LOGGED IN ACCOUNT</span>
+                <span className="font-black text-[#0a0a0a] text-xs sm:text-sm uppercase truncate block">{user?.email || 'TIVERA User'}</span>
               </div>
             </div>
-            <span className="inline-flex items-center px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-[#0a0a0a] text-white">
+            <span className="inline-flex items-center px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-[#0a0a0a] text-white self-start sm:self-auto">
               <ShieldCheck size={12} className="mr-1" /> ACTIVE SESSION
             </span>
           </div>
@@ -365,16 +365,16 @@ export default function SettingsTab({ user, onProfileUpdate }) {
               CLOUD DATABASE & STORAGE
             </h3>
             
-            <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="bg-[#e8e6e1] border border-[#d4d1ca] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <Cloud size={16} className="text-[#0a0a0a]" />
+                  <Cloud size={16} className="text-[#0a0a0a] flex-shrink-0" />
                   <span className="font-black text-xs text-[#0a0a0a] uppercase tracking-wider">
-                    NETWORK STATUS: {isOnline ? 'ONLINE (CONNECTED)' : 'OFFLINE (LOCAL MODE)'}
+                    NETWORK: {isOnline ? 'ONLINE' : 'OFFLINE'}
                   </span>
                 </div>
                 <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">
-                  Saved estimates: <strong className="text-[#0a0a0a]">{jobs.length} total</strong> ({jobs.filter(j => j.syncStatus === 'pending_sync').length} pending sync)
+                  Saved estimates: <strong className="text-[#0a0a0a]">{jobs.length} total</strong> ({jobs.filter(j => j.syncStatus === 'pending_sync').length} pending)
                 </p>
               </div>
 
@@ -382,7 +382,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing || !isOnline}
-                className="flex items-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black tracking-widest uppercase px-4 py-2.5 disabled:opacity-40 transition-all cursor-pointer border border-black"
+                className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white text-xs font-black tracking-widest uppercase px-4 py-2.5 disabled:opacity-40 transition-all cursor-pointer border border-black active:scale-98"
               >
                 <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
                 <span>{isSyncing ? 'SYNCING...' : 'SYNC CLOUD DATA'}</span>
@@ -394,7 +394,7 @@ export default function SettingsTab({ user, onProfileUpdate }) {
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black px-8 py-3 text-xs tracking-[0.2em] disabled:opacity-50 transition-all cursor-pointer border border-black uppercase"
+              className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black px-8 py-3.5 text-xs tracking-[0.18em] sm:tracking-[0.2em] disabled:opacity-50 transition-all cursor-pointer border border-black uppercase active:scale-98 shadow-xs"
             >
               {isSaving ? (
                 <>

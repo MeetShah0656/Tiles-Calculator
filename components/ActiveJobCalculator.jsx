@@ -22,7 +22,8 @@ import UpgradeProModal from './UpgradeProModal.jsx';
 export default function ActiveJobCalculator({
   jobType = 'activeJob',
   roundingStep = 0.25,
-  categoryTitle = 'Granite & Marble'
+  categoryTitle = 'Granite & Marble',
+  presetSizes = []
 }) {
   const store = useJobStore((state) => state);
   const targetJob = store[jobType] || store.activeJob;
@@ -205,9 +206,9 @@ export default function ActiveJobCalculator({
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-24 md:pb-16">
       {/* Header Title & Actions (GAZU Style Alignment) */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f4f2ee] border border-[#d4d1ca] p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f4f2ee] border border-[#d4d1ca] p-4 sm:p-6">
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-[0.25em] block">
@@ -229,7 +230,7 @@ export default function ActiveJobCalculator({
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-[0.15em] uppercase mt-1">
             {categoryTitle} OPERATIONS
           </h1>
           <p className="text-xs font-bold text-[#6b6863] uppercase tracking-wider mt-0.5">
@@ -237,37 +238,37 @@ export default function ActiveJobCalculator({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
           <button
             onClick={handlePrint}
-            className={`flex items-center space-x-2 px-5 py-3 border font-black text-xs tracking-[0.2em] uppercase transition-all cursor-pointer ${
+            className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 border font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer ${
               isPro 
                 ? 'bg-white border-black hover:bg-[#e8e6e1] text-[#0a0a0a]'
                 : 'bg-[#e8e6e1] border-[#d4d1ca] text-[#6b6863] hover:border-black'
             }`}
           >
             {isPro ? <Printer size={16} /> : <Lock size={14} className="text-[#6b6863]" />}
-            <span>PRINT INVOICE</span>
+            <span>PRINT</span>
           </button>
 
           <button
             onClick={handleWhatsAppShare}
-            className={`flex items-center space-x-2 px-5 py-3 font-black text-xs tracking-[0.2em] uppercase transition-all cursor-pointer border border-black ${
+            className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer border border-black ${
               isPro
                 ? 'bg-[#0a0a0a] hover:bg-neutral-800 text-white'
                 : 'bg-neutral-800 text-neutral-300 hover:bg-[#0a0a0a]'
             }`}
           >
             {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-neutral-400" />}
-            <span>WHATSAPP INVOICE</span>
+            <span>WHATSAPP</span>
           </button>
         </div>
       </div>
 
       {!isPro && (
-        <div className="p-5 bg-[#0a0a0a] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-black">
+        <div className="p-4 sm:p-5 bg-[#0a0a0a] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-black">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-[#e8e6e1] text-[#0a0a0a] font-black border border-white">
+            <div className="p-2 bg-[#e8e6e1] text-[#0a0a0a] font-black border border-white flex-shrink-0">
               <Lock size={18} />
             </div>
             <div>
@@ -279,7 +280,7 @@ export default function ActiveJobCalculator({
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="px-5 py-2.5 bg-white text-[#0a0a0a] text-xs font-black tracking-[0.2em] uppercase hover:bg-neutral-200 transition-all cursor-pointer whitespace-nowrap border border-white"
+            className="w-full sm:w-auto px-5 py-2.5 bg-white text-[#0a0a0a] text-xs font-black tracking-[0.2em] uppercase hover:bg-neutral-200 transition-all cursor-pointer whitespace-nowrap border border-white text-center"
           >
             UPGRADE TO PRO
           </button>
@@ -294,13 +295,13 @@ export default function ActiveJobCalculator({
       )}
 
       {/* Customer Info Form (Equal Grid Alignments) */}
-      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-6 space-y-4">
+      <div className="bg-[#f4f2ee] border border-[#d4d1ca] p-4 sm:p-6 space-y-4">
         <h2 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
           CUSTOMER & SITE INFORMATION
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 items-end">
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Customer Name *</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Customer Name *</label>
             <input
               type="text"
               value={targetJob.customerName}
@@ -310,7 +311,7 @@ export default function ActiveJobCalculator({
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Phone Number</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Phone Number</label>
             <input
               type="text"
               value={targetJob.phoneNumber}
@@ -320,7 +321,7 @@ export default function ActiveJobCalculator({
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1.5">Site Address</label>
+            <label className="block text-[10px] font-black text-[#6b6863] uppercase tracking-widest mb-1">Site Address</label>
             <input
               type="text"
               value={targetJob.siteAddress}
@@ -334,13 +335,13 @@ export default function ActiveJobCalculator({
 
       {/* Tile Groups List */}
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <h2 className="text-xs font-black text-[#0a0a0a] uppercase tracking-[0.2em] border-l-2 border-[#0a0a0a] pl-3">
             MEASUREMENT GROUPS ({targetJob.tiles.length})
           </h2>
           <button
             onClick={addTile}
-            className="flex items-center space-x-1.5 px-4 py-2.5 bg-[#0a0a0a] text-white border border-black hover:bg-neutral-800 text-xs font-black transition-all cursor-pointer uppercase tracking-[0.2em]"
+            className="w-full sm:w-auto flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-[#0a0a0a] text-white border border-black hover:bg-neutral-800 text-xs font-black transition-all cursor-pointer uppercase tracking-[0.18em]"
           >
             <Plus size={14} />
             <span>ADD CATEGORY GROUP</span>
@@ -353,14 +354,14 @@ export default function ActiveJobCalculator({
           return (
             <div 
               key={tile.id} 
-              className="bg-[#f4f2ee] border border-[#d4d1ca] overflow-hidden transition-all"
+              className="bg-[#f4f2ee] border border-[#d4d1ca] overflow-hidden transition-all shadow-xs"
             >
               {/* Card Header */}
-              <div className="bg-[#e8e6e1] p-4 border-b border-[#d4d1ca] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div className="flex items-center space-x-3 w-full sm:w-auto">
+              <div className="bg-[#e8e6e1] p-3.5 sm:p-4 border-b border-[#d4d1ca] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="flex items-center space-x-2.5 w-full sm:w-auto">
                   <button
                     onClick={() => toggleTileCollapse(tile.id)}
-                    className="p-1 hover:bg-[#d4d1ca] text-[#0a0a0a] transition-colors cursor-pointer"
+                    className="p-1 hover:bg-[#d4d1ca] text-[#0a0a0a] transition-colors cursor-pointer rounded-xs"
                   >
                     {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                   </button>
@@ -370,26 +371,29 @@ export default function ActiveJobCalculator({
                       value={tile.tileName}
                       onChange={(e) => updateTile(tile.id, { tileName: e.target.value })}
                       placeholder={`Category ${tileIdx + 1}`}
-                      className="text-sm font-black text-[#0a0a0a] bg-transparent border-b border-dashed border-[#0a0a0a] focus:outline-none px-1 py-0.5 w-full sm:w-64 uppercase tracking-wider"
+                      className="text-xs sm:text-sm font-black text-[#0a0a0a] bg-transparent border-b border-dashed border-[#0a0a0a] focus:outline-none px-1 py-0.5 w-full sm:w-64 uppercase tracking-wider"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider">Rate/sqft (₹):</span>
-                    <input
-                      type="number"
-                      value={tile.ratePerSqft}
-                      onChange={(e) => updateTile(tile.id, { ratePerSqft: Number(e.target.value) || 0 })}
-                      placeholder="0"
-                      className="w-24 px-2.5 py-1 border border-[#d4d1ca] text-xs font-black text-[#0a0a0a] text-right focus:border-[#0a0a0a] bg-white outline-none"
-                    />
+                <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-[#d4d1ca]">
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-[9px] sm:text-[10px] font-black text-[#6b6863] uppercase tracking-wider">Rate/sqft:</span>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-xs font-black text-[#6b6863]">₹</span>
+                      <input
+                        type="number"
+                        value={tile.ratePerSqft}
+                        onChange={(e) => updateTile(tile.id, { ratePerSqft: Number(e.target.value) || 0 })}
+                        placeholder="0"
+                        className="w-20 sm:w-24 pl-5 pr-2 py-1 border border-[#d4d1ca] text-xs font-black text-[#0a0a0a] text-right focus:border-[#0a0a0a] bg-white outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider block">Subtotal</span>
-                    <span className="text-sm font-black text-[#0a0a0a]">{formatCurrency(tile.subtotal)}</span>
+                    <span className="text-[9px] font-black text-[#6b6863] uppercase tracking-wider block">Subtotal</span>
+                    <span className="text-xs sm:text-sm font-black text-[#0a0a0a]">{formatCurrency(tile.subtotal)}</span>
                   </div>
 
                   <button
@@ -403,30 +407,67 @@ export default function ActiveJobCalculator({
               </div>
 
               {!isCollapsed && (
-                <div className="p-4 space-y-4">
+                <div className="p-3 sm:p-4 space-y-4">
+                  {/* Category Size Preset Chips Header (if presets exist) */}
+                  {presetSizes.length > 0 && (
+                    <div className="p-3 bg-[#e8e6e1] border border-[#d4d1ca] space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-[#0a0a0a] uppercase tracking-wider">
+                          FAST PRESET SIZES ({categoryTitle})
+                        </span>
+                        <span className="text-[9px] font-bold text-[#6b6863] uppercase tracking-wider">Tap to add pre-filled row</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {presetSizes.map((preset, pIdx) => (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => {
+                              if (!isPro && totalRowsCount >= 5) {
+                                setIsUpgradeModalOpen(true);
+                                return;
+                              }
+                              store.addRowToTile(tile.id, jobType);
+                              const currentRows = store[jobType]?.tiles?.find(t => t.id === tile.id)?.rows || [];
+                              const lastRow = currentRows[currentRows.length - 1];
+                              if (lastRow) {
+                                store.updateTileRow(tile.id, lastRow.id, 'lengthInches', String(preset.l), jobType);
+                                store.updateTileRow(tile.id, lastRow.id, 'widthInches', String(preset.w), jobType);
+                                store.updateTileRow(tile.id, lastRow.id, 'location', preset.name, jobType);
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-white hover:bg-[#0a0a0a] hover:text-white text-[#0a0a0a] border border-[#d4d1ca] text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shadow-2xs"
+                          >
+                            + {preset.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Mobile Row Card Stack */}
                   <div className="space-y-3 md:hidden">
                     {tile.rows.map((row, rIdx) => (
-                      <div key={row.id} className="bg-white border border-[#d4d1ca] p-3 space-y-2.5">
-                        <div className="flex justify-between items-center pb-1.5 border-b border-[#e8e6e1]">
-                          <span className="text-[10px] font-black text-[#6b6863] uppercase tracking-wider">
+                      <div key={row.id} className="bg-white border border-[#d4d1ca] p-3 space-y-3 shadow-xs">
+                        <div className="flex justify-between items-center pb-2 border-b border-[#e8e6e1]">
+                          <span className="text-[10px] font-black text-[#0a0a0a] uppercase tracking-wider bg-[#e8e6e1] px-2 py-0.5 border border-[#d4d1ca]">
                             ITEM #{rIdx + 1}
                           </span>
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleDuplicateRowInTile(tile.id, row.id)}
-                              className="p-1 text-[#6b6863] hover:text-[#0a0a0a] cursor-pointer flex items-center space-x-1 text-[10px] font-black"
+                              className="px-2 py-1 bg-[#f4f2ee] hover:bg-[#e8e6e1] text-[#0a0a0a] cursor-pointer flex items-center space-x-1 text-[10px] font-black border border-[#d4d1ca]"
                               title="Duplicate"
                             >
-                              <Copy size={13} />
+                              <Copy size={12} />
                               <span>COPY</span>
                             </button>
                             <button
                               onClick={() => deleteRowFromTile(tile.id, row.id)}
-                              className="p-1 text-rose-700 hover:text-rose-900 cursor-pointer flex items-center space-x-1 text-[10px] font-black"
+                              className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer flex items-center space-x-1 text-[10px] font-black border border-rose-200"
                               title="Delete"
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={12} />
                               <span>DEL</span>
                             </button>
                           </div>
@@ -434,20 +475,20 @@ export default function ActiveJobCalculator({
 
                         <div>
                           <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
-                            Location / Space
+                            Location / Space Name
                           </label>
                           <input
                             type="text"
                             value={row.location}
                             onChange={(e) => updateTileRow(tile.id, row.id, 'location', e.target.value)}
-                            placeholder="e.g. Living Room Floor"
-                            className="w-full px-2.5 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] bg-[#f4f2ee] outline-none"
+                            placeholder="e.g. Master Bedroom Floor"
+                            className="w-full px-2.5 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] bg-[#f4f2ee] outline-none focus:border-[#0a0a0a]"
                           />
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                        <div className="grid grid-cols-12 gap-2 items-end">
+                          <div className="col-span-4">
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1 text-center">
                               Length (in)
                             </label>
                             <input
@@ -455,11 +496,11 @@ export default function ActiveJobCalculator({
                               value={row.lengthInches}
                               onChange={(e) => updateTileRow(tile.id, row.id, 'lengthInches', e.target.value)}
                               placeholder="0"
-                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
+                              className="w-full px-2 py-2 border border-[#d4d1ca] text-xs font-black text-[#0a0a0a] text-center bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </div>
-                          <div>
-                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
+                          <div className="col-span-4">
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1 text-center">
                               Width (in)
                             </label>
                             <input
@@ -467,28 +508,65 @@ export default function ActiveJobCalculator({
                               value={row.widthInches}
                               onChange={(e) => updateTileRow(tile.id, row.id, 'widthInches', e.target.value)}
                               placeholder="0"
-                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
+                              className="w-full px-2 py-2 border border-[#d4d1ca] text-xs font-black text-[#0a0a0a] text-center bg-white outline-none focus:border-[#0a0a0a]"
                             />
                           </div>
-                          <div>
-                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1">
-                              Qty
+                          <div className="col-span-4">
+                            <label className="block text-[9px] font-black text-[#6b6863] uppercase tracking-wider mb-1 text-center">
+                              Quantity
                             </label>
-                            <input
-                              type="number"
-                              value={row.quantity}
-                              onChange={(e) => updateTileRow(tile.id, row.id, 'quantity', e.target.value)}
-                              className="w-full px-2 py-1.5 border border-[#d4d1ca] text-xs font-bold text-[#0a0a0a] text-center bg-white outline-none"
-                            />
+                            <div className="flex items-center border border-[#d4d1ca] bg-white">
+                              <button
+                                type="button"
+                                onClick={() => updateTileRow(tile.id, row.id, 'quantity', Math.max(1, (Number(row.quantity) || 1) - 1))}
+                                className="w-6 py-1.5 bg-[#e8e6e1] active:bg-[#0a0a0a] active:text-white font-black text-xs text-center border-r border-[#d4d1ca] flex items-center justify-center select-none"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                value={row.quantity}
+                                onChange={(e) => updateTileRow(tile.id, row.id, 'quantity', e.target.value)}
+                                className="w-full text-xs font-black text-[#0a0a0a] text-center outline-none py-1 bg-transparent"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateTileRow(tile.id, row.id, 'quantity', (Number(row.quantity) || 0) + 1)}
+                                className="w-6 py-1.5 bg-[#e8e6e1] active:bg-[#0a0a0a] active:text-white font-black text-xs text-center border-l border-[#d4d1ca] flex items-center justify-center select-none"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center pt-2 text-xs border-t border-dashed border-[#d4d1ca]">
-                          <span className="text-[10px] text-[#6b6863] font-bold">
-                            Rounded: {row.roundedLengthFt > 0 || row.roundedWidthFt > 0 ? `${row.roundedLengthFt}' × ${row.roundedWidthFt}'` : '-'}
+                        {/* Quick Presets for this specific row */}
+                        {presetSizes.length > 0 && (
+                          <div className="pt-1">
+                            <div className="flex flex-wrap gap-1">
+                              {presetSizes.map((preset, pIdx) => (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    updateTileRow(tile.id, row.id, 'lengthInches', String(preset.l));
+                                    updateTileRow(tile.id, row.id, 'widthInches', String(preset.w));
+                                  }}
+                                  className="px-2 py-0.5 bg-[#f4f2ee] hover:bg-[#0a0a0a] hover:text-white text-[#0a0a0a] border border-[#d4d1ca] text-[8px] font-black uppercase tracking-wider"
+                                >
+                                  {preset.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center pt-2.5 text-xs border-t border-dashed border-[#d4d1ca]">
+                          <span className="text-[9px] font-black text-[#6b6863] uppercase tracking-wider bg-[#f4f2ee] px-2 py-0.5 border border-[#d4d1ca]">
+                            ROUNDED: {row.roundedLengthFt > 0 || row.roundedWidthFt > 0 ? `${row.roundedLengthFt}' × ${row.roundedWidthFt}'` : '-'}
                           </span>
-                          <span className="font-black text-[#0a0a0a]">
-                            {row.totalArea > 0 ? `${row.totalArea.toFixed(2)} sq ft` : '0.00 sq ft'}
+                          <span className="font-black text-[#0a0a0a] text-xs bg-[#0a0a0a] text-white px-2.5 py-0.5">
+                            {row.totalArea > 0 ? `${row.totalArea.toFixed(2)} SQ FT` : '0.00 SQ FT'}
                           </span>
                         </div>
                       </div>
@@ -582,17 +660,17 @@ export default function ActiveJobCalculator({
                   </div>
 
                   {/* Action Bar for scanning paper notes & adding rows at bottom of table */}
-                  <div className="flex justify-between items-center pt-3 border-t border-[#d4d1ca]">
+                  <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 pt-3 border-t border-[#d4d1ca]">
                     <button
                       onClick={() => handleAddRowToTile(tile.id)}
-                      className="flex items-center space-x-1 text-xs font-black text-[#0a0a0a] hover:underline cursor-pointer uppercase tracking-widest"
+                      className="flex items-center justify-center space-x-1 py-2 px-3 bg-white border border-[#0a0a0a] text-xs font-black text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white cursor-pointer uppercase tracking-wider transition-colors"
                     >
                       <Plus size={14} />
                       <span>ADD MEASUREMENT ROW</span>
                     </button>
                     <button
                       onClick={() => handleOpenScanner(tile.id)}
-                      className={`flex items-center space-x-1 px-3 py-1.5 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest ${
+                      className={`flex items-center justify-center space-x-1 px-3 py-2 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest ${
                         isPro 
                           ? 'bg-[#0a0a0a] text-white border-black hover:bg-neutral-800' 
                           : 'bg-[#e8e6e1] text-[#6b6863] border-[#d4d1ca] hover:border-black'
@@ -610,21 +688,52 @@ export default function ActiveJobCalculator({
       </div>
 
       {/* Summary Footer */}
-      <div className="bg-[#0a0a0a] text-white p-6 md:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-black">
-        <div className="flex items-center space-x-10 text-xs font-black tracking-widest uppercase">
+      <div className="bg-[#0a0a0a] text-white p-5 sm:p-6 md:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-black shadow-lg">
+        <div className="flex items-center space-x-6 sm:space-x-10 text-xs font-black tracking-widest uppercase">
           <div>
-            <span className="text-neutral-400 text-[10px] block">TOTAL AREA</span>
-            <span className="text-lg font-black text-white">{targetJob.totalArea.toFixed(2)} SQ FT</span>
+            <span className="text-neutral-400 text-[9px] sm:text-[10px] block">TOTAL AREA</span>
+            <span className="text-base sm:text-lg font-black text-white">{targetJob.totalArea.toFixed(2)} SQ FT</span>
           </div>
           <div>
-            <span className="text-neutral-400 text-[10px] block">TOTAL PIECES</span>
-            <span className="text-lg font-black text-neutral-300">{targetJob.totalQuantity} PCS</span>
+            <span className="text-neutral-400 text-[9px] sm:text-[10px] block">TOTAL PIECES</span>
+            <span className="text-base sm:text-lg font-black text-neutral-300">{targetJob.totalQuantity} PCS</span>
           </div>
         </div>
 
-        <div className="text-right">
-          <span className="text-neutral-400 text-[10px] uppercase block font-black tracking-widest">GRAND TOTAL</span>
-          <span className="text-3xl font-black text-white tracking-wider">{formatCurrency(targetJob.grandTotal)}</span>
+        <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-neutral-800 w-full sm:w-auto">
+          <span className="text-neutral-400 text-[9px] sm:text-[10px] uppercase block font-black tracking-widest">GRAND TOTAL</span>
+          <span className="text-2xl sm:text-3xl font-black text-white tracking-wider">{formatCurrency(targetJob.grandTotal)}</span>
+        </div>
+      </div>
+
+      {/* MOBILE STICKY FLOATING QUICK ACTION / SUMMARY BAR */}
+      <div className="md:hidden fixed bottom-12 left-0 right-0 z-30 bg-[#0a0a0a] text-white px-3.5 py-2 border-t border-neutral-800 shadow-2xl flex items-center justify-between">
+        <div>
+          <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider block">LIVE TOTAL</span>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-sm font-black text-white">{targetJob.totalArea.toFixed(2)} sq ft</span>
+            <span className="text-[10px] font-bold text-neutral-400">({targetJob.totalQuantity} pcs)</span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              if (targetJob.tiles && targetJob.tiles[0]) {
+                handleAddRowToTile(targetJob.tiles[0].id);
+              } else {
+                addTile();
+              }
+            }}
+            className="px-3 py-1.5 bg-white text-[#0a0a0a] text-[10px] font-black uppercase tracking-wider cursor-pointer border border-white active:scale-95 flex items-center space-x-1"
+          >
+            <Plus size={12} />
+            <span>ADD ROW</span>
+          </button>
+
+          <span className="text-sm font-black text-emerald-400 tracking-wider">
+            {formatCurrency(targetJob.grandTotal)}
+          </span>
         </div>
       </div>
 
@@ -648,7 +757,7 @@ export default function ActiveJobCalculator({
 
       {/* WhatsApp Share Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
           <div className="bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-[#d4d1ca] pb-3">
               <h3 className="text-xs font-black text-[#0a0a0a] uppercase tracking-widest">SHARE ESTIMATE INVOICE</h3>

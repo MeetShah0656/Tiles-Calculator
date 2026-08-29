@@ -165,26 +165,26 @@ export default function AuthScreen({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-[#e8e6e1] animate-fadeIn">
+    <div className="min-h-screen flex flex-col justify-center items-center p-3.5 sm:p-6 bg-[#e8e6e1] animate-fadeIn">
       {/* Top Brand Bar */}
-      <div className="mb-6 text-center space-y-1">
-        <div className="inline-flex h-14 w-14 items-center justify-center bg-[#0a0a0a] text-white font-black text-2xl shadow-lg border border-black mb-2">
+      <div className="mb-5 sm:mb-6 text-center space-y-1">
+        <div className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center bg-[#0a0a0a] text-white font-black text-xl sm:text-2xl shadow-lg border border-black mb-1.5 sm:mb-2">
           T
         </div>
-        <h1 className="text-3xl font-black text-[#0a0a0a] tracking-[0.3em] uppercase">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
           TIVERA
         </h1>
-        <span className="text-[10px] font-black tracking-[0.25em] uppercase text-[#6b6863] block">
+        <span className="text-[9px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[#6b6863] block">
           NATURAL STONE & TILES ESTIMATOR
         </span>
       </div>
 
-      <div className="w-full max-w-md bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl p-6 sm:p-8 space-y-6">
-        <div className="text-center space-y-1 border-b border-[#d4d1ca] pb-4">
-          <h2 className="text-sm font-black text-[#0a0a0a] tracking-[0.2em] uppercase">
+      <div className="w-full max-w-md bg-[#f4f2ee] border border-[#d4d1ca] shadow-2xl p-5 sm:p-8 space-y-5 sm:space-y-6">
+        <div className="text-center space-y-1 border-b border-[#d4d1ca] pb-3.5">
+          <h2 className="text-xs sm:text-sm font-black text-[#0a0a0a] tracking-[0.18em] sm:tracking-[0.2em] uppercase">
             {isLogin ? 'ACCOUNT SIGN IN' : 'CREATE PRO ACCOUNT'}
           </h2>
-          <p className="text-3xs font-extrabold text-[#6b6863] uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-[#6b6863] uppercase tracking-wider">
             {isLogin ? 'Sign in to access your estimates and calculator workspace.' : 'Create an account for your stone business.'}
           </p>
         </div>
@@ -200,9 +200,9 @@ export default function AuthScreen({ onLoginSuccess }) {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex items-center justify-center space-x-3 py-3 bg-[#f4f2ee] hover:bg-[#e8e6e1] text-[#0a0a0a] font-black text-xs border border-[#0a0a0a] transition-all cursor-pointer uppercase tracking-[0.2em]"
+          className="w-full flex items-center justify-center space-x-3 py-3 bg-[#f4f2ee] hover:bg-[#e8e6e1] active:bg-[#d4d1ca] text-[#0a0a0a] font-black text-xs border border-[#0a0a0a] transition-all cursor-pointer uppercase tracking-[0.15em] sm:tracking-[0.2em] active:scale-98 shadow-2xs"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -225,10 +225,10 @@ export default function AuthScreen({ onLoginSuccess }) {
 
         <div className="relative flex items-center justify-center">
           <div className="border-t border-[#d4d1ca] w-full"></div>
-          <span className="bg-[#f4f2ee] px-3 text-[10px] font-black uppercase text-[#6b6863] tracking-widest absolute">OR EMAIL</span>
+          <span className="bg-[#f4f2ee] px-3 text-[9px] sm:text-[10px] font-black uppercase text-[#6b6863] tracking-widest absolute">OR EMAIL</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
           {!isLogin && (
             <>
               <div>
@@ -303,7 +303,7 @@ export default function AuthScreen({ onLoginSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs shadow-md transition-all cursor-pointer border border-black uppercase tracking-[0.2em]"
+            className="w-full py-3 sm:py-3.5 bg-[#0a0a0a] hover:bg-neutral-800 text-white font-black text-xs shadow-md transition-all cursor-pointer border border-black uppercase tracking-[0.18em] sm:tracking-[0.2em] active:scale-98"
           >
             {loading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
           </button>
@@ -312,7 +312,7 @@ export default function AuthScreen({ onLoginSuccess }) {
         <div className="text-center pt-1">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider hover:underline cursor-pointer"
+            className="text-[11px] sm:text-xs font-black text-[#0a0a0a] uppercase tracking-wider hover:underline cursor-pointer"
           >
             {isLogin ? "DON'T HAVE AN ACCOUNT? SIGN UP" : 'ALREADY HAVE AN ACCOUNT? SIGN IN'}
           </button>

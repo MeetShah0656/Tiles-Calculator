@@ -38,9 +38,9 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
   return (
     <>
       {/* TOP ANNOUNCEMENT BAR (GAZU REFERENCE STYLE) */}
-      <div className="w-full bg-[#0a0a0a] text-white py-2 px-6 text-center text-[10px] font-black uppercase tracking-[0.25em] border-b border-neutral-800 flex justify-between items-center">
+      <div className="w-full bg-[#0a0a0a] text-white py-1.5 px-4 text-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] border-b border-neutral-800 flex justify-between items-center select-none">
         <span className="hidden sm:inline text-neutral-400">PRECISION STONE ESTIMATOR</span>
-        <span className="mx-auto sm:mx-0">TIVERA PRO SUITE • 0.25 FT & 0.50 FT TRADE ROUNDING</span>
+        <span className="mx-auto sm:mx-0 truncate">TIVERA PRO • 0.25 FT & 0.50 FT TRADE ROUNDING</span>
         <span className="hidden sm:inline text-neutral-400">INSTANT INVOICING</span>
       </div>
 
@@ -135,40 +135,58 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
       </header>
 
       {/* MOBILE STICKY HEADER BAR */}
-      <div className="md:hidden sticky top-0 z-40 w-full flex h-16 items-center justify-between px-4 bg-[#f4f2ee] border-b border-[#d4d1ca]">
-        <button
-          onClick={() => setIsDrawerOpen(true)}
-          className="text-[#0a0a0a] p-2 cursor-pointer"
-          aria-label="Open sidebar menu"
-        >
-          <Menu size={22} />
-        </button>
-        
-        <span 
-          onClick={() => setCurrentTab('dashboard')} 
-          className="text-lg font-black tracking-[0.3em] text-[#0a0a0a] uppercase cursor-pointer"
-        >
-          TIVERA
-        </span>
-        
+      <div className="md:hidden sticky top-0 z-40 w-full flex h-14 items-center justify-between px-3.5 bg-[#f4f2ee]/98 backdrop-blur-md border-b border-[#d4d1ca] shadow-2xs">
+        <div className="flex items-center space-x-2.5">
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="text-[#0a0a0a] p-1.5 cursor-pointer hover:bg-[#e8e6e1] active:bg-[#d4d1ca] transition-colors rounded-xs"
+            aria-label="Open sidebar menu"
+          >
+            <Menu size={22} />
+          </button>
+          
+          <div 
+            onClick={() => setCurrentTab('dashboard')} 
+            className="flex items-center space-x-2 cursor-pointer active:opacity-75 transition-opacity"
+          >
+            <div className="flex h-7 w-7 items-center justify-center bg-[#0a0a0a] text-white font-black text-xs border border-black">
+              T
+            </div>
+            <span className="text-base font-black tracking-[0.25em] text-[#0a0a0a] uppercase">
+              TIVERA
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center space-x-2">
-          {!isPro && (
+          {!isPro ? (
             <button
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="px-2.5 py-1 bg-[#0a0a0a] text-white text-[10px] font-black tracking-widest uppercase"
+              className="px-2.5 py-1 bg-[#0a0a0a] text-white text-[9px] font-black tracking-wider uppercase active:scale-95 transition-transform flex items-center space-x-1 border border-black"
             >
-              PRO
+              <Sparkles size={9} className="text-white" />
+              <span>PRO</span>
             </button>
-          )}
-          {isOnline ? (
-            <span className="flex items-center text-[#0a0a0a]">
-              <Wifi size={16} />
-            </span>
           ) : (
-            <span className="flex items-center text-[#6b6863]">
-              <WifiOff size={16} />
+            <span className="px-2 py-0.5 bg-[#0a0a0a] text-white text-[9px] font-black tracking-wider uppercase border border-black">
+              PRO
             </span>
           )}
+
+          <div 
+            title={isOnline ? 'Online - Synced' : 'Offline - Local Mode'}
+            className="p-1"
+          >
+            {isOnline ? (
+              <span className="flex items-center text-emerald-800" title="Online">
+                <Wifi size={16} />
+              </span>
+            ) : (
+              <span className="flex items-center text-[#6b6863]" title="Offline">
+                <WifiOff size={16} />
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -191,23 +209,29 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
           <div>
             <div className="flex items-center justify-between p-5 border-b border-[#d4d1ca] bg-[#e8e6e1]">
               <div className="flex items-center space-x-3">
-                <div className="flex h-9 w-9 items-center justify-center bg-[#0a0a0a] text-white font-black text-lg">
+                <div className="flex h-9 w-9 items-center justify-center bg-[#0a0a0a] text-white font-black text-lg border border-black">
                   T
                 </div>
-                <span className="text-lg font-black tracking-[0.3em] text-[#0a0a0a] uppercase">
-                  TIVERA
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-base font-black tracking-[0.3em] text-[#0a0a0a] uppercase leading-none">
+                    TIVERA
+                  </span>
+                  <span className="text-[8px] font-bold text-[#6b6863] tracking-widest uppercase mt-1">
+                    STONE ESTIMATOR
+                  </span>
+                </div>
               </div>
               <button 
                 onClick={() => setIsDrawerOpen(false)}
-                className="text-[#0a0a0a] p-1.5 cursor-pointer"
+                className="text-[#0a0a0a] p-1.5 cursor-pointer hover:bg-[#d4d1ca] transition-colors rounded-xs"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <nav className="p-4 space-y-2">
+            <nav className="p-3 space-y-1.5">
               {navItems.map((item) => {
+                const IconComponent = item.icon;
                 const isActive = currentTab === item.id;
                 return (
                   <button
@@ -216,27 +240,28 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                       setCurrentTab(item.id);
                       setIsDrawerOpen(false);
                     }}
-                    className={`block w-full text-left px-4 py-3 text-xs font-black tracking-[0.2em] uppercase transition-all cursor-pointer ${
+                    className={`flex items-center space-x-3 w-full text-left px-4 py-3 text-xs font-black tracking-[0.18em] uppercase transition-all cursor-pointer border ${
                       isActive 
-                        ? 'bg-[#0a0a0a] text-white' 
-                        : 'text-[#6b6863] hover:text-[#0a0a0a] hover:bg-[#e8e6e1]'
+                        ? 'bg-[#0a0a0a] text-white border-black shadow-xs' 
+                        : 'text-[#6b6863] border-transparent hover:text-[#0a0a0a] hover:bg-[#e8e6e1]'
                     }`}
                   >
-                    {item.name}
+                    <IconComponent size={16} className={isActive ? 'text-white' : 'text-[#6b6863]'} />
+                    <span>{item.name}</span>
                   </button>
                 );
               })}
             </nav>
           </div>
 
-          <div className="p-5 border-t border-[#d4d1ca] bg-[#e8e6e1] space-y-3">
+          <div className="p-4 border-t border-[#d4d1ca] bg-[#e8e6e1] space-y-2.5">
             {!isPro && (
               <button
                 onClick={() => {
                   setIsDrawerOpen(false);
                   setIsUpgradeModalOpen(true);
                 }}
-                className="flex items-center justify-center space-x-2 w-full py-3 bg-[#0a0a0a] text-white text-xs font-black tracking-widest uppercase cursor-pointer"
+                className="flex items-center justify-center space-x-2 w-full py-3 bg-[#0a0a0a] text-white text-xs font-black tracking-widest uppercase cursor-pointer border border-black shadow-xs active:bg-neutral-800"
               >
                 <Sparkles size={14} className="text-neutral-300" />
                 <span>UPGRADE TO PRO</span>
@@ -248,13 +273,39 @@ export default function Navbar({ currentTab, setCurrentTab, onLogout }) {
                 setIsDrawerOpen(false);
                 onLogout();
               }}
-              className="flex items-center space-x-3 w-full px-3 py-2.5 text-xs font-bold text-[#6b6863] hover:text-[#0a0a0a] uppercase tracking-wider"
+              className="flex items-center space-x-3 w-full px-3 py-2.5 text-xs font-bold text-[#6b6863] hover:text-[#0a0a0a] hover:bg-[#d4d1ca]/40 uppercase tracking-wider transition-colors"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span>Log Out</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* MOBILE STICKY BOTTOM NAVIGATION BAR */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#f4f2ee]/98 backdrop-blur-md border-t border-[#d4d1ca] flex items-center justify-around py-1 px-1 shadow-lg">
+        {navItems.map((item) => {
+          const IconComponent = item.icon;
+          const isActive = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setCurrentTab(item.id)}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 transition-all cursor-pointer ${
+                isActive 
+                  ? 'text-[#0a0a0a] font-black scale-105' 
+                  : 'text-[#6b6863] hover:text-[#0a0a0a]'
+              }`}
+            >
+              <div className={`p-1 rounded-xs transition-colors ${isActive ? 'bg-[#0a0a0a] text-white' : ''}`}>
+                <IconComponent size={18} />
+              </div>
+              <span className={`text-[9px] tracking-wider uppercase mt-0.5 ${isActive ? 'font-black text-[#0a0a0a]' : 'font-semibold text-[#6b6863]'}`}>
+                {item.id === 'granite-marble' ? 'Granite' : item.id === 'quota' ? 'Kota Stone' : item.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <UpgradeProModal
