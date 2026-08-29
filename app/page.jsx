@@ -132,7 +132,7 @@ function MainApp() {
               const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
               if (isStillValid) {
                 useJobStore.getState().activateProSubscription({
-                  planName: subRecord.plan_name || 'TIVERAPRO',
+                  planName: subRecord.plan_name || 'Tivera Pro',
                   expiresAt: subRecord.expires_at,
                   paymentId: subRecord.payment_id,
                   activatedAt: subRecord.activated_at
@@ -140,23 +140,23 @@ function MainApp() {
               } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
                 useJobStore.getState().cancelProSubscription();
               }
+
+              // Update activation key status from subscriptions table if applicable
+              if (subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
+                useJobStore.setState((prev) => ({
+                  userActivationKeys: {
+                    ...(prev.userActivationKeys || {}),
+                    [userEmail]: {
+                      key: subRecord.activation_key,
+                      isUsed: true,
+                      usedAt: subRecord.activated_at
+                    }
+                  }
+                }));
+              }
             }
 
             if (prof) {
-              const isUsedInDb = prof.key_is_used === true || (subRecord && subRecord.payment_provider === 'activation_key');
-              const dbKey = prof.activation_key || defaultKeyRec.key;
-
-              useJobStore.setState((prev) => ({
-                userActivationKeys: {
-                  ...(prev.userActivationKeys || {}),
-                  [userEmail]: {
-                    key: dbKey,
-                    isUsed: isUsedInDb,
-                    usedAt: prof.key_used_at || subRecord?.activated_at || null
-                  }
-                }
-              }));
-
               return {
                 ...authUser,
                 user_metadata: {
@@ -166,13 +166,11 @@ function MainApp() {
                 }
               };
             } else {
-              // Create profile record in Supabase
+              // Create profile record in Supabase (only business and contact info)
               await supabase.from('profiles').upsert({
                 id: authUser.id,
                 business_name: authUser.user_metadata?.business_name || '',
-                phone_number: authUser.user_metadata?.phone_number || '',
-                activation_key: defaultKeyRec.key,
-                key_is_used: false
+                phone_number: authUser.user_metadata?.phone_number || ''
               });
             }
           } catch (e) {
