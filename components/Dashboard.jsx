@@ -141,7 +141,7 @@ export default function Dashboard({ setCurrentTab, user }) {
                 KOTA STONE
               </h3>
               <p className="text-xs font-bold text-[#6b6863] tracking-wider uppercase mt-2">
-                Kota stone calculators with 0.50 ft rounding & size presets.
+                Kota stone calculators with 0.50 ft trade rounding.
               </p>
             </div>
             <div className="pt-4 border-t border-[#d4d1ca] flex items-center justify-between font-black text-xs tracking-[0.18em] sm:tracking-[0.2em] uppercase text-[#0a0a0a] group-hover:underline">

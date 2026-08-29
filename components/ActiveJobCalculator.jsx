@@ -22,8 +22,7 @@ import UpgradeProModal from './UpgradeProModal.jsx';
 export default function ActiveJobCalculator({
   jobType = 'activeJob',
   roundingStep = 0.25,
-  categoryTitle = 'Granite & Marble',
-  presetSizes = []
+  categoryTitle = 'Granite & Marble'
 }) {
   const store = useJobStore((state) => state);
   const targetJob = store[jobType] || store.activeJob;
@@ -408,43 +407,6 @@ export default function ActiveJobCalculator({
 
               {!isCollapsed && (
                 <div className="p-3 sm:p-4 space-y-4">
-                  {/* Category Size Preset Chips Header (if presets exist) */}
-                  {presetSizes.length > 0 && (
-                    <div className="p-3 bg-[#e8e6e1] border border-[#d4d1ca] space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-[#0a0a0a] uppercase tracking-wider">
-                          FAST PRESET SIZES ({categoryTitle})
-                        </span>
-                        <span className="text-[9px] font-bold text-[#6b6863] uppercase tracking-wider">Tap to add pre-filled row</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {presetSizes.map((preset, pIdx) => (
-                          <button
-                            key={pIdx}
-                            type="button"
-                            onClick={() => {
-                              if (!isPro && totalRowsCount >= 5) {
-                                setIsUpgradeModalOpen(true);
-                                return;
-                              }
-                              store.addRowToTile(tile.id, jobType);
-                              const currentRows = store[jobType]?.tiles?.find(t => t.id === tile.id)?.rows || [];
-                              const lastRow = currentRows[currentRows.length - 1];
-                              if (lastRow) {
-                                store.updateTileRow(tile.id, lastRow.id, 'lengthInches', String(preset.l), jobType);
-                                store.updateTileRow(tile.id, lastRow.id, 'widthInches', String(preset.w), jobType);
-                                store.updateTileRow(tile.id, lastRow.id, 'location', preset.name, jobType);
-                              }
-                            }}
-                            className="px-2.5 py-1 bg-white hover:bg-[#0a0a0a] hover:text-white text-[#0a0a0a] border border-[#d4d1ca] text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shadow-2xs"
-                          >
-                            + {preset.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Mobile Row Card Stack */}
                   <div className="space-y-3 md:hidden">
                     {tile.rows.map((row, rIdx) => (
@@ -539,27 +501,6 @@ export default function ActiveJobCalculator({
                             </div>
                           </div>
                         </div>
-
-                        {/* Quick Presets for this specific row */}
-                        {presetSizes.length > 0 && (
-                          <div className="pt-1">
-                            <div className="flex flex-wrap gap-1">
-                              {presetSizes.map((preset, pIdx) => (
-                                <button
-                                  key={pIdx}
-                                  type="button"
-                                  onClick={() => {
-                                    updateTileRow(tile.id, row.id, 'lengthInches', String(preset.l));
-                                    updateTileRow(tile.id, row.id, 'widthInches', String(preset.w));
-                                  }}
-                                  className="px-2 py-0.5 bg-[#f4f2ee] hover:bg-[#0a0a0a] hover:text-white text-[#0a0a0a] border border-[#d4d1ca] text-[8px] font-black uppercase tracking-wider"
-                                >
-                                  {preset.name}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
 
                         <div className="flex justify-between items-center pt-2.5 text-xs border-t border-dashed border-[#d4d1ca]">
                           <span className="text-[9px] font-black text-[#6b6863] uppercase tracking-wider bg-[#f4f2ee] px-2 py-0.5 border border-[#d4d1ca]">
