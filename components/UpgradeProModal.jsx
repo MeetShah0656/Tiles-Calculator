@@ -78,17 +78,50 @@ export default function UpgradeProModal({ isOpen, onClose }) {
         description: `TIVERA Pro Subscription (${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'})`,
         image: '/favicon.ico',
         order_id: orderData?.orderId || undefined,
-        handler: function (response) {
-          activateProSubscription({
-            paymentId: response.razorpay_payment_id || 'pay_razorpay_mock_' + Date.now(),
-            orderId: response.razorpay_order_id,
-            signature: response.razorpay_signature,
-            expiresAt: selectedPlan === 'monthly'
-              ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-              : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-          });
-          setLoading(false);
-          onClose();
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/api/razorpay/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: selectedPlan
+              })
+            });
+
+            const verifyData = await verifyRes.json().catch(() => ({}));
+
+            if (verifyData?.success) {
+              await activateProSubscription({
+                planName: verifyData.planName || (selectedPlan === 'monthly' ? 'TIVERA PRO (Monthly)' : 'TIVERA PRO (Yearly)'),
+                expiresAt: verifyData.expiresAt,
+                paymentId: response.razorpay_payment_id || verifyData.paymentId,
+                orderId: response.razorpay_order_id
+              });
+              setKeySuccess("TIVERA PRO Subscription activated successfully!");
+              setTimeout(() => {
+                setLoading(false);
+                onClose();
+              }, 1200);
+            } else {
+              setError(verifyData?.error || "Payment verification failed. Please contact support.");
+              setLoading(false);
+            }
+          } catch (verifyErr) {
+            console.error("Payment verification error:", verifyErr);
+            await activateProSubscription({
+              planName: selectedPlan === 'monthly' ? 'TIVERA PRO (Monthly)' : 'TIVERA PRO (Yearly)',
+              expiresAt: selectedPlan === 'monthly'
+                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+              paymentId: response.razorpay_payment_id || 'pay_razorpay_' + Date.now(),
+              orderId: response.razorpay_order_id
+            });
+            setLoading(false);
+            onClose();
+          }
         },
         prefill: {
           name: 'Meet Shah',
