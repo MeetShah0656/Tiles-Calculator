@@ -7,7 +7,7 @@ import Dashboard from '@/components/Dashboard.jsx';
 import GraniteMarbleTab from '@/components/GraniteMarbleTab.jsx';
 import QuotaStoneTab from '@/components/QuotaStoneTab.jsx';
 import SettingsTab from '@/components/SettingsTab.jsx';
-import { useJobStore } from '@/store/store.js';
+import { useJobStore, isValidUUID } from '@/store/store.js';
 
 class AppErrorBoundary extends Component {
   constructor(props) {
@@ -96,63 +96,65 @@ function MainApp() {
             const userEmail = authUser.email;
             const defaultKeyRec = storeState.getOrGenerateUserKey(userEmail);
 
-            // Query dedicated 'subscriptions' table in Supabase
-            const { data: subRecord } = await supabase
-              .from('subscriptions')
-              .select('*')
-              .eq('user_id', authUser.id)
-              .maybeSingle();
+            // Query dedicated 'subscriptions' table in Supabase if valid UUID
+            if (isValidUUID(authUser.id)) {
+              const { data: subRecord } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', authUser.id)
+                .maybeSingle();
 
-            if (subRecord) {
-              const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
-              if (isStillValid) {
-                useJobStore.getState().activateProSubscription({
-                  planName: subRecord.plan_name || 'Tivera Pro',
-                  expiresAt: subRecord.expires_at,
-                  paymentId: subRecord.payment_id,
-                  activatedAt: subRecord.activated_at
-                }, true);
-              } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
-                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
-              }
-
-              // Update activation key status from subscriptions table if applicable
-              if (subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
-                useJobStore.setState((prev) => ({
-                  userActivationKeys: {
-                    ...(prev.userActivationKeys || {}),
-                    [userEmail]: {
-                      key: subRecord.activation_key,
-                      isUsed: true,
-                      usedAt: subRecord.activated_at
-                    }
-                  }
-                }));
-              }
-            }
-
-            const { data: prof } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', authUser.id)
-              .maybeSingle();
-
-            if (prof) {
-              return {
-                ...authUser,
-                user_metadata: {
-                  ...authUser.user_metadata,
-                  business_name: prof.business_name || authUser.user_metadata?.business_name,
-                  phone_number: prof.phone_number || authUser.user_metadata?.phone_number
+              if (subRecord) {
+                const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
+                if (isStillValid) {
+                  useJobStore.getState().activateProSubscription({
+                    planName: subRecord.plan_name || 'Tivera Pro',
+                    expiresAt: subRecord.expires_at,
+                    paymentId: subRecord.payment_id,
+                    activatedAt: subRecord.activated_at
+                  }, true);
+                } else if (subRecord.status === 'canceled' || (subRecord.expires_at && new Date(subRecord.expires_at) <= new Date())) {
+                  useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
                 }
-              };
-            } else {
-              // Create profile record in Supabase (only business and contact info)
-              await supabase.from('profiles').upsert({
-                id: authUser.id,
-                business_name: authUser.user_metadata?.business_name || '',
-                phone_number: authUser.user_metadata?.phone_number || ''
-              });
+
+                // Update activation key status from subscriptions table if applicable
+                if (subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
+                  useJobStore.setState((prev) => ({
+                    userActivationKeys: {
+                      ...(prev.userActivationKeys || {}),
+                      [userEmail]: {
+                        key: subRecord.activation_key,
+                        isUsed: true,
+                        usedAt: subRecord.activated_at
+                      }
+                    }
+                  }));
+                }
+              }
+
+              const { data: prof } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authUser.id)
+                .maybeSingle();
+
+              if (prof) {
+                return {
+                  ...authUser,
+                  user_metadata: {
+                    ...authUser.user_metadata,
+                    business_name: prof.business_name || authUser.user_metadata?.business_name,
+                    phone_number: prof.phone_number || authUser.user_metadata?.phone_number
+                  }
+                };
+              } else {
+                // Create profile record in Supabase (only business and contact info)
+                await supabase.from('profiles').upsert({
+                  id: authUser.id,
+                  business_name: authUser.user_metadata?.business_name || '',
+                  phone_number: authUser.user_metadata?.phone_number || ''
+                });
+              }
             }
           } catch (e) {
             console.error("Failed to merge profile or subscription:", e);

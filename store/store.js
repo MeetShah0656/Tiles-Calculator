@@ -9,8 +9,9 @@ const generateUUID = () => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
-  });
 };
+
+export const isValidUUID = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
 export const calculateFt = (inches) => {
   const num = Number(inches);
@@ -607,18 +608,18 @@ export const useJobStore = create(
             const { createClient } = await import('@supabase/supabase-js');
             const supabase = createClient(supabaseUrl, supabaseKey);
 
-            let activeUserId = details.userId;
+            let activeUserId = isValidUUID(details.userId) ? details.userId : null;
             let activeUserEmail = details.userEmail;
 
             if (!activeUserId) {
               const { data: authData } = await supabase.auth.getUser();
-              if (authData?.user) {
+              if (authData?.user && isValidUUID(authData.user.id)) {
                 activeUserId = authData.user.id;
                 activeUserEmail = activeUserEmail || authData.user.email;
               }
             }
 
-            if (activeUserId) {
+            if (activeUserId && isValidUUID(activeUserId)) {
               const { error } = await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
                 user_email: activeUserEmail || '',
@@ -634,12 +635,10 @@ export const useJobStore = create(
 
               if (error) {
                 console.error("Failed to sync subscription to cloud:", error);
-                throw error;
               }
             }
           } catch (err) {
             console.error("Failed to sync subscription to cloud:", err);
-            throw err;
           }
         }
       },
@@ -674,20 +673,22 @@ export const useJobStore = create(
             const { createClient } = await import('@supabase/supabase-js');
             const supabase = createClient(supabaseUrl, supabaseKey);
 
-            let activeUserId = typeof userIdParam === 'string' ? userIdParam : null;
+            let activeUserId = isValidUUID(userIdParam) ? userIdParam : null;
             let activeUserEmail = effectiveEmail;
 
             if (!activeUserId) {
               const { data: authData } = await supabase.auth.getUser();
-              if (authData?.user) {
+              if (authData?.user && isValidUUID(authData.user.id)) {
                 activeUserId = authData.user.id;
                 activeUserEmail = authData.user.email || effectiveEmail;
               }
             }
 
-            if (activeUserId) {
+            if (activeUserId && isValidUUID(activeUserId)) {
               const nowIso = new Date().toISOString();
-              const { error } = await supabase.from('subscriptions').upsert({
+              
+              // 1. Upsert canceled status row
+              await supabase.from('subscriptions').upsert({
                 user_id: activeUserId,
                 user_email: activeUserEmail,
                 plan_name: 'Free Tier',
@@ -695,14 +696,13 @@ export const useJobStore = create(
                 expires_at: nowIso,
                 payment_id: null,
                 updated_at: nowIso
-              }, { onConflict: 'user_id' });
+              }, { onConflict: 'user_id' }).catch(() => null);
 
-              if (error) {
-                console.warn("Supabase downgrade upsert warning:", error);
-              }
+              // 2. Also remove active subscription row if exists
+              await supabase.from('subscriptions').delete().eq('user_id', activeUserId).catch(() => null);
             }
           } catch (err) {
-            console.warn("Failed to update canceled subscription in cloud:", err);
+            console.warn("Cloud downgrade sync warning:", err);
           }
         }
       },
