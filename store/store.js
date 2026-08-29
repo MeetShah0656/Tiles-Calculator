@@ -685,24 +685,38 @@ export const useJobStore = create(
               }
             }
 
-            if (activeUserId && isValidUUID(activeUserId)) {
-              const nowIso = new Date().toISOString();
-              
-              // Upsert canceled status row in Supabase subscriptions table
-              const { error } = await supabase.from('subscriptions').upsert({
-                user_id: activeUserId,
-                user_email: activeUserEmail,
-                plan_name: 'Free Tier',
-                status: 'canceled',
-                payment_provider: 'manual',
-                payment_id: null,
-                expires_at: nowIso,
-                updated_at: nowIso
-              }, { onConflict: 'user_id' });
+            const nowIso = new Date().toISOString();
+            const payload = {
+              plan_name: 'Free Tier',
+              status: 'canceled',
+              payment_provider: 'manual',
+              payment_id: null,
+              expires_at: nowIso,
+              updated_at: nowIso
+            };
 
-              if (error) {
-                console.warn("Supabase downgrade upsert warning:", error);
+            if (activeUserId && isValidUUID(activeUserId)) {
+              const { data: updateData, error: updateErr } = await supabase
+                .from('subscriptions')
+                .update(payload)
+                .eq('user_id', activeUserId)
+                .select();
+
+              if (updateErr || !updateData || updateData.length === 0) {
+                await supabase.from('subscriptions').upsert({
+                  user_id: activeUserId,
+                  user_email: activeUserEmail || effectiveEmail,
+                  ...payload
+                }, { onConflict: 'user_id' }).catch(() => null);
               }
+            }
+
+            if (activeUserEmail) {
+              await supabase
+                .from('subscriptions')
+                .update(payload)
+                .eq('user_email', activeUserEmail)
+                .catch(() => null);
             }
           } catch (err) {
             console.warn("Cloud downgrade sync warning:", err);

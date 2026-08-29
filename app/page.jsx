@@ -96,13 +96,16 @@ function MainApp() {
             const userEmail = authUser.email;
             const defaultKeyRec = storeState.getOrGenerateUserKey(userEmail);
 
-            // Query dedicated 'subscriptions' table in Supabase if valid UUID
-            if (isValidUUID(authUser.id)) {
-              const { data: subRecord } = await supabase
-                .from('subscriptions')
-                .select('*')
-                .eq('user_id', authUser.id)
-                .maybeSingle();
+            if (isValidUUID(authUser.id) || authUser.email) {
+              let query = supabase.from('subscriptions').select('*');
+              if (isValidUUID(authUser.id) && authUser.email) {
+                query = query.or(`user_id.eq.${authUser.id},user_email.eq.${authUser.email}`);
+              } else if (isValidUUID(authUser.id)) {
+                query = query.eq('user_id', authUser.id);
+              } else {
+                query = query.eq('user_email', authUser.email);
+              }
+              const { data: subRecord } = await query.maybeSingle();
 
               if (subRecord) {
                 const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
