@@ -56,7 +56,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
         throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
       }
 
-      const amount = selectedPlan === 'monthly' ? 49900 : 399900; // in paise
+      const amount = 100; // ₹1 in paise for testing (originally: selectedPlan === 'monthly' ? 49900 : 399900)
 
       const orderRes = await fetch('/api/razorpay/create-order', {
         method: 'POST',
@@ -253,7 +253,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
                   : 'text-[#6b6863] hover:text-[#0a0a0a]'
               }`}
             >
-              MONTHLY (₹499/MO)
+              MONTHLY (₹1/MO - TEST)
             </button>
             <button
               type="button"
@@ -264,7 +264,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
                   : 'text-[#6b6863] hover:text-[#0a0a0a]'
               }`}
             >
-              YEARLY (₹3,999/YR)
+              YEARLY (₹1/YR - TEST)
               <span className="absolute -top-2 -right-1 bg-emerald-600 text-white text-[8px] font-black px-1.5 py-0.2 uppercase tracking-wider">
                 SAVE 33%
               </span>
@@ -310,7 +310,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
               <span className="text-xs font-black text-[#6b6863] uppercase tracking-widest">SUBSCRIPTION PRICE</span>
               <div className="text-right">
                 <span className="text-3xl font-black text-[#0a0a0a]">
-                  {selectedPlan === 'monthly' ? '₹499' : '₹3,999'}
+                  ₹1
                 </span>
                 <span className="text-xs text-[#6b6863] font-black uppercase tracking-wider ml-1">
                   /{selectedPlan === 'monthly' ? 'month' : 'year'}
