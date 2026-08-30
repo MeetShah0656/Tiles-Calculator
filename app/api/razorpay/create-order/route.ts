@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const amount = body.amount || 49900; // in paise (₹499)
+    const amount = body.amount || 19900; // in paise (₹199)
     const currency = body.currency || 'INR';
 
     const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
