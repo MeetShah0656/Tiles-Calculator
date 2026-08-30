@@ -560,10 +560,10 @@ export default function ActiveJobCalculator({
                     </button>
                     <button
                       onClick={() => handleOpenScanner(tile.id)}
-                      className="flex items-center justify-center space-x-1 px-3 py-2 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest bg-[#0a0a0a] text-white border-black hover:bg-neutral-800"
+                      className="flex items-center justify-center space-x-1.5 px-3 py-2 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest bg-[#0a0a0a] text-white border-black hover:bg-neutral-800"
                     >
                       <Camera size={12} className="text-white" />
-                      <span>SCAN PAPER SHEET</span>
+                      <span>IMPORT MEASUREMENTS (SCAN PAPER)</span>
                     </button>
                   </div>
                 </div>

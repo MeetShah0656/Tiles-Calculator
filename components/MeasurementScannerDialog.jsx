@@ -11,7 +11,8 @@ import {
   Info,
   Edit2,
   Sparkles,
-  Lock
+  Lock,
+  Download
 } from 'lucide-react';
 import { scanMeasurementsWithBackend } from '@/lib/scanner/gemini.js';
 import { useJobStore } from '@/store/store.js';
@@ -175,7 +176,22 @@ export default function MeasurementScannerDialog({
                   </span>
                 )}
               </div>
-              <h2 className="text-lg font-black text-[#0a0a0a] tracking-wider uppercase mt-0.5">Scan Paper Notes</h2>
+              <div className="flex flex-wrap items-center gap-3 mt-1">
+                <h2 className="text-lg font-black text-[#0a0a0a] tracking-wider uppercase">Scan Paper Notes</h2>
+                <button
+                  type="button"
+                  onClick={handleConfirmImport}
+                  disabled={step !== 'verify' || scannedRooms.length === 0}
+                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border flex items-center space-x-1.5 transition-all cursor-pointer ${
+                    step === 'verify' && scannedRooms.length > 0
+                      ? 'bg-[#0a0a0a] text-white border-black hover:bg-neutral-800 active:scale-95 shadow-sm'
+                      : 'bg-neutral-200 text-neutral-400 border-neutral-300 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  <Download size={13} />
+                  <span>IMPORT MEASUREMENTS</span>
+                </button>
+              </div>
             </div>
             <button 
               onClick={onClose}
