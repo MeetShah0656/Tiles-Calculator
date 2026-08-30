@@ -480,66 +480,83 @@ export const useJobStore = create(
         const keyRecord = keysMap[effectiveEmail] || state.getOrGenerateUserKey(effectiveEmail);
 
         const usedKeys = keyRecord.usedKeys || [];
-        const isMatch = cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
+        const isMasterKey = cleanInput === 'TIVERA-UNLIMITED-PRO' || 
+                            cleanInput === 'TIVERA-VIP-UNLIMITED' || 
+                            cleanInput === 'TIVERA-MASTER-ACCESS' || 
+                            cleanInput === 'TIVERA-UNLIMITED-MEET';
+
+        const isMatch = isMasterKey || cleanInput === keyRecord.key.toUpperCase() || cleanInput.startsWith('TIVERA-7D-');
 
         if (!isMatch) {
           return { success: false, error: 'Invalid activation key. Please check your key format.' };
         }
 
-        // Check local state if key was already redeemed
-        if (keyRecord.isUsed || usedKeys.includes(cleanInput)) {
-          return { 
-            success: false, 
-            error: 'This code can only be used once per account.' 
-          };
-        }
+        // Standard trial keys enforce single-use per account. Master keys bypass single-use check.
+        if (!isMasterKey) {
+          // Check local state if key was already redeemed
+          if (keyRecord.isUsed || usedKeys.includes(cleanInput)) {
+            return { 
+              success: false, 
+              error: 'This code can only be used once per account.' 
+            };
+          }
 
-        // Check Supabase Cloud Database 'subscriptions' table first for authoritative key status
-        if (supabaseClient && activeUserId) {
-          try {
-            const { data: dbSub } = await supabaseClient
-              .from('subscriptions')
-              .select('*')
-              .eq('user_id', activeUserId)
-              .maybeSingle();
+          // Check Supabase Cloud Database 'subscriptions' table first for authoritative key status
+          if (supabaseClient && activeUserId) {
+            try {
+              const { data: dbSub } = await supabaseClient
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', activeUserId)
+                .maybeSingle();
 
-            if (dbSub && (dbSub.payment_provider === 'activation_key' || dbSub.activation_key === keyRecord.key || dbSub.payment_id?.startsWith('key_redeem_'))) {
-              set((prev) => ({
-                userActivationKeys: {
-                  ...(prev.userActivationKeys || {}),
-                  [effectiveEmail]: {
-                    ...keyRecord,
-                    isUsed: true,
-                    usedAt: dbSub.activated_at || keyRecord.usedAt || new Date().toISOString(),
-                    usedKeys: Array.from(new Set([...usedKeys, cleanInput, keyRecord.key.toUpperCase()]))
+              if (dbSub && (dbSub.payment_provider === 'activation_key' || dbSub.activation_key === keyRecord.key || dbSub.payment_id?.startsWith('key_redeem_'))) {
+                set((prev) => ({
+                  userActivationKeys: {
+                    ...(prev.userActivationKeys || {}),
+                    [effectiveEmail]: {
+                      ...keyRecord,
+                      isUsed: true,
+                      usedAt: dbSub.activated_at || keyRecord.usedAt || new Date().toISOString(),
+                      usedKeys: Array.from(new Set([...usedKeys, cleanInput, keyRecord.key.toUpperCase()]))
+                    }
                   }
-                }
-              }));
-              return {
-                success: false,
-                error: 'This code can only be used once per account.'
-              };
+                }));
+                return {
+                  success: false,
+                  error: 'This code can only be used once per account.'
+                };
+              }
+            } catch (e) {
+              console.warn("Supabase subscription check warning:", e);
             }
-          } catch (e) {
-            console.warn("Supabase subscription check warning:", e);
           }
         }
 
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const expiresAt = isMasterKey 
+          ? new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+        const planName = isMasterKey 
+          ? 'TIVERA PRO (Unlimited Master Access)' 
+          : 'TIVERA PRO (7-Day Trial)';
+
         const usedAt = new Date().toISOString();
-        const updatedRecord = {
-          ...keyRecord,
-          isUsed: true,
-          usedAt,
-          usedKeys: Array.from(new Set([...(keyRecord.usedKeys || []), cleanInput, keyRecord.key.toUpperCase()]))
-        };
+        const updatedRecord = isMasterKey
+          ? keyRecord
+          : {
+              ...keyRecord,
+              isUsed: true,
+              usedAt,
+              usedKeys: Array.from(new Set([...(keyRecord.usedKeys || []), cleanInput, keyRecord.key.toUpperCase()]))
+            };
 
         set((prev) => ({
           subscription: {
             isPro: true,
-            planName: 'TIVERA PRO (7-Day Trial)',
+            planName,
             expiresAt,
-            paymentId: `key_redeem_${cleanInput}`,
+            paymentId: isMasterKey ? 'key_master_unlimited' : `key_redeem_${cleanInput}`,
             activatedAt: usedAt
           },
           userActivationKeys: {
@@ -554,11 +571,11 @@ export const useJobStore = create(
             await supabaseClient.from('subscriptions').upsert({
               user_id: activeUserId,
               user_email: effectiveEmail,
-              plan_name: 'TIVERA PRO (7-Day Trial)',
+              plan_name: planName,
               status: 'active',
               payment_provider: 'activation_key',
-              payment_id: `key_redeem_${cleanInput}`,
-              activation_key: keyRecord.key,
+              payment_id: isMasterKey ? 'key_master_unlimited' : `key_redeem_${cleanInput}`,
+              activation_key: isMasterKey ? 'TIVERA-UNLIMITED-PRO' : keyRecord.key,
               activated_at: usedAt,
               expires_at: expiresAt,
               updated_at: usedAt
@@ -570,7 +587,9 @@ export const useJobStore = create(
 
         return { 
           success: true, 
-          message: 'Congratulations! 7-Day TIVERA PRO Trial activated successfully.' 
+          message: isMasterKey
+            ? 'Congratulations! Unlimited TIVERA PRO Master Access activated successfully.'
+            : 'Congratulations! 7-Day TIVERA PRO Trial activated successfully.' 
         };
       },
 
