@@ -17,13 +17,23 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for React Frontend
+# Enable CORS for the Next.js frontend only. allow_origins=["*"] combined with
+# allow_credentials=True is a known-bad combination (browsers/Starlette will
+# reflect any Origin back with credentials allowed), so origins are restricted
+# and credentials are disabled since this API doesn't use cookie-based auth.
+_allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [o.strip() for o in _allowed_origins_env.split(",") if o.strip()] or [
+    "http://localhost:3000",
+    os.getenv("NEXT_PUBLIC_APP_URL", ""),
+]
+allowed_origins = [o for o in allowed_origins if o]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 class RoomMeasurement(BaseModel):

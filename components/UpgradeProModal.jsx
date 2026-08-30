@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useJobStore } from '@/store/store.js';
+import { subscriptionCubit } from '@/lib/state/SubscriptionCubit';
 import { Check, Zap, X, ShieldCheck, Sparkles, CreditCard, Key, AlertTriangle } from 'lucide-react';
 
 export default function UpgradeProModal({ isOpen, onClose }) {
-  const activateProSubscription = useJobStore((state) => state.activateProSubscription);
-  const redeemActivationKey = useJobStore((state) => state.redeemActivationKey);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('monthly');
@@ -21,8 +19,8 @@ export default function UpgradeProModal({ isOpen, onClose }) {
     setError('');
     setKeySuccess('');
 
-    const res = await redeemActivationKey(keyInput);
-    if (res?.success) {
+    const res = await subscriptionCubit.redeemKey(keyInput);
+    if (res?.ok) {
       setKeySuccess(res.message);
       setTimeout(() => {
         onClose();
@@ -56,28 +54,25 @@ export default function UpgradeProModal({ isOpen, onClose }) {
         throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
       }
 
-      const amount = 100; // ₹1 in paise for testing both plans
-
       const orderRes = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          currency: 'INR',
-          plan: selectedPlan
-        })
+        body: JSON.stringify({ plan: selectedPlan })
       });
 
       const orderData = await orderRes.json().catch(() => ({}));
+      if (!orderRes.ok || !orderData?.success) {
+        throw new Error(orderData?.error || 'Failed to start checkout.');
+      }
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_tivera_pro',
-        amount: amount,
-        currency: 'INR',
+        amount: orderData.amount,
+        currency: orderData.currency,
         name: 'TIVERA Natural Stone',
         description: `TIVERA Pro Subscription (${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'})`,
         image: '/favicon.ico',
-        order_id: orderData?.orderId || undefined,
+        order_id: orderData.orderId,
         handler: async function (response) {
           try {
             const verifyRes = await fetch('/api/razorpay/verify-payment', {
@@ -86,21 +81,14 @@ export default function UpgradeProModal({ isOpen, onClose }) {
               body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                plan: selectedPlan
+                razorpay_signature: response.razorpay_signature
               })
             });
 
             const verifyData = await verifyRes.json().catch(() => ({}));
 
-            if (verifyData?.success) {
-              await activateProSubscription({
-                planName: verifyData.planName || (selectedPlan === 'monthly' ? 'TIVERA PRO (Monthly)' : 'TIVERA PRO (Yearly)'),
-                expiresAt: verifyData.expiresAt,
-                paymentId: response.razorpay_payment_id || verifyData.paymentId,
-                paymentProvider: 'razorpay',
-                orderId: response.razorpay_order_id
-              });
+            if (verifyRes.ok && verifyData?.success) {
+              await subscriptionCubit.refresh();
               setKeySuccess("TIVERA PRO Subscription activated successfully!");
               setTimeout(() => {
                 setLoading(false);
@@ -112,22 +100,9 @@ export default function UpgradeProModal({ isOpen, onClose }) {
             }
           } catch (verifyErr) {
             console.error("Payment verification error:", verifyErr);
-            await activateProSubscription({
-              planName: selectedPlan === 'monthly' ? 'TIVERA PRO (Monthly)' : 'TIVERA PRO (Yearly)',
-              expiresAt: selectedPlan === 'monthly'
-                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-              paymentId: response.razorpay_payment_id || 'pay_razorpay_' + Date.now(),
-              orderId: response.razorpay_order_id
-            });
+            setError('Payment verification failed. Please contact support.');
             setLoading(false);
-            onClose();
           }
-        },
-        prefill: {
-          name: 'Meet Shah',
-          email: 'meetshah0656@gmail.com',
-          contact: '+919876543210'
         },
         theme: {
           color: '#0a0a0a'
@@ -147,25 +122,12 @@ export default function UpgradeProModal({ isOpen, onClose }) {
         });
         rzp.open();
       } else {
-        setTimeout(() => {
-          activateProSubscription({
-            paymentId: 'pay_razorpay_demo_' + Date.now(),
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          });
-          setLoading(false);
-          onClose();
-        }, 800);
+        throw new Error('Razorpay checkout is unavailable. Please try again.');
       }
     } catch (err) {
       console.error("Razorpay subscription error:", err);
-      setTimeout(() => {
-        activateProSubscription({
-          paymentId: 'pay_razorpay_demo_' + Date.now(),
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        });
-        setLoading(false);
-        onClose();
-      }, 500);
+      setError(err.message || 'Failed to start checkout. Please try again.');
+      setLoading(false);
     }
   };
 

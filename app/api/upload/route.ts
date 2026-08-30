@@ -24,6 +24,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_BYTES) {
+      return NextResponse.json(
+        { error: 'File is too large (max 10MB).' },
+        { status: 413 }
+      );
+    }
+
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only JPEG, PNG, WEBP, and GIF images are allowed.' },
+        { status: 400 }
+      );
+    }
+
     // Sanitize filename to prevent directory traversal
     const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

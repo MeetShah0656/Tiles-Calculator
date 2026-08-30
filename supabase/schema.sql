@@ -58,54 +58,112 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Payment audit trail: one row per processed Razorpay payment event.
+-- The UNIQUE(provider, payment_id) constraint is what makes payment
+-- processing idempotent — see app/api/razorpay/verify-payment and
+-- app/api/razorpay/webhook, which insert here before activating a
+-- subscription and skip re-activation if the insert hits this constraint
+-- (i.e. this exact payment was already processed).
+CREATE TABLE IF NOT EXISTS public.payment_events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE SET NULL,
+  provider TEXT NOT NULL DEFAULT 'razorpay',
+  event_source TEXT NOT NULL, -- 'verify' (client-driven) | 'webhook' (server-to-server)
+  event_type TEXT,            -- e.g. 'payment.captured', 'order.paid', 'payment.verified'
+  payment_id TEXT NOT NULL,
+  order_id TEXT,
+  plan_name TEXT,
+  amount INTEGER,             -- paise
+  currency TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE (provider, payment_id)
+);
+
+-- Indexes on RLS-checked / foreign-key columns (Supabase perf best practice:
+-- every column referenced in a policy's USING/WITH CHECK should be indexed).
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON public.jobs (user_id);
+CREATE INDEX IF NOT EXISTS idx_measurement_rows_job_id ON public.measurement_rows (job_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_email ON public.subscriptions (user_email);
+CREATE INDEX IF NOT EXISTS idx_payment_events_user_id ON public.payment_events (user_id);
+-- subscriptions.user_id and payment_events.(provider, payment_id) already have
+-- implicit indexes via their UNIQUE constraints.
+
 -- RLS (Row Level Security) Policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.measurement_rows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_events ENABLE ROW LEVEL SECURITY;
+
+-- Policies below use `(select auth.uid())` rather than a bare `auth.uid()` and
+-- `TO authenticated` per Supabase's documented RLS performance/best-practice
+-- guidance: the subselect lets Postgres evaluate it once per statement instead
+-- of once per row, and `TO authenticated` scopes the policy away from `anon`
+-- explicitly instead of relying only on `auth.uid()` being null for anon.
 
 -- Profiles Policies
-CREATE POLICY "Users can view own profile" ON public.profiles 
-  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can view own profile" ON public.profiles
+  FOR SELECT TO authenticated USING ((SELECT auth.uid()) = id);
 
-CREATE POLICY "Users can update own profile" ON public.profiles 
-  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE TO authenticated
+  USING ((SELECT auth.uid()) = id)
+  WITH CHECK ((SELECT auth.uid()) = id);
 
-CREATE POLICY "Users can insert own profile" ON public.profiles 
-  FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = id);
 
 -- Subscriptions Policies
-CREATE POLICY "Users can view own subscription" ON public.subscriptions 
-  FOR SELECT USING (true);
+--
+-- SECURITY: these were previously USING (true) / WITH CHECK (true) on every
+-- operation, which let any signed-in (or anon, via the public anon key) client
+-- read and write ANY user's subscription row directly from the browser —
+-- including granting itself Pro status for free. Subscriptions are now:
+--   - readable only by their owner
+--   - writable by the owner ONLY to self-cancel/downgrade back to Free Tier
+--   - otherwise writable only by the server (service role key, which bypasses
+--     RLS) after independently verifying a Razorpay payment/webhook or an
+--     activation key — see app/api/razorpay/verify-payment, .../webhook, and
+--     app/api/activation/redeem.
+CREATE POLICY "Users can view own subscription" ON public.subscriptions
+  FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
 
-CREATE POLICY "Users can insert subscription" ON public.subscriptions 
-  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can self-downgrade own subscription" ON public.subscriptions
+  FOR UPDATE TO authenticated
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK (
+    (SELECT auth.uid()) = user_id
+    AND status = 'canceled'
+    AND plan_name = 'Free Tier'
+    AND payment_provider = 'manual'
+  );
 
-CREATE POLICY "Users can update subscription" ON public.subscriptions 
-  FOR UPDATE USING (true) WITH CHECK (true);
-
-CREATE POLICY "Users can delete subscription" ON public.subscriptions 
-  FOR DELETE USING (true);
+-- Payment Events Policies (read-only audit trail; only the server, via the
+-- service role key which bypasses RLS, ever inserts these rows)
+CREATE POLICY "Users can view own payment events" ON public.payment_events
+  FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
 
 -- Jobs Policies
-CREATE POLICY "Users can manage own jobs" ON public.jobs 
-  USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can manage own jobs" ON public.jobs
+  FOR ALL TO authenticated
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- Measurement Rows Policies
-CREATE POLICY "Users can manage own rows" ON public.measurement_rows 
+CREATE POLICY "Users can manage own rows" ON public.measurement_rows
+  FOR ALL TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.jobs 
-      WHERE jobs.id = measurement_rows.job_id 
-      AND jobs.user_id = auth.uid()
+      SELECT 1 FROM public.jobs
+      WHERE jobs.id = measurement_rows.job_id
+      AND jobs.user_id = (SELECT auth.uid())
     )
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.jobs 
-      WHERE jobs.id = measurement_rows.job_id 
-      AND jobs.user_id = auth.uid()
+      SELECT 1 FROM public.jobs
+      WHERE jobs.id = measurement_rows.job_id
+      AND jobs.user_id = (SELECT auth.uid())
     )
   );
 

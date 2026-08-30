@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Server is the source of truth for pricing — never trust a client-supplied amount.
+// Keep these in sync with the price shown in components/UpgradeProModal.jsx.
+const PLAN_PRICES_PAISE: Record<string, number> = {
+  monthly: 100, // ₹1 (current promotional/test price)
+  yearly: 100
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const amount = body.amount || 19900; // in paise (₹199)
-    const currency = body.currency || 'INR';
+    const plan = body.plan === 'yearly' ? 'yearly' : 'monthly';
+    const amount = PLAN_PRICES_PAISE[plan];
+    const currency = 'INR';
 
     const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -32,7 +40,7 @@ export async function POST(request: NextRequest) {
       currency: currency,
       receipt: `tivera_pro_${Date.now()}`,
       notes: {
-        plan: body.plan || 'monthly'
+        plan
       }
     });
 

@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { Mail, Lock, Building2, Phone } from 'lucide-react';
+import { authCubit } from '@/lib/state/AuthCubit';
 
-export default function AuthScreen({ onLoginSuccess }) {
+export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('meetshah0656@gmail.com');
-  const [password, setPassword] = useState('123456');
-  const [businessName, setBusinessName] = useState('TIVERA Natural Stone');
-  const [phoneNumber, setPhoneNumber] = useState('+91 9876543210');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,62 +17,12 @@ export default function AuthScreen({ onLoginSuccess }) {
     setLoading(true);
     setError('');
 
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (supabaseUrl && supabaseKey) {
-        try {
-          const { createClient } = await import('@supabase/supabase-js');
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          
-          const targetRedirect = typeof window !== 'undefined' ? window.location.origin : 'https://tivera.vercel.app';
-
-          const { data, error: googleErr } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: targetRedirect
-            }
-          });
-
-          if (!googleErr && data?.url) {
-            window.location.href = data.url;
-            return;
-          }
-        } catch (err) {
-          console.warn("Supabase OAuth redirect error, executing direct login:", err);
-        }
-      }
-
-      // Direct instant Google login fallback
-      setTimeout(() => {
-        onLoginSuccess({
-          id: 'user-google-meet-shah',
-          email: 'meetshah0656@gmail.com',
-          user_metadata: {
-            full_name: 'Meet Shah',
-            business_name: 'TIVERA Natural Stone',
-            phone_number: '+91 9876543210',
-            provider: 'google'
-          }
-        });
-        setLoading(false);
-      }, 300);
-
-    } catch (err) {
-      console.error("Google Auth error:", err);
-      onLoginSuccess({
-        id: 'user-google-meet-shah',
-        email: 'meetshah0656@gmail.com',
-        user_metadata: {
-          full_name: 'Meet Shah',
-          business_name: 'TIVERA Natural Stone',
-          phone_number: '+91 9876543210',
-          provider: 'google'
-        }
-      });
+    const result = await authCubit.signInWithGoogle();
+    if (!result.ok) {
+      setError(result.error || 'Google sign-in failed. Please try again.');
       setLoading(false);
     }
+    // On success, signInWithGoogle() navigates away to Google — no further action needed here.
   };
 
   const handleSubmit = async (e) => {
@@ -79,89 +30,14 @@ export default function AuthScreen({ onLoginSuccess }) {
     setError('');
     setLoading(true);
 
-    if (email === 'meetshah0656@gmail.com' && password === '123456') {
-      setTimeout(() => {
-        onLoginSuccess({
-          id: 'user-meet-shah-0656',
-          email: 'meetshah0656@gmail.com',
-          user_metadata: {
-            business_name: businessName || 'TIVERA Natural Stone',
-            phone_number: phoneNumber || '+91 9876543210'
-          }
-        });
-        setLoading(false);
-      }, 350);
-      return;
+    const result = isLogin
+      ? await authCubit.signIn(email, password)
+      : await authCubit.signUp(email, password, businessName, phoneNumber);
+
+    if (!result.ok) {
+      setError(result.error || 'Authentication failed. Please try again.');
     }
-
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseKey) {
-        setTimeout(() => {
-          onLoginSuccess({
-            id: 'user-meet-shah-0656',
-            email: email || 'meetshah0656@gmail.com',
-            user_metadata: {
-              business_name: businessName || 'TIVERA Natural Stone',
-              phone_number: phoneNumber || '+91 9876543210'
-            }
-          });
-          setLoading(false);
-        }, 350);
-        return;
-      }
-
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      if (isLogin) {
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (authError) {
-          onLoginSuccess({
-            id: 'user-meet-shah-0656',
-            email: email,
-            user_metadata: {
-              business_name: 'TIVERA Natural Stone',
-              phone_number: '+91 9876543210'
-            }
-          });
-          return;
-        }
-        onLoginSuccess(data.user);
-      } else {
-        const { data, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              business_name: businessName,
-              phone_number: phoneNumber
-            }
-          }
-        });
-        if (authError) throw authError;
-        if (data.user) {
-          onLoginSuccess(data.user);
-        }
-      }
-    } catch (err) {
-      console.error("Auth error:", err);
-      onLoginSuccess({
-        id: 'user-meet-shah-0656',
-        email: email || 'meetshah0656@gmail.com',
-        user_metadata: {
-          business_name: businessName || 'TIVERA Natural Stone',
-          phone_number: phoneNumber || '+91 9876543210'
-        }
-      });
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   return (

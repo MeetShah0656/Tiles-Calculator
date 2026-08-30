@@ -3,28 +3,31 @@
 import React, { useState, useEffect } from 'react';
 import { User, Phone, Briefcase, Check, AlertTriangle, RefreshCw, Cloud, ShieldCheck, Sparkles, CreditCard, Key, Copy, CheckCircle2, Lock } from 'lucide-react';
 import { useJobStore } from '@/store/store.js';
+import { useCubit } from '@/lib/state/Cubit';
+import { authCubit } from '@/lib/state/AuthCubit';
+import { subscriptionCubit } from '@/lib/state/SubscriptionCubit';
 import UpgradeProModal from '@/components/UpgradeProModal.jsx';
 
-export default function SettingsTab({ user, onProfileUpdate }) {
+export default function SettingsTab({ user }) {
   const [businessName, setBusinessName] = useState(user?.user_metadata?.business_name || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.user_metadata?.phone_number || '');
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const isOnline = useJobStore((state) => state.isOnline);
   const jobs = useJobStore((state) => state.jobs);
-  const subscription = useJobStore((state) => state.subscription || { isPro: false, planName: 'Free' });
+
+  const subState = useCubit(subscriptionCubit);
+  const subscription = subState.subscription;
   const isPro = subscription?.isPro || false;
   const isRazorpaySubscription = isPro && (
     subscription?.paymentProvider === 'razorpay' ||
     (subscription?.paymentId && (subscription.paymentId.startsWith('pay_') || subscription.paymentId.startsWith('razorpay_')))
   );
-  const cancelProSubscription = useJobStore((state) => state.cancelProSubscription);
 
   const getOrGenerateUserKey = useJobStore((state) => state.getOrGenerateUserKey);
-  const redeemActivationKey = useJobStore((state) => state.redeemActivationKey);
 
   const userEmail = user?.email || 'meetshah0656@gmail.com';
   const [userKeyRecord, setUserKeyRecord] = useState({ key: 'TIVERA-7D-MEET-0656', isUsed: false, usedAt: null });
@@ -42,63 +45,18 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     }
   }, [userEmail, getOrGenerateUserKey]);
 
-  // Authoritative check against Supabase Database (not cookies/local storage)
+  // Authoritative redemption status now comes from the server (SubscriptionCubit,
+  // backed by GET /api/subscription), not a direct client-side Supabase query.
   useEffect(() => {
-    let isMounted = true;
-    const syncKeyStatusFromSupabase = async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey || !userEmail) return;
-
-      try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        let query = supabase.from('subscriptions').select('*');
-        if (user?.id) {
-          query = query.or(`user_id.eq.${user.id},user_email.eq.${userEmail}`);
-        } else {
-          query = query.eq('user_email', userEmail);
-        }
-
-        const { data: subRecord } = await query.maybeSingle();
-
-        if (subRecord && isMounted) {
-          const isRedeemedInDb = Boolean(
-            subRecord.activated_at || 
-            subRecord.payment_provider === 'activation_key' || 
-            (subRecord.payment_id && subRecord.payment_id.startsWith('key_'))
-          );
-
-          if (isRedeemedInDb) {
-            setUserKeyRecord((prev) => ({
-              ...prev,
-              key: subRecord.activation_key || prev.key,
-              isUsed: true,
-              usedAt: subRecord.activated_at
-            }));
-
-            useJobStore.setState((prev) => ({
-              userActivationKeys: {
-                ...(prev.userActivationKeys || {}),
-                [userEmail]: {
-                  ...(prev.userActivationKeys?.[userEmail] || {}),
-                  key: subRecord.activation_key || prev.userActivationKeys?.[userEmail]?.key,
-                  isUsed: true,
-                  usedAt: subRecord.activated_at
-                }
-              }
-            }));
-          }
-        }
-      } catch (err) {
-        console.warn("Supabase key status check warning:", err);
-      }
-    };
-
-    syncKeyStatusFromSupabase();
-    return () => { isMounted = false; };
-  }, [user?.id, userEmail]);
+    if (subscription?.keyRedeemed) {
+      setUserKeyRecord((prev) => ({
+        ...prev,
+        key: subscription.activationKey || prev.key,
+        isUsed: true,
+        usedAt: subscription.activatedAt || prev.usedAt
+      }));
+    }
+  }, [subscription?.keyRedeemed, subscription?.activationKey, subscription?.activatedAt]);
 
   const [inputKey, setInputKey] = useState('');
   const [keyRedeemMsg, setKeyRedeemMsg] = useState(null);
@@ -122,10 +80,8 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     setKeyRedeemMsg(null);
     setKeyRedeemError(null);
 
-    if (!redeemActivationKey) return;
-
-    const res = await redeemActivationKey(inputKey, userEmail, user?.id);
-    if (res?.success) {
+    const res = await subscriptionCubit.redeemKey(inputKey);
+    if (res?.ok) {
       setKeyRedeemMsg(res.message);
       setInputKey('');
       if (getOrGenerateUserKey) {
@@ -154,12 +110,16 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await cancelProSubscription(user?.id, user?.email);
-      setSuccessMsg("Subscription downgraded to Free Tier.");
-      setTimeout(() => setSuccessMsg(null), 4000);
+      const res = await subscriptionCubit.cancel();
+      if (res?.ok) {
+        setSuccessMsg("Subscription downgraded to Free Tier.");
+        setTimeout(() => setSuccessMsg(null), 4000);
+      } else {
+        setErrorMsg(res?.error || "Failed to downgrade subscription. Please try again.");
+      }
     } catch (err) {
       console.error("Downgrade failed:", err);
-      setErrorMsg("Failed to downgrade subscription in Supabase. Please try again.");
+      setErrorMsg("Failed to downgrade subscription. Please try again.");
     } finally {
       setIsDowngrading(false);
     }
@@ -186,42 +146,10 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     setErrorMsg(null);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error("Supabase credentials missing. Profile changes saved locally only.");
+      const res = await authCubit.updateProfile({ businessName, phoneNumber });
+      if (!res.ok) {
+        throw new Error(res.error || "An error occurred while updating settings.");
       }
-
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          business_name: businessName,
-          phone_number: phoneNumber
-        });
-
-      if (error) throw error;
-
-      const { data: { user: updatedAuthUser }, error: authError } = await supabase.auth.updateUser({
-        data: {
-          business_name: businessName,
-          phone_number: phoneNumber
-        }
-      });
-
-      if (authError) throw authError;
-
-      onProfileUpdate(updatedAuthUser || {
-        ...user,
-        user_metadata: {
-          ...user.user_metadata,
-          business_name: businessName,
-          phone_number: phoneNumber
-        }
-      });
 
       setSuccessMsg("Business profile successfully updated!");
       setTimeout(() => setSuccessMsg(null), 4000);

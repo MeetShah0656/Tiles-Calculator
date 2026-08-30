@@ -7,7 +7,10 @@ import Dashboard from '@/components/Dashboard.jsx';
 import GraniteMarbleTab from '@/components/GraniteMarbleTab.jsx';
 import QuotaStoneTab from '@/components/QuotaStoneTab.jsx';
 import SettingsTab from '@/components/SettingsTab.jsx';
-import { useJobStore, isValidUUID } from '@/store/store.js';
+import { useJobStore } from '@/store/store.js';
+import { useCubit } from '@/lib/state/Cubit';
+import { authCubit } from '@/lib/state/AuthCubit';
+import { subscriptionCubit } from '@/lib/state/SubscriptionCubit';
 
 class AppErrorBoundary extends Component {
   constructor(props) {
@@ -52,7 +55,8 @@ class AppErrorBoundary extends Component {
 }
 
 function MainApp() {
-  const [user, setUser] = useState(null);
+  const authState = useCubit(authCubit);
+  const user = authState.user;
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [isMounted, setIsMounted] = useState(false);
 
@@ -78,152 +82,17 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    let authListenerObj = null;
-
-    const checkSession = async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey) return;
-
-      try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        const mergeUserProfile = async (authUser) => {
-          if (!authUser) return null;
-          try {
-            const storeState = useJobStore.getState();
-            const userEmail = authUser.email;
-            const defaultKeyRec = storeState.getOrGenerateUserKey(userEmail);
-
-            if (isValidUUID(authUser.id) || authUser.email) {
-              let query = supabase.from('subscriptions').select('*');
-              if (isValidUUID(authUser.id) && authUser.email) {
-                query = query.or(`user_id.eq.${authUser.id},user_email.eq.${authUser.email}`);
-              } else if (isValidUUID(authUser.id)) {
-                query = query.eq('user_id', authUser.id);
-              } else {
-                query = query.eq('user_email', authUser.email);
-              }
-              const { data: subRecord } = await query.maybeSingle();
-
-              if (subRecord) {
-                const isStillValid = subRecord.status === 'active' && (!subRecord.expires_at || new Date(subRecord.expires_at) > new Date());
-                if (isStillValid) {
-                  useJobStore.getState().activateProSubscription({
-                    planName: subRecord.plan_name || 'Tivera Pro',
-                    expiresAt: subRecord.expires_at,
-                    paymentId: subRecord.payment_id,
-                    paymentProvider: subRecord.payment_provider,
-                    activatedAt: subRecord.activated_at
-                  }, true);
-                } else {
-                  useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
-                }
-
-                // Update activation key status from subscriptions table (authoritative DB check)
-                const isKeyRedeemedInDb = Boolean(
-                  subRecord && (
-                    subRecord.activated_at ||
-                    subRecord.payment_provider === 'activation_key' ||
-                    (subRecord.payment_id && subRecord.payment_id.startsWith('key_'))
-                  )
-                );
-
-                if (isKeyRedeemedInDb) {
-                  useJobStore.setState((prev) => ({
-                    userActivationKeys: {
-                      ...(prev.userActivationKeys || {}),
-                      [userEmail]: {
-                        ...(prev.userActivationKeys?.[userEmail] || {}),
-                        key: subRecord.activation_key || prev.userActivationKeys?.[userEmail]?.key || defaultKeyRec?.key,
-                        isUsed: true,
-                        usedAt: subRecord.activated_at
-                      }
-                    }
-                  }));
-                }
-              } else {
-                useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
-              }
-
-              const { data: prof } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', authUser.id)
-                .maybeSingle();
-
-              if (prof) {
-                return {
-                  ...authUser,
-                  user_metadata: {
-                    ...authUser.user_metadata,
-                    business_name: prof.business_name || authUser.user_metadata?.business_name,
-                    phone_number: prof.phone_number || authUser.user_metadata?.phone_number
-                  }
-                };
-              } else {
-                // Create profile record in Supabase (only business and contact info)
-                await supabase.from('profiles').upsert({
-                  id: authUser.id,
-                  business_name: authUser.user_metadata?.business_name || '',
-                  phone_number: authUser.user_metadata?.phone_number || ''
-                });
-              }
-            }
-          } catch (e) {
-            console.error("Failed to merge profile or subscription:", e);
-          }
-          return authUser;
-        };
-        
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData?.session?.user) {
-          const merged = await mergeUserProfile(sessionData.session.user);
-          setUser(merged);
-        }
-
-        const { data: listenerData } = supabase.auth.onAuthStateChange(async (_event, session) => {
-          if (session?.user) {
-            const merged = await mergeUserProfile(session.user);
-            setUser(merged);
-          } else {
-            setUser(null);
-          }
-        });
-
-        authListenerObj = listenerData?.subscription;
-      } catch (err) {
-        console.error("Failed to recover session:", err);
-      }
-    };
-
-    checkSession();
-
-    return () => {
-      if (authListenerObj && typeof authListenerObj.unsubscribe === 'function') {
-        try {
-          authListenerObj.unsubscribe();
-        } catch (e) {
-          console.error("Error unsubscribing auth listener:", e);
-        }
-      }
-    };
+    authCubit.init();
   }, []);
 
-  const handleLogout = async () => {
-    setUser(null);
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey) return;
-
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error("Failed to sign out from Supabase:", err);
+  useEffect(() => {
+    if (user) {
+      subscriptionCubit.init();
     }
+  }, [user?.id]);
+
+  const handleLogout = () => {
+    authCubit.signOut();
   };
 
   if (!isMounted) {
@@ -238,7 +107,7 @@ function MainApp() {
   }
 
   if (!user) {
-    return <AuthScreen onLoginSuccess={setUser} />;
+    return <AuthScreen />;
   }
 
   const renderTabContent = () => {
@@ -250,7 +119,7 @@ function MainApp() {
       case 'quota':
         return <QuotaStoneTab />;
       case 'settings':
-        return <SettingsTab user={user} onProfileUpdate={setUser} />;
+        return <SettingsTab user={user} />;
       default:
         return <Dashboard setCurrentTab={setCurrentTab} user={user} />;
     }

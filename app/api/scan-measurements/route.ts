@@ -7,7 +7,6 @@ import { deleteFromCloud } from '@/lib/storage/storageManager';
 
 const RequestSchema = z.object({
   fileId: z.string().optional(),
-  url: z.string().optional(),
   provider: z.enum(['supabase', 'cloudinary', 'local']).optional(),
   image: z.string().optional(),
   mimeType: z.string().optional()
@@ -47,24 +46,13 @@ export async function POST(request: NextRequest) {
       const body = await request.json();
       const parsed = RequestSchema.safeParse(body);
       if (parsed.success) {
-        const { fileId, url, provider, image, mimeType } = parsed.data;
+        const { fileId, provider, image, mimeType } = parsed.data;
         if (mimeType) detectedMimeType = mimeType;
 
         if (fileId) {
           fileIdToDelete = fileId;
           providerToDelete = provider || null;
           tempFilePath = path.join(os.tmpdir(), fileId);
-        }
-
-        if (url) {
-          try {
-            const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-            if (res.ok) {
-              imageBuffer = Buffer.from(await res.arrayBuffer());
-            }
-          } catch (e) {
-            console.warn("Cloud URL fetch failed:", e);
-          }
         }
 
         if (!imageBuffer && tempFilePath && fs.existsSync(tempFilePath)) {
@@ -88,6 +76,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "No image file provided for scanning." },
         { status: 400 }
+      );
+    }
+
+    const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
+    if (imageBuffer.length > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Image is too large (max 10MB)." },
+        { status: 413 }
       );
     }
 
