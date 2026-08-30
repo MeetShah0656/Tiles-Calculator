@@ -189,7 +189,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
             UPGRADE TO TIVERA PRO
           </h2>
           <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-1">
-            Unlock unlimited paper note scanning, printing & WhatsApp PDF invoices.
+            Unlock unlimited measurement entries & commercial project capacity.
           </p>
         </div>
 
@@ -278,8 +278,8 @@ export default function UpgradeProModal({ isOpen, onClose }) {
                 <Check size={12} />
               </div>
               <div>
-                <span className="font-black text-[#0a0a0a] uppercase tracking-wider">Unlimited Paper Note Scanning</span>
-                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">Parse full paper measurement sheets instantly.</p>
+                <span className="font-black text-[#0a0a0a] uppercase tracking-wider">Unlimited Measurement Entries</span>
+                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">Free Plan is capped at 5 entries total. Upgrade to add unlimited measurement rows.</p>
               </div>
             </div>
 
@@ -288,8 +288,8 @@ export default function UpgradeProModal({ isOpen, onClose }) {
                 <Check size={12} />
               </div>
               <div>
-                <span className="font-black text-[#0a0a0a] uppercase tracking-wider">Unlimited Measurement Rows</span>
-                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">Add as many rows as needed for commercial jobs.</p>
+                <span className="font-black text-[#0a0a0a] uppercase tracking-wider">Paper Sheet Scanner</span>
+                <p className="text-[10px] text-[#6b6863] font-bold uppercase tracking-wider">Scan paper measurement notes and import extracted dimensions.</p>
               </div>
             </div>
 

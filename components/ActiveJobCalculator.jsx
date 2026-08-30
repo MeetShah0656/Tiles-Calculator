@@ -62,7 +62,7 @@ export default function ActiveJobCalculator({
   };
 
   const handleOpenScanner = (tileId) => {
-    if (!isPro) {
+    if (!isPro && totalRowsCount >= 5) {
       setIsUpgradeModalOpen(true);
       return;
     }
@@ -83,10 +83,6 @@ export default function ActiveJobCalculator({
   const [scanningTileId, setScanningTileId] = useState(null);
 
   const handlePrint = () => {
-    if (!isPro) {
-      setIsUpgradeModalOpen(true);
-      return;
-    }
     window.print();
   };
 
@@ -127,11 +123,6 @@ export default function ActiveJobCalculator({
   };
 
   const handleWhatsAppShare = async () => {
-    if (!isPro) {
-      setIsUpgradeModalOpen(true);
-      return;
-    }
-
     setIsShareModalOpen(true);
     setShareStatus('generating');
     setShareError('');
@@ -226,25 +217,17 @@ export default function ActiveJobCalculator({
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
           <button
             onClick={handlePrint}
-            className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 border font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer ${
-              isPro 
-                ? 'bg-white border-black hover:bg-[#e8e6e1] text-[#0a0a0a]'
-                : 'bg-[#e8e6e1] border-[#d4d1ca] text-[#6b6863] hover:border-black'
-            }`}
+            className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 border font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer bg-white border-black hover:bg-[#e8e6e1] text-[#0a0a0a]"
           >
-            {isPro ? <Printer size={16} /> : <Lock size={14} className="text-[#6b6863]" />}
+            <Printer size={16} />
             <span>PRINT</span>
           </button>
 
           <button
             onClick={handleWhatsAppShare}
-            className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer border border-black ${
-              isPro
-                ? 'bg-[#0a0a0a] hover:bg-neutral-800 text-white'
-                : 'bg-neutral-800 text-neutral-300 hover:bg-[#0a0a0a]'
-            }`}
+            className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 font-black text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all cursor-pointer border border-black bg-[#0a0a0a] hover:bg-neutral-800 text-white"
           >
-            {isPro ? <Share2 size={16} /> : <Lock size={14} className="text-neutral-400" />}
+            <Share2 size={16} />
             <span>WHATSAPP</span>
           </button>
         </div>
@@ -577,13 +560,9 @@ export default function ActiveJobCalculator({
                     </button>
                     <button
                       onClick={() => handleOpenScanner(tile.id)}
-                      className={`flex items-center justify-center space-x-1 px-3 py-2 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest ${
-                        isPro 
-                          ? 'bg-[#0a0a0a] text-white border-black hover:bg-neutral-800' 
-                          : 'bg-[#e8e6e1] text-[#6b6863] border-[#d4d1ca] hover:border-black'
-                      }`}
+                      className="flex items-center justify-center space-x-1 px-3 py-2 border text-xs font-black transition-all cursor-pointer uppercase tracking-widest bg-[#0a0a0a] text-white border-black hover:bg-neutral-800"
                     >
-                      {isPro ? <Camera size={12} className="text-white" /> : <Lock size={12} className="text-[#6b6863]" />}
+                      <Camera size={12} className="text-white" />
                       <span>SCAN PAPER SHEET</span>
                     </button>
                   </div>
