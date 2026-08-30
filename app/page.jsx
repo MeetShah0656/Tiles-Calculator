@@ -114,6 +114,7 @@ function MainApp() {
                     planName: subRecord.plan_name || 'Tivera Pro',
                     expiresAt: subRecord.expires_at,
                     paymentId: subRecord.payment_id,
+                    paymentProvider: subRecord.payment_provider,
                     activatedAt: subRecord.activated_at
                   }, true);
                 } else {

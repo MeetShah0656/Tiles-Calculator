@@ -98,6 +98,7 @@ export default function UpgradeProModal({ isOpen, onClose }) {
                 planName: verifyData.planName || (selectedPlan === 'monthly' ? 'TIVERA PRO (Monthly)' : 'TIVERA PRO (Yearly)'),
                 expiresAt: verifyData.expiresAt,
                 paymentId: response.razorpay_payment_id || verifyData.paymentId,
+                paymentProvider: 'razorpay',
                 orderId: response.razorpay_order_id
               });
               setKeySuccess("TIVERA PRO Subscription activated successfully!");

@@ -17,6 +17,10 @@ export default function SettingsTab({ user, onProfileUpdate }) {
   const jobs = useJobStore((state) => state.jobs);
   const subscription = useJobStore((state) => state.subscription || { isPro: false, planName: 'Free' });
   const isPro = subscription?.isPro || false;
+  const isRazorpaySubscription = isPro && (
+    subscription?.paymentProvider === 'razorpay' ||
+    (subscription?.paymentId && (subscription.paymentId.startsWith('pay_') || subscription.paymentId.startsWith('razorpay_')))
+  );
   const cancelProSubscription = useJobStore((state) => state.cancelProSubscription);
 
   const getOrGenerateUserKey = useJobStore((state) => state.getOrGenerateUserKey);
@@ -294,6 +298,11 @@ export default function SettingsTab({ user, onProfileUpdate }) {
                   <CreditCard size={14} />
                   <span>UPGRADE TO PRO</span>
                 </button>
+              ) : isRazorpaySubscription ? (
+                <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  <span>RAZORPAY VERIFIED PLAN</span>
+                </div>
               ) : (
                 <button
                   type="button"

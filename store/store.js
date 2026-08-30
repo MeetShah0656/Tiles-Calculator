@@ -557,6 +557,7 @@ export const useJobStore = create(
             planName,
             expiresAt,
             paymentId: isMasterKey ? 'key_master_unlimited' : `key_redeem_${cleanInput}`,
+            paymentProvider: 'activation_key',
             activatedAt: usedAt
           },
           userActivationKeys: {
@@ -616,12 +617,16 @@ export const useJobStore = create(
         const activatedAt = details.activatedAt || new Date().toISOString();
         const planName = details.planName || 'Tivera Pro';
 
+        const paymentId = details.paymentId || 'pay_razorpay_success';
+        const paymentProvider = details.paymentProvider || (paymentId?.startsWith('key_') ? 'activation_key' : 'razorpay');
+
         set({
           subscription: {
             isPro: true,
             planName,
             expiresAt,
-            paymentId: details.paymentId || 'pay_razorpay_success',
+            paymentId,
+            paymentProvider,
             activatedAt
           }
         });
