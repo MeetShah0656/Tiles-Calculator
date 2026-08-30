@@ -120,13 +120,22 @@ function MainApp() {
                   useJobStore.getState().cancelProSubscription(authUser.id, authUser.email, true);
                 }
 
-                // Update activation key status from subscriptions table if active
-                if (subRecord.status === 'active' && subRecord.payment_provider === 'activation_key' && subRecord.activation_key) {
+                // Update activation key status from subscriptions table (authoritative DB check)
+                const isKeyRedeemedInDb = Boolean(
+                  subRecord && (
+                    subRecord.activated_at ||
+                    subRecord.payment_provider === 'activation_key' ||
+                    (subRecord.payment_id && subRecord.payment_id.startsWith('key_'))
+                  )
+                );
+
+                if (isKeyRedeemedInDb) {
                   useJobStore.setState((prev) => ({
                     userActivationKeys: {
                       ...(prev.userActivationKeys || {}),
                       [userEmail]: {
-                        key: subRecord.activation_key,
+                        ...(prev.userActivationKeys?.[userEmail] || {}),
+                        key: subRecord.activation_key || prev.userActivationKeys?.[userEmail]?.key || defaultKeyRec?.key,
                         isUsed: true,
                         usedAt: subRecord.activated_at
                       }

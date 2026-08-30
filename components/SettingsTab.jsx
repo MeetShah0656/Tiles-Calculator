@@ -38,6 +38,64 @@ export default function SettingsTab({ user, onProfileUpdate }) {
     }
   }, [userEmail, getOrGenerateUserKey]);
 
+  // Authoritative check against Supabase Database (not cookies/local storage)
+  useEffect(() => {
+    let isMounted = true;
+    const syncKeyStatusFromSupabase = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || !userEmail) return;
+
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let query = supabase.from('subscriptions').select('*');
+        if (user?.id) {
+          query = query.or(`user_id.eq.${user.id},user_email.eq.${userEmail}`);
+        } else {
+          query = query.eq('user_email', userEmail);
+        }
+
+        const { data: subRecord } = await query.maybeSingle();
+
+        if (subRecord && isMounted) {
+          const isRedeemedInDb = Boolean(
+            subRecord.activated_at || 
+            subRecord.payment_provider === 'activation_key' || 
+            (subRecord.payment_id && subRecord.payment_id.startsWith('key_'))
+          );
+
+          if (isRedeemedInDb) {
+            setUserKeyRecord((prev) => ({
+              ...prev,
+              key: subRecord.activation_key || prev.key,
+              isUsed: true,
+              usedAt: subRecord.activated_at
+            }));
+
+            useJobStore.setState((prev) => ({
+              userActivationKeys: {
+                ...(prev.userActivationKeys || {}),
+                [userEmail]: {
+                  ...(prev.userActivationKeys?.[userEmail] || {}),
+                  key: subRecord.activation_key || prev.userActivationKeys?.[userEmail]?.key,
+                  isUsed: true,
+                  usedAt: subRecord.activated_at
+                }
+              }
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Supabase key status check warning:", err);
+      }
+    };
+
+    syncKeyStatusFromSupabase();
+    return () => { isMounted = false; };
+  }, [user?.id, userEmail]);
+
   const [inputKey, setInputKey] = useState('');
   const [keyRedeemMsg, setKeyRedeemMsg] = useState(null);
   const [keyRedeemError, setKeyRedeemError] = useState(null);

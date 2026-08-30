@@ -690,8 +690,6 @@ export const useJobStore = create(
             const payload = {
               plan_name: 'Free Tier',
               status: 'canceled',
-              payment_provider: 'manual',
-              payment_id: null,
               expires_at: nowIso,
               updated_at: nowIso
             };
